@@ -27,7 +27,10 @@ const (
 	ACTION_PLOP_SPLITTER    = ActionType(iota)
 	ACTION_PLOP_UNDERGROUND = ActionType(iota)
 
-	ACTION_PLOP_INSERTER = ActionType(iota)
+	ACTION_PLOP_INSERTER        = ActionType(iota)
+	ACTION_PLOP_CHESTBOX_SMALL  = ActionType(iota)
+	ACTION_PLOP_CHESTBOX_MEDIUM = ActionType(iota)
+	ACTION_PLOP_CHESTBOX_LARGE  = ActionType(iota)
 
 	ACTION_COUNT = ActionType(iota)
 )

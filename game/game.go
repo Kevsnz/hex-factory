@@ -79,11 +79,11 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 			break
 		}
 
+		hex := utils.HexCoordFromWorld(g.mousePos)
 		switch actionEvent.Type {
 		case input.ACTION_TYPE_DOWN:
 			switch actionEvent.Action {
 			case input.ACTION_PLACE_ITEM:
-				hex := utils.HexCoordFromWorld(g.mousePos)
 				itemTaker, ok := g.GetItemInputAt(hex)
 				if !ok {
 					break
@@ -91,7 +91,6 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 				item := items.NewItemInWorld2(ss.ITEM_TYPE_IRON_PLATE, g.mousePos)
 				_ = itemTaker.TakeItemIn(g.mousePos, item)
 			case input.ACTION_ROTATE_CW:
-				hex := utils.HexCoordFromWorld(g.mousePos)
 				if t, ok := g.worldObjects[hex]; ok {
 					if obj, ok := t.(DirectionalObject); ok {
 						g.rotateObject(obj, true)
@@ -100,7 +99,6 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 				}
 				g.selectedDir = g.selectedDir.NextCW()
 			case input.ACTION_ROTATE_CCW:
-				hex := utils.HexCoordFromWorld(g.mousePos)
 				if t, ok := g.worldObjects[hex]; ok {
 					if obj, ok := t.(DirectionalObject); ok {
 						g.rotateObject(obj, false)
@@ -109,14 +107,12 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 				}
 				g.selectedDir = g.selectedDir.NextCCW()
 			case input.ACTION_PLOP_SPLITTER:
-				hex := utils.HexCoordFromWorld(g.mousePos)
 				if _, ok := g.worldObjects[hex]; ok {
 					break
 				}
 				bs := objects.NewBeltSplitter(hex, g.selectedDir, ss.BELT_SPEED_TICK)
 				g.worldObjects[hex] = bs
 			case input.ACTION_PLOP_UNDERGROUND:
-				hex := utils.HexCoordFromWorld(g.mousePos)
 				if _, ok := g.worldObjects[hex]; ok {
 					break
 				}
@@ -140,11 +136,28 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 					newBelt.JoinUnder(bu)
 				}
 			case input.ACTION_PLOP_INSERTER:
-				hex := utils.HexCoordFromWorld(g.mousePos)
 				if _, ok := g.worldObjects[hex]; ok {
 					break
 				}
 				ins := objects.NewInserter(hex, g.selectedDir, ss.INSERTER_SPEED_TICK)
+				g.worldObjects[hex] = ins
+			case input.ACTION_PLOP_CHESTBOX_SMALL:
+				if _, ok := g.worldObjects[hex]; ok {
+					break
+				}
+				ins := objects.NewChestBox(hex, ss.CHESTBOX_CAPACITY_SMALL)
+				g.worldObjects[hex] = ins
+			case input.ACTION_PLOP_CHESTBOX_MEDIUM:
+				if _, ok := g.worldObjects[hex]; ok {
+					break
+				}
+				ins := objects.NewChestBox(hex, ss.CHESTBOX_CAPACITY_MEDIUM)
+				g.worldObjects[hex] = ins
+			case input.ACTION_PLOP_CHESTBOX_LARGE:
+				if _, ok := g.worldObjects[hex]; ok {
+					break
+				}
+				ins := objects.NewChestBox(hex, ss.CHESTBOX_CAPACITY_LARGE)
 				g.worldObjects[hex] = ins
 			}
 		case input.ACTION_TYPE_UP:
@@ -313,6 +326,8 @@ func (g *Game) placeConnectBelts(coord1, coord2 utils.HexCoord) {
 		if belt1, ok = t.(objects.BeltLike); !ok {
 			return
 		}
+	} else {
+		return
 	}
 
 	if t, ok := g.worldObjects[coord2]; ok {

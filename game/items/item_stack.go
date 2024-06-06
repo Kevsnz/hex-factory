@@ -20,27 +20,10 @@ func NewSingleItemStack(itemType settings.ItemType) ItemStack {
 	return NewItemStack(itemType, 1)
 }
 
-func (i *ItemStack) Split() (ItemStack, bool) {
-	if i.Count < 2 {
-		return ItemStack{}, false
+func (i *ItemStack) AddOne() bool {
+	if i.Count == settings.StackMaxSizes[i.ItemType] {
+		return false
 	}
-
-	outCount := i.Count / 2
-	i.Count -= outCount
-	return NewItemStack(i.ItemType, outCount), true
-}
-
-func (i *ItemStack) TakeOne(i2 *ItemStack) (*ItemStack, bool) {
-	if i.Count < 2 {
-		return nil, false
-	}
-	i.Count--
-
-	if i2 == nil {
-		i22 := NewSingleItemStack(i.ItemType)
-		return &i22, true
-	}
-
-	i2.Count++
-	return i2, true
+	i.Count++
+	return true
 }

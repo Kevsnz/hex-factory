@@ -79,7 +79,7 @@ func (i *Inserter) Update(ticks uint64, world HexGridWorldInteractor) {
 }
 
 func (i *Inserter) DrawGroundLevel(r *renderer.GameRenderer) {
-	r.DrawStructure(i.pos, i.inserterType, i.dir)
+	r.DrawStructureGround(i.pos, i.inserterType)
 }
 
 func (i *Inserter) DrawOnGroundLevel(r *renderer.GameRenderer) {

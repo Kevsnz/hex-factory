@@ -50,6 +50,9 @@ func main() {
 	ih.SetKeybind(sdl.SCANCODE_SLASH, input.ACTION_PLOP_SPLITTER)
 	ih.SetKeybind(sdl.SCANCODE_U, input.ACTION_PLOP_UNDERGROUND)
 	ih.SetKeybind(sdl.SCANCODE_I, input.ACTION_PLOP_INSERTER)
+	ih.SetKeybind(sdl.SCANCODE_C, input.ACTION_PLOP_CHESTBOX_SMALL)
+	ih.SetKeybind(sdl.SCANCODE_V, input.ACTION_PLOP_CHESTBOX_MEDIUM)
+	ih.SetKeybind(sdl.SCANCODE_B, input.ACTION_PLOP_CHESTBOX_LARGE)
 
 	frameTime := 0.0
 	tickTime := 0.0

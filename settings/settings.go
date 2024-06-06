@@ -53,3 +53,7 @@ const TEXTURE_CACHE_DIR = "resources/cache/"
 const TEXTURE_DIR = "resources/"
 const TEXTURE_CACHE_EXT = ".tex"
 const TEXTURE_SOURCE_EXT = ".png"
+
+const CHESTBOX_CAPACITY_SMALL = 8
+const CHESTBOX_CAPACITY_MEDIUM = 16
+const CHESTBOX_CAPACITY_LARGE = 32

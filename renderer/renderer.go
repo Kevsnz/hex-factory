@@ -93,6 +93,9 @@ var structureGroundMapping = [ss.STRUCTURE_TYPE_COUNT]StructureTypeFlip{
 	ss.STRUCTURE_TYPE_INSERTER_UPRIGHT:   {ss.STRUCTURE_TYPE_INSERTER_DOWNRIGHT, sdl.FLIP_VERTICAL},
 	ss.STRUCTURE_TYPE_INSERTER_DOWNLEFT:  {ss.STRUCTURE_TYPE_INSERTER_DOWNRIGHT, sdl.FLIP_HORIZONTAL},
 	ss.STRUCTURE_TYPE_INSERTER_UPLEFT:    {ss.STRUCTURE_TYPE_INSERTER_DOWNRIGHT, sdl.FLIP_HORIZONTAL | sdl.FLIP_VERTICAL},
+	ss.STRUCTURE_TYPE_CHESHBOX_SMALL:     {ss.STRUCTURE_TYPE_CHESHBOX_SMALL, sdl.FLIP_NONE},
+	ss.STRUCTURE_TYPE_CHESHBOX_MEDIUM:    {ss.STRUCTURE_TYPE_CHESHBOX_MEDIUM, sdl.FLIP_NONE},
+	ss.STRUCTURE_TYPE_CHESHBOX_LARGE:     {ss.STRUCTURE_TYPE_CHESHBOX_LARGE, sdl.FLIP_NONE},
 }
 
 type GameRenderer struct {
@@ -309,7 +312,7 @@ func (r *GameRenderer) DrawBeltOnGround(hex utils.HexCoord, beltType ss.BeltType
 	}, 0, nil, typeFlip.flip)
 }
 
-func (r *GameRenderer) DrawStructure(hex utils.HexCoord, structureType ss.StructureType, dir utils.Dir) {
+func (r *GameRenderer) DrawStructureGround(hex utils.HexCoord, structureType ss.StructureType) {
 	cx, cy := hexCenterToScreen(hex, r.Viewport)
 	if !isOnScreenRadius(cx, cy, r.Viewport.GetZoomedDimension(ss.BELT_DRAW_R)) {
 		return
@@ -318,7 +321,7 @@ func (r *GameRenderer) DrawStructure(hex utils.HexCoord, structureType ss.Struct
 
 	tex := r.structureGroundTextures[typeFlip.type1]
 	if tex == nil {
-		panic(fmt.Sprintf("no texture for belt type %d", typeFlip.type1))
+		panic(fmt.Sprintf("no texture for structure type %d", typeFlip.type1))
 	}
 	e := r.Viewport.GetHexEdge()
 	r.renderer.CopyExF(tex, nil, &sdl.FRect{
@@ -551,16 +554,15 @@ func (r *GameRenderer) LoadBeltTextures() {
 }
 
 func (r *GameRenderer) LoadItemTextures() {
-	r.LoadItemTexture(ss.ITEM_TYPE_IRON_PLATE, "iron_plate")
+	r.itemTextures[ss.ITEM_TYPE_IRON_PLATE] = r.loadCachedTexture("items/iron_plate")
 }
 
 func (r *GameRenderer) LoadStructureGroundTextures() {
 	r.structureGroundTextures[ss.STRUCTURE_TYPE_INSERTER_RIGHT] = r.loadCachedTexture("inserter/base_r")
 	r.structureGroundTextures[ss.STRUCTURE_TYPE_INSERTER_DOWNRIGHT] = r.loadCachedTexture("inserter/base_br")
-}
-
-func (r *GameRenderer) LoadItemTexture(itemType ss.ItemType, filename string) {
-	r.itemTextures[itemType] = r.loadCachedTexture(filename)
+	r.structureGroundTextures[ss.STRUCTURE_TYPE_CHESHBOX_SMALL] = r.loadCachedTexture("chests/chest_small")
+	r.structureGroundTextures[ss.STRUCTURE_TYPE_CHESHBOX_MEDIUM] = r.loadCachedTexture("chests/chest_medium")
+	r.structureGroundTextures[ss.STRUCTURE_TYPE_CHESHBOX_LARGE] = r.loadCachedTexture("chests/chest_large")
 }
 
 func (r *GameRenderer) LoadBeltTexture(beltType ss.BeltType, filename string) {
