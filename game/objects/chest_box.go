@@ -4,6 +4,7 @@ import (
 	"hextopdown/game/items"
 	"hextopdown/renderer"
 	"hextopdown/settings"
+	"hextopdown/settings/strings"
 	"hextopdown/utils"
 )
 
@@ -19,6 +20,18 @@ func NewChestBox(pos utils.HexCoord, capacity int) *ChestBox {
 		Capacity: capacity,
 		slots:    make([]*items.ItemStack, capacity),
 	}
+}
+
+func (cb *ChestBox) GetNameString() strings.StringID {
+	switch cb.Capacity {
+	case settings.CHESTBOX_CAPACITY_SMALL:
+		return strings.STRING_OBJECT_CHESTBOX_SMALL
+	case settings.CHESTBOX_CAPACITY_MEDIUM:
+		return strings.STRING_OBJECT_CHESTBOX_MEDIUM
+	case settings.CHESTBOX_CAPACITY_LARGE:
+		return strings.STRING_OBJECT_CHESTBOX_LARGE
+	}
+	return strings.STRING_OBJECT_UNKNOWN
 }
 
 func (cb *ChestBox) GetPos() utils.HexCoord {
@@ -75,4 +88,26 @@ func (cb *ChestBox) TakeItemIn(pos utils.WorldCoord, item items.ItemInWorld) (ok
 	stack := items.NewSingleItemStack(item.ItemType)
 	cb.slots[emptyIdx] = &stack
 	return true
+}
+
+func (cb *ChestBox) GetItemList() []utils.ItemInfo {
+	var info []utils.ItemInfo
+outer:
+	for _, stack := range cb.slots {
+		if stack == nil {
+			continue
+		}
+
+		for j, inf := range info {
+			if inf.Type == stack.ItemType {
+				info[j].Count++
+				continue outer
+			}
+		}
+		info = append(info, utils.ItemInfo{
+			Type:  stack.ItemType,
+			Count: stack.Count,
+		})
+	}
+	return info
 }

@@ -1,5 +1,7 @@
 package settings
 
+import "hextopdown/settings/strings"
+
 type ItemType uint32
 
 const (
@@ -8,5 +10,9 @@ const (
 )
 
 var StackMaxSizes = [ITEM_TYPE_COUNT]int{
-	ITEM_TYPE_IRON_PLATE: 4,
+	ITEM_TYPE_IRON_PLATE: 64,
+}
+
+var TypeStrings = [ITEM_TYPE_COUNT]strings.StringID{
+	ITEM_TYPE_IRON_PLATE: strings.STRING_ITEM_IRON_PLATE,
 }

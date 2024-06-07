@@ -4,6 +4,7 @@ import (
 	"hextopdown/game/items"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
+	"hextopdown/settings/strings"
 	"hextopdown/utils"
 	"math"
 )
@@ -34,6 +35,10 @@ func NewInserter(pos utils.HexCoord, dir utils.Dir, speed float64) *Inserter {
 		inserterType: typeMapping[dir],
 		armAngle:     math.Pi / 2,
 	}
+}
+
+func (i *Inserter) GetNameString() strings.StringID {
+	return strings.STRING_OBJECT_INSERTER
 }
 
 func (i *Inserter) GetPos() utils.HexCoord {

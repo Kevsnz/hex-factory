@@ -1,9 +1,8 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 
 	"hextopdown/game"
 	"hextopdown/input"
@@ -19,6 +18,11 @@ func main() {
 		panic(err)
 	}
 	defer sdl.Quit()
+
+	err = ttf.Init()
+	if err != nil {
+		panic(err)
+	}
 
 	window, err := sdl.CreateWindow("Hex Top Down World!", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
 		renderer.RES_X, renderer.RES_Y, 0)
@@ -92,6 +96,7 @@ gameloop:
 
 		r.StartNewFrame(currentTicks)
 		gameState.Draw(r)
+		r.DrawFpsTps(1000.0/frameTime, 1000.0/tickTime, 0.01, 0.01)
 		r.Finish()
 
 		nextTicks := sdl.GetTicks64()
@@ -102,7 +107,6 @@ gameloop:
 
 		frameTime = frameTime*0.9 + 0.1*float64(nextTicks-currentTicks)
 		tickTime = tickTime*0.9 + 0.1*float64(gameState.TickTime)
-		window.SetTitle(fmt.Sprintf("Hex Top Down World! FPS: %.0f, TPS: %.1f", 1000.0/frameTime, 1000.0/tickTime))
 
 		lastTicks = currentTicks
 		currentTicks = nextTicks

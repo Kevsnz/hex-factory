@@ -8,10 +8,12 @@ import (
 	"path"
 
 	ss "hextopdown/settings"
+	"hextopdown/settings/strings"
 	"hextopdown/utils"
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 const (
@@ -100,12 +102,14 @@ var structureGroundMapping = [ss.STRUCTURE_TYPE_COUNT]StructureTypeFlip{
 
 type GameRenderer struct {
 	renderer                *sdl.Renderer
+	stringManager           *StringManager
+	font                    *ttf.Font
 	Viewport                *utils.Viewport
 	beltTextures            [ss.BELT_TYPE_COUNT]*sdl.Texture
 	beltAnimationTextures   [ss.BELT_TYPE_COUNT]*sdl.Texture
 	beltOnGroundTextures    [ss.BELT_ON_COUNT]*sdl.Texture
 	structureGroundTextures [ss.STRUCTURE_TYPE_COUNT]*sdl.Texture
-	itemTextures            map[ss.ItemType]*sdl.Texture // TODO Change to array
+	itemTextures            [ss.ITEM_TYPE_COUNT]*sdl.Texture
 	arrowTextures           [2]*sdl.Texture
 	timeMs                  uint64
 }
@@ -116,10 +120,18 @@ func NewGameRenderer(window *sdl.Window, view utils.WorldCoord) *GameRenderer {
 		panic(err)
 	}
 
+	font, err := ttf.OpenFont(path.Join("resources", "Roboto-Regular.ttf"), 20)
+	if err != nil {
+		panic(err)
+	}
+	sm := NewStringManager()
+	sm.Prerender(renderer)
+
 	return &GameRenderer{
-		renderer:     renderer,
-		Viewport:     utils.NewViewport(view, 1.0),
-		itemTextures: make(map[ss.ItemType]*sdl.Texture, ss.ITEM_TYPE_COUNT),
+		renderer:      renderer,
+		stringManager: sm,
+		font:          font,
+		Viewport:      utils.NewViewport(view, 1.0),
 	}
 }
 
@@ -139,6 +151,8 @@ func (r *GameRenderer) Destroy() {
 	for _, tex := range r.arrowTextures {
 		tex.Destroy()
 	}
+	r.font.Close()
+	r.stringManager.Destroy()
 	r.renderer.Destroy()
 }
 
@@ -340,8 +354,8 @@ func (r *GameRenderer) DrawItem(pos utils.WorldCoordInterpolated, itemType ss.It
 		return
 	}
 
-	tex, ok := r.itemTextures[itemType]
-	if !ok {
+	tex := r.itemTextures[itemType]
+	if tex == nil {
 		r.renderer.SetDrawColor(255, 0, 255, 255)
 		r.renderer.FillRectF(&sdl.FRect{X: sx - idr, Y: sy - idr, W: 2 * idr, H: 2 * idr})
 		return
@@ -680,4 +694,83 @@ func writeToCache(surface *sdl.Surface, cachedPath string) error {
 	binary.Write(fp, binary.LittleEndian, surface.Format.Format)
 	fp.Write(surface.Pixels())
 	return nil
+}
+
+// func (r *GameRenderer) DrawText(text string, x, y int32, color sdl.Color) {
+// 	surface, err := r.font.RenderUTF8Blended(text, color)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	defer surface.Free()
+// 	texture, err := r.renderer.CreateTextureFromSurface(surface)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	defer texture.Destroy()
+// 	r.renderer.Copy(texture, nil, &sdl.Rect{X: x, Y: y, W: surface.W, H: surface.H})
+// }
+
+func (r *GameRenderer) DrawString(stringID strings.StringID, pctX, pctY float32) {
+	x, y := pctX*RES_X, pctY*RES_Y
+	r.stringManager.Render(r.renderer, stringID, x, y)
+}
+
+func (r *GameRenderer) DrawWorldCoords(coord utils.WorldCoord, precision int, pctX, pctY float32) {
+	x, y := pctX*RES_X, pctY*RES_Y
+	x = r.stringManager.RenderFloat(r.renderer, coord.X, precision, x, y)
+	x = r.stringManager.Render(r.renderer, strings.STRING_COMMASPACE, x, y)
+	r.stringManager.RenderFloat(r.renderer, coord.Y, precision, x, y)
+}
+func (r *GameRenderer) DrawHexCoords(hex utils.HexCoord, pctX, pctY float32) {
+	x, y := pctX*RES_X, pctY*RES_Y
+	x = r.stringManager.RenderInt(r.renderer, int(hex.X), 1, x, y)
+	x = r.stringManager.Render(r.renderer, strings.STRING_COMMASPACE, x, y)
+	r.stringManager.RenderInt(r.renderer, int(hex.Y), 1, x, y)
+}
+
+func (r *GameRenderer) DrawFpsTps(fps, tps float64, pctX, pctY float32) {
+	x, y := pctX*RES_X, pctY*RES_Y
+	x = r.stringManager.Render(r.renderer, strings.STRING_FPS, x, y)
+	x = r.stringManager.RenderFloat(r.renderer, fps, 1, x, y)
+
+	x = r.stringManager.Render(r.renderer, strings.STRING_SPACE, x, y)
+
+	x = r.stringManager.Render(r.renderer, strings.STRING_TPS, x, y)
+	r.stringManager.RenderFloat(r.renderer, tps, 1, x, y)
+}
+
+func (r *GameRenderer) DrawPlayerCoords(coord utils.WorldCoord, pctX, pctY float32) {
+	x, y := pctX*RES_X, pctY*RES_Y
+	x = r.stringManager.Render(r.renderer, strings.STRING_PLAYER_COORDS, x, y)
+
+	x = r.stringManager.RenderFloat(r.renderer, coord.X, 2, x, y)
+	x = r.stringManager.Render(r.renderer, strings.STRING_COMMASPACE, x, y)
+	r.stringManager.RenderFloat(r.renderer, coord.Y, 2, x, y)
+}
+
+func (r *GameRenderer) DrawObjectDetails(
+	name strings.StringID, hex utils.HexCoord, items []utils.ItemInfo, pctX, pctY float32,
+) {
+	x, y := pctX*RES_X, pctY*RES_Y
+
+	r.stringManager.Render(r.renderer, name, x, y)
+	y += 22
+
+	x2 := r.stringManager.RenderInt(r.renderer, int(hex.X), 1, x, y)
+	x2 = r.stringManager.Render(r.renderer, strings.STRING_COMMASPACE, x2, y)
+	r.stringManager.RenderInt(r.renderer, int(hex.Y), 1, x2, y)
+	y += 22
+
+	for _, itemInfo := range items {
+		tex := r.itemTextures[itemInfo.Type]
+		if tex == nil {
+			r.renderer.SetDrawColor(255, 0, 255, 255)
+			r.renderer.FillRectF(&sdl.FRect{X: x, Y: y, W: 25, H: 25})
+			return
+		}
+		r.renderer.CopyF(tex, nil, &sdl.FRect{X: x, Y: y, W: 25, H: 25})
+
+		r.stringManager.RenderInt(r.renderer, itemInfo.Count, 1, x+15, y+10)
+		x += 30
+	}
 }

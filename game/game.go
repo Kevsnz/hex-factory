@@ -299,6 +299,19 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 
 	r.DrawViewTarget(g.Pos)
 	r.DrawArrow(0.9, 0.025, g.selectedDir)
+	r.DrawPlayerCoords(g.Pos, 0.01, 0.03)
+
+	hex := utils.HexCoordFromWorld(g.mousePos)
+
+	if obj, ok := g.worldObjects[hex]; ok {
+		var items []utils.ItemInfo
+		if obj, ok := obj.(ItemHolder); ok {
+			items = obj.GetItemList()
+		}
+		r.DrawObjectDetails(obj.GetNameString(), hex, items, 0.01, 0.90)
+	} else {
+		r.DrawHexCoords(hex, 0.01, 0.96)
+	}
 }
 
 func (g *Game) placeBelt(hex utils.HexCoord, dir utils.Dir) *objects.Belt {

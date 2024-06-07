@@ -4,6 +4,7 @@ import (
 	"hextopdown/game/items"
 	"hextopdown/renderer"
 	"hextopdown/settings"
+	"hextopdown/settings/strings"
 	"hextopdown/utils"
 )
 
@@ -66,6 +67,10 @@ func newInConn(pos utils.HexCoord, dir utils.Dir, speed float64) *BeltConnection
 	conn.LaneLeft.End = 0.5 + settings.ITEM_DW/2
 	conn.LaneRight.End = 0.5 + settings.ITEM_DW/2
 	return conn
+}
+
+func (b *BeltSplitter) GetNameString() strings.StringID {
+	return strings.STRING_OBJECT_BELT_SPLITTER
 }
 
 func (b *BeltSplitter) GetPos() utils.HexCoord {

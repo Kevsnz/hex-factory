@@ -3,10 +3,12 @@ package game
 import (
 	"hextopdown/game/objects"
 	"hextopdown/renderer"
+	"hextopdown/settings/strings"
 	"hextopdown/utils"
 )
 
 type WorldObject interface {
+	GetNameString() strings.StringID
 	GetPos() utils.HexCoord
 	DrawGroundLevel(r *renderer.GameRenderer)
 	DrawOnGroundLevel(r *renderer.GameRenderer)
@@ -26,4 +28,8 @@ type ItemMover interface {
 }
 type ItemDrawer interface {
 	DrawItems(r *renderer.GameRenderer)
+}
+
+type ItemHolder interface {
+	GetItemList() []utils.ItemInfo
 }

@@ -4,6 +4,7 @@ import (
 	"hextopdown/game/items"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
+	"hextopdown/settings/strings"
 	"hextopdown/utils"
 )
 
@@ -66,11 +67,11 @@ func NewBeltUnder(pos utils.HexCoord, dir utils.Dir, speed float64, isEntry bool
 		Reach:   reach,
 	}
 
-	newBelt.SetBeltType()
+	newBelt.setBeltType()
 	return newBelt
 }
 
-func (b *BeltUnder) SetBeltType() {
+func (b *BeltUnder) setBeltType() {
 	if b.IsEntry {
 		b.beltType = underBeltTypeMapping[b.inConn.Dir.Reverse()]
 		b.onType = underBeltOnTypeMapping[onBeltUnderTypeMappingKey{b.inConn.Dir.Reverse(), b.IsEntry}]
@@ -78,6 +79,10 @@ func (b *BeltUnder) SetBeltType() {
 		b.beltType = beltTypeMapping[typeMappingKey{b.outConn.Dir, [3]bool{false, false, false}}]
 		b.onType = underBeltOnTypeMapping[onBeltUnderTypeMappingKey{b.outConn.Dir, b.IsEntry}]
 	}
+}
+
+func (b *BeltUnder) GetNameString() strings.StringID {
+	return strings.STRING_OBJECT_BELT_UNDER
 }
 
 func (b *BeltUnder) GetPos() utils.HexCoord {
@@ -146,7 +151,7 @@ func (b *BeltUnder) Reverse() {
 	oldInConn.Reverse(b.Pos)
 	b.outConn = b.inConn
 	b.IsEntry = false
-	b.SetBeltType()
+	b.setBeltType()
 
 	b2 := b.JoinedBelt
 	if b2 != nil {
@@ -170,7 +175,7 @@ func (b *BeltUnder) Reverse() {
 		b2.outConn = midConn
 		b2.inConn = oldb2OutConn
 		b2.IsEntry = true
-		b2.SetBeltType()
+		b2.setBeltType()
 	}
 }
 
@@ -192,7 +197,7 @@ func (b *BeltUnder) Rotate(cw bool) {
 			b.ClearIn(b.inConn.Dir)
 		}
 		b.inConn.UpdateDir(b.Pos, newDir)
-		b.SetBeltType()
+		b.setBeltType()
 		return
 	}
 
@@ -208,7 +213,7 @@ func (b *BeltUnder) Rotate(cw bool) {
 		b.ClearOut(b.outConn.Dir)
 	}
 	b.outConn.UpdateDir(b.Pos, newDir)
-	b.SetBeltType()
+	b.setBeltType()
 }
 
 func (b *BeltUnder) CanConnectTo(b2 BeltLike) bool {
