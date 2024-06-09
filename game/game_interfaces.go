@@ -14,8 +14,6 @@ type WorldObject interface {
 	DrawOnGroundLevel(r *renderer.GameRenderer)
 }
 type DirectionalObject interface {
-	WorldObject
-	// GetDir() utils.Dir
 	Rotate(cw bool)
 }
 

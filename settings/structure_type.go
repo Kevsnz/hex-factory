@@ -14,5 +14,9 @@ const (
 	STRUCTURE_TYPE_CHESHBOX_MEDIUM StructureType = iota
 	STRUCTURE_TYPE_CHESHBOX_LARGE  StructureType = iota
 
+	STRUCTURE_TYPE_FURNACE_RIGHT     StructureType = iota
+	STRUCTURE_TYPE_FURNACE_UPRIGHT   StructureType = iota
+	STRUCTURE_TYPE_FURNACE_DOWNRIGHT StructureType = iota
+
 	STRUCTURE_TYPE_COUNT StructureType = iota
 )

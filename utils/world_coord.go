@@ -46,9 +46,12 @@ func (w WorldCoord) UnrotateFromPlusX(dir Dir) WorldCoord {
 	return WorldCoord{w.X*cos + w.Y*sin, w.Y*cos - w.X*sin}
 }
 
-func (w WorldCoord) Shift(dir Dir, d float64) WorldCoord {
-	shift := WorldCoord{d, 0}
-	return w.Add(shift.UnrotateFromPlusX(dir))
+func (w WorldCoord) ShiftDir(dir Dir, d float64) WorldCoord {
+	return w.Add(WorldCoord{d, 0}.UnrotateFromPlusX(dir))
+}
+
+func (w WorldCoord) Shift(x, y float64) WorldCoord {
+	return w.Add(WorldCoord{x, y})
 }
 
 func (w WorldCoord) DistanceSqTo(w2 WorldCoord) float64 {

@@ -3,7 +3,7 @@ package objects
 import (
 	"hextopdown/game/items"
 	"hextopdown/renderer"
-	"hextopdown/settings"
+	ss "hextopdown/settings"
 	"hextopdown/settings/strings"
 	"hextopdown/utils"
 )
@@ -24,11 +24,11 @@ func NewChestBox(pos utils.HexCoord, capacity int) *ChestBox {
 
 func (cb *ChestBox) GetNameString() strings.StringID {
 	switch cb.Capacity {
-	case settings.CHESTBOX_CAPACITY_SMALL:
+	case ss.CHESTBOX_CAPACITY_SMALL:
 		return strings.STRING_OBJECT_CHESTBOX_SMALL
-	case settings.CHESTBOX_CAPACITY_MEDIUM:
+	case ss.CHESTBOX_CAPACITY_MEDIUM:
 		return strings.STRING_OBJECT_CHESTBOX_MEDIUM
-	case settings.CHESTBOX_CAPACITY_LARGE:
+	case ss.CHESTBOX_CAPACITY_LARGE:
 		return strings.STRING_OBJECT_CHESTBOX_LARGE
 	}
 	return strings.STRING_OBJECT_UNKNOWN
@@ -40,12 +40,12 @@ func (cb *ChestBox) GetPos() utils.HexCoord {
 
 func (cb *ChestBox) DrawGroundLevel(r *renderer.GameRenderer) {
 	switch cb.Capacity {
-	case settings.CHESTBOX_CAPACITY_SMALL:
-		r.DrawStructureGround(cb.Pos, settings.STRUCTURE_TYPE_CHESHBOX_SMALL)
-	case settings.CHESTBOX_CAPACITY_MEDIUM:
-		r.DrawStructureGround(cb.Pos, settings.STRUCTURE_TYPE_CHESHBOX_MEDIUM)
-	case settings.CHESTBOX_CAPACITY_LARGE:
-		r.DrawStructureGround(cb.Pos, settings.STRUCTURE_TYPE_CHESHBOX_LARGE)
+	case ss.CHESTBOX_CAPACITY_SMALL:
+		r.DrawStructureGround(cb.Pos.CenterToWorld(), ss.STRUCTURE_TYPE_CHESHBOX_SMALL, ss.DRAWING_SHAPE_SINGLE)
+	case ss.CHESTBOX_CAPACITY_MEDIUM:
+		r.DrawStructureGround(cb.Pos.CenterToWorld(), ss.STRUCTURE_TYPE_CHESHBOX_MEDIUM, ss.DRAWING_SHAPE_SINGLE)
+	case ss.CHESTBOX_CAPACITY_LARGE:
+		r.DrawStructureGround(cb.Pos.CenterToWorld(), ss.STRUCTURE_TYPE_CHESHBOX_LARGE, ss.DRAWING_SHAPE_SINGLE)
 	}
 }
 func (cb *ChestBox) DrawOnGroundLevel(r *renderer.GameRenderer) {}

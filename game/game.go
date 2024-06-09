@@ -12,7 +12,7 @@ import (
 const MOVE_SPEED = 8
 
 type Game struct {
-	Pos utils.WorldCoord
+	Pos utils.WorldCoordInterpolated
 
 	worldObjects map[utils.HexCoord]WorldObject
 
@@ -164,21 +164,24 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 		}
 	}
 
+	sx, sy := 0.0, 0.0
 	if ih.GetActionState(input.ACTION_MOVE_LEFT) {
-		g.Pos.X -= MOVE_SPEED
+		sx -= MOVE_SPEED
 	}
 
 	if ih.GetActionState(input.ACTION_MOVE_RIGHT) {
-		g.Pos.X += MOVE_SPEED
+		sx += MOVE_SPEED
 	}
 
 	if ih.GetActionState(input.ACTION_MOVE_UP) {
-		g.Pos.Y -= MOVE_SPEED
+		sy -= MOVE_SPEED
 	}
 
 	if ih.GetActionState(input.ACTION_MOVE_DOWN) {
-		g.Pos.Y += MOVE_SPEED
+		sy += MOVE_SPEED
 	}
+
+	g.Pos.UpdatePosition(g.Pos.Pos.Shift(sx, sy), false)
 }
 
 func (g *Game) processMouseActions(ih *input.InputHandler) {
@@ -287,6 +290,9 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 	}
 
 	for _, obj := range g.worldObjects {
+		if !r.IsHexOnScreen(obj.GetPos()) {
+			continue
+		}
 		switch drawer := obj.(type) {
 		case ItemDrawer:
 			drawer.DrawItems(r)
@@ -299,7 +305,7 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 
 	r.DrawViewTarget(g.Pos)
 	r.DrawArrow(0.9, 0.025, g.selectedDir)
-	r.DrawPlayerCoords(g.Pos, 0.01, 0.03)
+	r.DrawPlayerCoords(g.Pos.Pos, 0.01, 0.03)
 
 	hex := utils.HexCoordFromWorld(g.mousePos)
 

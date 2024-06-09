@@ -55,7 +55,7 @@ func (i *Inserter) Update(ticks uint64, world HexGridWorldInteractor) {
 			if !ok {
 				return
 			}
-			item, ok := obj.TakeItemOut(otherPos.CenterToWorld().Shift(i.dir.Reverse(), ss.LANE_OFFSET_WORLD))
+			item, ok := obj.TakeItemOut(otherPos.CenterToWorld().ShiftDir(i.dir.Reverse(), ss.LANE_OFFSET_WORLD))
 			if !ok {
 				return
 			}
@@ -73,7 +73,7 @@ func (i *Inserter) Update(ticks uint64, world HexGridWorldInteractor) {
 		if !ok {
 			return
 		}
-		ok = obj.TakeItemIn(otherPos.CenterToWorld().Shift(i.dir, ss.LANE_OFFSET_WORLD), *i.itemOnHand)
+		ok = obj.TakeItemIn(otherPos.CenterToWorld().ShiftDir(i.dir, ss.LANE_OFFSET_WORLD), *i.itemOnHand)
 		if ok {
 			i.itemOnHand = nil
 			return
@@ -84,12 +84,12 @@ func (i *Inserter) Update(ticks uint64, world HexGridWorldInteractor) {
 }
 
 func (i *Inserter) DrawGroundLevel(r *renderer.GameRenderer) {
-	r.DrawStructureGround(i.pos, i.inserterType)
+	r.DrawStructureGround(i.pos.CenterToWorld(), i.inserterType, ss.DRAWING_SHAPE_SINGLE)
 }
 
 func (i *Inserter) DrawOnGroundLevel(r *renderer.GameRenderer) {
 	p1 := i.pos.CenterToWorld()
-	p2 := p1.Shift(i.dir, -ss.INSERTER_ARM_LENGTH*math.Cos(i.armAngle))
+	p2 := p1.ShiftDir(i.dir, -ss.INSERTER_ARM_LENGTH*math.Cos(i.armAngle))
 	p2.Y -= ss.INSERTER_ARM_LENGTH / 2 * math.Sin(i.armAngle)
 	p1.Y -= ss.HEX_EDGE / 7
 
@@ -112,7 +112,7 @@ func (i *Inserter) updateHeldItemPosition() {
 	if i.itemOnHand == nil {
 		return
 	}
-	itemPos := i.pos.CenterToWorld().Shift(i.dir, -ss.INSERTER_ARM_LENGTH*math.Cos(i.armAngle))
+	itemPos := i.pos.CenterToWorld().ShiftDir(i.dir, -ss.INSERTER_ARM_LENGTH*math.Cos(i.armAngle))
 	itemPos.Y -= ss.INSERTER_ARM_LENGTH / 2 * math.Sin(i.armAngle)
 	i.itemOnHand.Pos.UpdatePosition(itemPos, false)
 }

@@ -21,6 +21,7 @@ const (
 	STRING_OBJECT_BELT            StringID = iota
 	STRING_OBJECT_BELT_UNDER      StringID = iota
 	STRING_OBJECT_BELT_SPLITTER   StringID = iota
+	STRING_OBJECT_FURNACE         StringID = iota
 
 	STRING_ITEM_IRON_PLATE StringID = iota
 
@@ -46,6 +47,7 @@ var Strings = [STRING_COUNT]string{
 	STRING_OBJECT_BELT:            "Transport Belt",
 	STRING_OBJECT_BELT_UNDER:      "Underground Belt",
 	STRING_OBJECT_BELT_SPLITTER:   "Belt Splitter",
+	STRING_OBJECT_FURNACE:         "Furnace",
 
 	STRING_ITEM_IRON_PLATE: "Iron Plate",
 }

@@ -16,6 +16,7 @@ const (
 	HEX_EDGE   = 64
 	HEX_WIDTH  = ((HEX_EDGE*1732/1000 + 1) >> 1) << 1 // between parallel sides = Edge * sqrt(3)
 	HEX_OFFSET = HEX_EDGE / 2
+	HEX_HEIGHT = HEX_EDGE + 2*HEX_OFFSET
 )
 
 const ITEM_R = (HEX_WIDTH + 0.01) / 12.0 // Item Radius (in world coordinates)

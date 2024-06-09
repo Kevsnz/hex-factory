@@ -34,7 +34,7 @@ func main() {
 	gameState := game.NewGame()
 	defer gameState.Destroy()
 
-	r := renderer.NewGameRenderer(window, gameState.Pos)
+	r := renderer.NewGameRenderer(window, gameState.Pos.Pos)
 	defer r.Destroy()
 
 	r.LoadTextures()
@@ -92,7 +92,7 @@ gameloop:
 
 		gameState.Update(currentTicks, ih)
 
-		r.MoveTheView(gameState.Pos, currentTicks-lastTicks)
+		r.MoveTheView(gameState.Pos.Pos, currentTicks-lastTicks)
 
 		r.StartNewFrame(currentTicks)
 		gameState.Draw(r)
