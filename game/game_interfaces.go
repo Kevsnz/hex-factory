@@ -16,6 +16,9 @@ type WorldObject interface {
 type DirectionalObject interface {
 	Rotate(cw bool)
 }
+type MultiHexObject interface {
+	GetHexes() []utils.HexCoord
+}
 
 type Tickable interface {
 	Update(ticks uint64, world objects.HexGridWorldInteractor)

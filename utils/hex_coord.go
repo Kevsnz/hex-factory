@@ -87,3 +87,7 @@ func (hc HexCoord) DistanceTo(other HexCoord) int32 {
 	}
 	return max(Abs(dx), Abs(dy))
 }
+
+func (hc HexCoord) Add(other HexCoord) HexCoord {
+	return HexCoord{X: hc.X + other.X, Y: hc.Y + other.Y}
+}

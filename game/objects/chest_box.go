@@ -41,11 +41,11 @@ func (cb *ChestBox) GetPos() utils.HexCoord {
 func (cb *ChestBox) DrawGroundLevel(r *renderer.GameRenderer) {
 	switch cb.Capacity {
 	case ss.CHESTBOX_CAPACITY_SMALL:
-		r.DrawStructureGround(cb.Pos.CenterToWorld(), ss.STRUCTURE_TYPE_CHESHBOX_SMALL, ss.DRAWING_SHAPE_SINGLE)
+		r.DrawStructureGround2(cb.Pos.CenterToWorld(), ss.OBJECT_TYPE_CHESTBOX_SMALL, ss.SHAPE_SINGLE, utils.DIR_LEFT)
 	case ss.CHESTBOX_CAPACITY_MEDIUM:
-		r.DrawStructureGround(cb.Pos.CenterToWorld(), ss.STRUCTURE_TYPE_CHESHBOX_MEDIUM, ss.DRAWING_SHAPE_SINGLE)
+		r.DrawStructureGround2(cb.Pos.CenterToWorld(), ss.OBJECT_TYPE_CHESTBOX_MEDIUM, ss.SHAPE_SINGLE, utils.DIR_LEFT)
 	case ss.CHESTBOX_CAPACITY_LARGE:
-		r.DrawStructureGround(cb.Pos.CenterToWorld(), ss.STRUCTURE_TYPE_CHESHBOX_LARGE, ss.DRAWING_SHAPE_SINGLE)
+		r.DrawStructureGround2(cb.Pos.CenterToWorld(), ss.OBJECT_TYPE_CHESTBOX_LARGE, ss.SHAPE_SINGLE, utils.DIR_LEFT)
 	}
 }
 func (cb *ChestBox) DrawOnGroundLevel(r *renderer.GameRenderer) {}

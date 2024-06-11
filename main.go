@@ -57,6 +57,7 @@ func main() {
 	ih.SetKeybind(sdl.SCANCODE_C, input.ACTION_PLOP_CHESTBOX_SMALL)
 	ih.SetKeybind(sdl.SCANCODE_V, input.ACTION_PLOP_CHESTBOX_MEDIUM)
 	ih.SetKeybind(sdl.SCANCODE_B, input.ACTION_PLOP_CHESTBOX_LARGE)
+	ih.SetKeybind(sdl.SCANCODE_F, input.ACTION_PLOP_FURNACE)
 
 	frameTime := 0.0
 	tickTime := 0.0

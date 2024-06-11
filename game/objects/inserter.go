@@ -9,31 +9,20 @@ import (
 	"math"
 )
 
-var typeMapping = [utils.DIR_COUNT]ss.StructureType{
-	utils.DIR_LEFT:       ss.STRUCTURE_TYPE_INSERTER_LEFT,
-	utils.DIR_UP_LEFT:    ss.STRUCTURE_TYPE_INSERTER_UPLEFT,
-	utils.DIR_UP_RIGHT:   ss.STRUCTURE_TYPE_INSERTER_UPRIGHT,
-	utils.DIR_RIGHT:      ss.STRUCTURE_TYPE_INSERTER_RIGHT,
-	utils.DIR_DOWN_RIGHT: ss.STRUCTURE_TYPE_INSERTER_DOWNRIGHT,
-	utils.DIR_DOWN_LEFT:  ss.STRUCTURE_TYPE_INSERTER_DOWNLEFT,
-}
-
 type Inserter struct {
-	pos          utils.HexCoord
-	dir          utils.Dir
-	speed        float64
-	inserterType ss.StructureType
-	armAngle     float64
-	itemOnHand   *items.ItemInWorld
+	pos        utils.HexCoord
+	dir        utils.Dir
+	speed      float64
+	armAngle   float64
+	itemOnHand *items.ItemInWorld
 }
 
 func NewInserter(pos utils.HexCoord, dir utils.Dir, speed float64) *Inserter {
 	return &Inserter{
-		pos:          pos,
-		dir:          dir,
-		speed:        speed,
-		inserterType: typeMapping[dir],
-		armAngle:     math.Pi / 2,
+		pos:      pos,
+		dir:      dir,
+		speed:    speed,
+		armAngle: math.Pi / 2,
 	}
 }
 
@@ -84,7 +73,7 @@ func (i *Inserter) Update(ticks uint64, world HexGridWorldInteractor) {
 }
 
 func (i *Inserter) DrawGroundLevel(r *renderer.GameRenderer) {
-	r.DrawStructureGround(i.pos.CenterToWorld(), i.inserterType, ss.DRAWING_SHAPE_SINGLE)
+	r.DrawStructureGround2(i.pos.CenterToWorld(), ss.OBJECT_TYPE_INSERTER1, ss.SHAPE_SINGLE, i.dir)
 }
 
 func (i *Inserter) DrawOnGroundLevel(r *renderer.GameRenderer) {
@@ -105,7 +94,6 @@ func (i *Inserter) DrawItems(r *renderer.GameRenderer) {
 
 func (i *Inserter) Rotate(cw bool) {
 	i.dir = i.dir.Next(cw)
-	i.inserterType = typeMapping[i.dir]
 }
 
 func (i *Inserter) updateHeldItemPosition() {

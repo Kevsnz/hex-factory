@@ -2,6 +2,7 @@ package objects
 
 import (
 	"hextopdown/renderer"
+	ss "hextopdown/settings"
 	"hextopdown/settings/strings"
 	"hextopdown/utils"
 )
@@ -23,7 +24,7 @@ type Furnace struct {
 func NewFurnace(pos utils.HexCoord, dir utils.Dir) *Furnace {
 	return &Furnace{
 		pos: pos,
-		dir: dir,
+		dir: utils.DIR_RIGHT,
 	}
 }
 
@@ -35,6 +36,16 @@ func (f *Furnace) GetPos() utils.HexCoord {
 	return f.pos
 }
 
-func (f *Furnace) DrawGroundLevel(r *renderer.GameRenderer) {}
+func (f *Furnace) DrawGroundLevel(r *renderer.GameRenderer) {
+	r.DrawStructureGround2(f.pos.CenterToWorld(), ss.OBJECT_TYPE_FURNACE_STONE, ss.SHAPE_DIAMOND, f.dir)
+}
 
 func (f *Furnace) DrawOnGroundLevel(r *renderer.GameRenderer) {}
+
+func (f *Furnace) GetHexes() []utils.HexCoord {
+	hexes := make([]utils.HexCoord, 0, 4)
+	for _, o := range dirHexes[f.dir] {
+		hexes = append(hexes, f.pos.Add(o))
+	}
+	return hexes
+}

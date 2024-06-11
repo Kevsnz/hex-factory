@@ -17,17 +17,18 @@ import (
 )
 
 type GameRenderer struct {
-	renderer                *sdl.Renderer
-	stringManager           *StringManager
-	font                    *ttf.Font
-	Viewport                *utils.Viewport
-	beltTextures            [ss.BELT_TYPE_COUNT]*sdl.Texture
-	beltAnimationTextures   [ss.BELT_TYPE_COUNT]*sdl.Texture
-	beltOnGroundTextures    [ss.BELT_ON_COUNT]*sdl.Texture
-	structureGroundTextures [ss.STRUCTURE_TYPE_COUNT]*sdl.Texture
-	itemTextures            [ss.ITEM_TYPE_COUNT]*sdl.Texture
-	arrowTextures           [2]*sdl.Texture
-	timeMs                  uint64
+	renderer              *sdl.Renderer
+	stringManager         *StringManager
+	font                  *ttf.Font
+	Viewport              *utils.Viewport
+	beltTextures          [ss.BELT_TYPE_COUNT]*sdl.Texture
+	beltAnimationTextures [ss.BELT_TYPE_COUNT]*sdl.Texture
+	beltOnGroundTextures  [ss.BELT_ON_COUNT]*sdl.Texture
+	objectTextures        [ss.OBJECT_TYPE_COUNT]*sdl.Texture
+	objectDirTextures     [ss.OBJECT_TYPE_COUNT][utils.DIR_COUNT]*sdl.Texture
+	itemTextures          [ss.ITEM_TYPE_COUNT]*sdl.Texture
+	arrowTextures         [2]*sdl.Texture
+	timeMs                uint64
 }
 
 func NewGameRenderer(window *sdl.Window, view utils.WorldCoord) *GameRenderer {
@@ -66,6 +67,14 @@ func (r *GameRenderer) Destroy() {
 	}
 	for _, tex := range r.arrowTextures {
 		tex.Destroy()
+	}
+	for _, tex := range r.objectTextures {
+		tex.Destroy()
+	}
+	for _, texs := range r.objectDirTextures {
+		for _, tex := range texs {
+			tex.Destroy()
+		}
 	}
 	r.font.Close()
 	r.stringManager.Destroy()
@@ -243,25 +252,28 @@ func (r *GameRenderer) DrawBeltOnGround(hex utils.HexCoord, beltType ss.BeltType
 	}, 0, nil, typeFlip.flip)
 }
 
-func (r *GameRenderer) DrawStructureGround(pos utils.WorldCoord, structureType ss.StructureType, shape ss.DrawingShape) {
-	cx, cy := r.Viewport.WorldToScreen(pos)
-	if !isOnScreenRadius(cx, cy, r.Viewport.GetZoomedDimension(ss.BELT_DRAW_R)) {
+func (r *GameRenderer) DrawStructureGround2(pos utils.WorldCoord, objectType ss.ObjectType, shape ss.Shape, dir utils.Dir) {
+	x, y := r.Viewport.WorldToScreen(pos)
+	z := r.Viewport.Zoom
+	sp := GetShapeParam(shape, dir)
+	x -= float32(sp.OffsetX * z)
+	y -= float32(sp.OffsetY * z)
+	if !isOnScreenBox(x, y, x+float32(sp.Width*z), y+float32(sp.Height*z)) {
 		return
 	}
-	typeFlip := structureGroundMapping[structureType]
 
-	tex := r.structureGroundTextures[typeFlip.type1]
+	tex := r.objectTextures[objectType]
 	if tex == nil {
-		panic(fmt.Sprintf("no texture for structure type %d", typeFlip.type1))
+		tex = r.objectDirTextures[objectType][dir]
+		if tex == nil {
+			tex = r.objectDirTextures[objectType][dir.Reverse()] // mirrored shape
+			if tex == nil {
+				panic(fmt.Sprintf("no texture for object type %d, dir %d", objectType, dir))
+			}
+		}
 	}
-	sp := shapeParams[shape]
-	z := r.Viewport.Zoom
-	r.renderer.CopyExF(tex, nil, &sdl.FRect{
-		X: cx - float32(sp.OffsetX*z),
-		Y: cy - float32(sp.OffsetY*z),
-		W: float32(sp.Width * z),
-		H: float32(sp.Height * z),
-	}, 0, nil, typeFlip.flip)
+
+	r.renderer.CopyF(tex, nil, &sdl.FRect{X: x, Y: y, W: float32(sp.Width * z), H: float32(sp.Height * z)})
 }
 
 func (r *GameRenderer) DrawItem(pos utils.WorldCoordInterpolated, itemType ss.ItemType) {
@@ -490,11 +502,22 @@ func (r *GameRenderer) LoadItemTextures() {
 }
 
 func (r *GameRenderer) LoadStructureGroundTextures() {
-	r.structureGroundTextures[ss.STRUCTURE_TYPE_INSERTER_RIGHT] = r.loadCachedTexture("inserter/base_r")
-	r.structureGroundTextures[ss.STRUCTURE_TYPE_INSERTER_DOWNRIGHT] = r.loadCachedTexture("inserter/base_br")
-	r.structureGroundTextures[ss.STRUCTURE_TYPE_CHESHBOX_SMALL] = r.loadCachedTexture("chests/chest_small")
-	r.structureGroundTextures[ss.STRUCTURE_TYPE_CHESHBOX_MEDIUM] = r.loadCachedTexture("chests/chest_medium")
-	r.structureGroundTextures[ss.STRUCTURE_TYPE_CHESHBOX_LARGE] = r.loadCachedTexture("chests/chest_large")
+	r.objectTextures[ss.OBJECT_TYPE_CHESTBOX_SMALL] = r.loadCachedTexture("chests/chest_small")
+	r.objectTextures[ss.OBJECT_TYPE_CHESTBOX_MEDIUM] = r.loadCachedTexture("chests/chest_medium")
+	r.objectTextures[ss.OBJECT_TYPE_CHESTBOX_LARGE] = r.loadCachedTexture("chests/chest_large")
+
+	r.objectDirTextures[ss.OBJECT_TYPE_INSERTER1] = [utils.DIR_COUNT]*sdl.Texture{
+		utils.DIR_LEFT:       r.loadCachedTexture("inserter/base_l"),
+		utils.DIR_RIGHT:      r.loadCachedTexture("inserter/base_r"),
+		utils.DIR_UP_LEFT:    r.loadCachedTexture("inserter/base_tl"),
+		utils.DIR_DOWN_LEFT:  r.loadCachedTexture("inserter/base_bl"),
+		utils.DIR_UP_RIGHT:   r.loadCachedTexture("inserter/base_tr"),
+		utils.DIR_DOWN_RIGHT: r.loadCachedTexture("inserter/base_br"),
+	}
+
+	r.objectDirTextures[ss.OBJECT_TYPE_FURNACE_STONE] = [utils.DIR_COUNT]*sdl.Texture{
+		utils.DIR_LEFT: r.loadCachedTexture("shape_diamond_lr"),
+	}
 }
 
 func (r *GameRenderer) LoadBeltTexture(beltType ss.BeltType, filename string) {

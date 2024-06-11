@@ -37,10 +37,6 @@ type beltTypeFlip struct {
 	type1 ss.BeltType
 	flip  sdl.RendererFlip
 }
-type StructureTypeFlip struct {
-	type1 ss.StructureType
-	flip  sdl.RendererFlip
-}
 
 var arrowDirMapping = map[utils.Dir]struct {
 	idx  int
@@ -79,28 +75,41 @@ var beltOnFlipMapping = [ss.BELT_ON_COUNT]beltTypeFlip{
 	ss.BELT_ON_SPLITTER_LEFTDOWNLEFT_RIGHTUPRIGHT: {ss.BELT_ON_SPLITTER_RIGHTDOWNRIGHT_LEFTUPLEFT, sdl.FLIP_HORIZONTAL},
 }
 
-var structureGroundMapping = [ss.STRUCTURE_TYPE_COUNT]StructureTypeFlip{
-	ss.STRUCTURE_TYPE_INSERTER_LEFT:      {ss.STRUCTURE_TYPE_INSERTER_RIGHT, sdl.FLIP_HORIZONTAL},
-	ss.STRUCTURE_TYPE_INSERTER_RIGHT:     {ss.STRUCTURE_TYPE_INSERTER_RIGHT, sdl.FLIP_NONE},
-	ss.STRUCTURE_TYPE_INSERTER_DOWNRIGHT: {ss.STRUCTURE_TYPE_INSERTER_DOWNRIGHT, sdl.FLIP_NONE},
-	ss.STRUCTURE_TYPE_INSERTER_UPRIGHT:   {ss.STRUCTURE_TYPE_INSERTER_DOWNRIGHT, sdl.FLIP_VERTICAL},
-	ss.STRUCTURE_TYPE_INSERTER_DOWNLEFT:  {ss.STRUCTURE_TYPE_INSERTER_DOWNRIGHT, sdl.FLIP_HORIZONTAL},
-	ss.STRUCTURE_TYPE_INSERTER_UPLEFT:    {ss.STRUCTURE_TYPE_INSERTER_DOWNRIGHT, sdl.FLIP_HORIZONTAL | sdl.FLIP_VERTICAL},
-	ss.STRUCTURE_TYPE_CHESHBOX_SMALL:     {ss.STRUCTURE_TYPE_CHESHBOX_SMALL, sdl.FLIP_NONE},
-	ss.STRUCTURE_TYPE_CHESHBOX_MEDIUM:    {ss.STRUCTURE_TYPE_CHESHBOX_MEDIUM, sdl.FLIP_NONE},
-	ss.STRUCTURE_TYPE_CHESHBOX_LARGE:     {ss.STRUCTURE_TYPE_CHESHBOX_LARGE, sdl.FLIP_NONE},
-}
-
 type ShapeParam struct {
 	Width, Height    float64
 	OffsetX, OffsetY float64
 }
 
-var shapeParams = [ss.DRAWING_SHAPE_COUNT]ShapeParam{
-	ss.DRAWING_SHAPE_SINGLE: {
-		Width:   ss.HEX_HEIGHT,
-		Height:  ss.HEX_HEIGHT,
-		OffsetX: ss.HEX_HEIGHT / 2,
-		OffsetY: ss.HEX_HEIGHT / 2,
-	},
+func GetShapeParam(shape ss.Shape, dir utils.Dir) ShapeParam {
+	switch shape {
+	case ss.SHAPE_DIAMOND:
+		if dir == utils.DIR_LEFT || dir == utils.DIR_RIGHT {
+			return ShapeParam{
+				Width:   ss.HEX_WIDTH * 2,
+				Height:  ss.HEX_WIDTH * 3,
+				OffsetX: ss.HEX_WIDTH / 2,
+				OffsetY: ss.HEX_WIDTH*3 - ss.HEX_EDGE*5/2,
+			}
+		}
+		return ShapeParam{
+			Width:   ss.HEX_WIDTH * 5 / 2,
+			Height:  ss.HEX_WIDTH * 5 / 2,
+			OffsetX: ss.HEX_WIDTH * 5 / 4,
+			OffsetY: ss.HEX_WIDTH*5/2 - ss.HEX_EDGE*7/4,
+		}
+	case ss.SHAPE_BIGHEX:
+		return ShapeParam{
+			Width:   ss.HEX_WIDTH * 3,
+			Height:  ss.HEX_WIDTH * 3,
+			OffsetX: ss.HEX_WIDTH * 3 / 2,
+			OffsetY: ss.HEX_WIDTH*3 - ss.HEX_EDGE*5/2,
+		}
+	default: // single
+		return ShapeParam{
+			Width:   ss.HEX_HEIGHT,
+			Height:  ss.HEX_HEIGHT,
+			OffsetX: ss.HEX_HEIGHT / 2,
+			OffsetY: ss.HEX_HEIGHT / 2,
+		}
+	}
 }
