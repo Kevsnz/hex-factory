@@ -4,7 +4,6 @@ import (
 	"hextopdown/game/items"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
-	"hextopdown/settings/strings"
 	"hextopdown/utils"
 )
 
@@ -81,8 +80,8 @@ func (b *BeltUnder) setBeltType() {
 	}
 }
 
-func (b *BeltUnder) GetNameString() strings.StringID {
-	return strings.STRING_OBJECT_BELT_UNDER
+func (b *BeltUnder) GetObjectType() ss.ObjectType {
+	return ss.OBJECT_TYPE_BELTUNDER1
 }
 
 func (b *BeltUnder) GetPos() utils.HexCoord {

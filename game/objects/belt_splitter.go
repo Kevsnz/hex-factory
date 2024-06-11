@@ -3,26 +3,25 @@ package objects
 import (
 	"hextopdown/game/items"
 	"hextopdown/renderer"
-	"hextopdown/settings"
-	"hextopdown/settings/strings"
+	ss "hextopdown/settings"
 	"hextopdown/utils"
 )
 
-var splitterTypeMapping = map[utils.Dir]settings.BeltType{
-	utils.DIR_LEFT:       settings.BELT_TYPE_SPLITTER_LEFTUPLEFT_RIGHTDOWNRIGHT,
-	utils.DIR_UP_LEFT:    settings.BELT_TYPE_SPLITTER_UPLEFTRIGHT_DOWNLEFTRIGHT,
-	utils.DIR_UP_RIGHT:   settings.BELT_TYPE_SPLITTER_RIGHTUPRIGHT_LEFTDOWNLEFT,
-	utils.DIR_RIGHT:      settings.BELT_TYPE_SPLITTER_RIGHTDOWNRIGHT_LEFTUPLEFT,
-	utils.DIR_DOWN_RIGHT: settings.BELT_TYPE_SPLITTER_DOWNLEFTRIGHT_UPLEFTRIGHT,
-	utils.DIR_DOWN_LEFT:  settings.BELT_TYPE_SPLITTER_LEFTDOWNLEFT_RIGHTUPRIGHT,
+var splitterTypeMapping = map[utils.Dir]ss.BeltType{
+	utils.DIR_LEFT:       ss.BELT_TYPE_SPLITTER_LEFTUPLEFT_RIGHTDOWNRIGHT,
+	utils.DIR_UP_LEFT:    ss.BELT_TYPE_SPLITTER_UPLEFTRIGHT_DOWNLEFTRIGHT,
+	utils.DIR_UP_RIGHT:   ss.BELT_TYPE_SPLITTER_RIGHTUPRIGHT_LEFTDOWNLEFT,
+	utils.DIR_RIGHT:      ss.BELT_TYPE_SPLITTER_RIGHTDOWNRIGHT_LEFTUPLEFT,
+	utils.DIR_DOWN_RIGHT: ss.BELT_TYPE_SPLITTER_DOWNLEFTRIGHT_UPLEFTRIGHT,
+	utils.DIR_DOWN_LEFT:  ss.BELT_TYPE_SPLITTER_LEFTDOWNLEFT_RIGHTUPRIGHT,
 }
-var splitterOnMapping = map[utils.Dir]settings.BeltType{
-	utils.DIR_LEFT:       settings.BELT_ON_SPLITTER_LEFTUPLEFT_RIGHTDOWNRIGHT,
-	utils.DIR_UP_LEFT:    settings.BELT_ON_SPLITTER_UPLEFTRIGHT_DOWNLEFTRIGHT,
-	utils.DIR_UP_RIGHT:   settings.BELT_ON_SPLITTER_RIGHTUPRIGHT_LEFTDOWNLEFT,
-	utils.DIR_RIGHT:      settings.BELT_ON_SPLITTER_RIGHTDOWNRIGHT_LEFTUPLEFT,
-	utils.DIR_DOWN_RIGHT: settings.BELT_ON_SPLITTER_DOWNLEFTRIGHT_UPLEFTRIGHT,
-	utils.DIR_DOWN_LEFT:  settings.BELT_ON_SPLITTER_LEFTDOWNLEFT_RIGHTUPRIGHT,
+var splitterOnMapping = map[utils.Dir]ss.BeltType{
+	utils.DIR_LEFT:       ss.BELT_ON_SPLITTER_LEFTUPLEFT_RIGHTDOWNRIGHT,
+	utils.DIR_UP_LEFT:    ss.BELT_ON_SPLITTER_UPLEFTRIGHT_DOWNLEFTRIGHT,
+	utils.DIR_UP_RIGHT:   ss.BELT_ON_SPLITTER_RIGHTUPRIGHT_LEFTDOWNLEFT,
+	utils.DIR_RIGHT:      ss.BELT_ON_SPLITTER_RIGHTDOWNRIGHT_LEFTUPLEFT,
+	utils.DIR_DOWN_RIGHT: ss.BELT_ON_SPLITTER_DOWNLEFTRIGHT_UPLEFTRIGHT,
+	utils.DIR_DOWN_LEFT:  ss.BELT_ON_SPLITTER_LEFTDOWNLEFT_RIGHTUPRIGHT,
 }
 
 type BeltSplitter struct {
@@ -32,8 +31,8 @@ type BeltSplitter struct {
 	speed        float64
 	outPrioLeft  bool
 	outPrioRight bool
-	beltType     settings.BeltType
-	onType       settings.BeltType
+	beltType     ss.BeltType
+	onType       ss.BeltType
 }
 
 func NewBeltSplitter(pos utils.HexCoord, dir utils.Dir, speed float64) *BeltSplitter {
@@ -63,18 +62,22 @@ func NewBeltSplitter(pos utils.HexCoord, dir utils.Dir, speed float64) *BeltSpli
 }
 
 func newInConn(pos utils.HexCoord, dir utils.Dir, speed float64) *BeltConnection {
-	conn := NewBeltConnectionWithDist(pos, dir, speed, true, 0.5+settings.ITEM_DW/2)
-	conn.LaneLeft.End = 0.5 + settings.ITEM_DW/2
-	conn.LaneRight.End = 0.5 + settings.ITEM_DW/2
+	conn := NewBeltConnectionWithDist(pos, dir, speed, true, 0.5+ss.ITEM_DW/2)
+	conn.LaneLeft.End = 0.5 + ss.ITEM_DW/2
+	conn.LaneRight.End = 0.5 + ss.ITEM_DW/2
 	return conn
 }
 
-func (b *BeltSplitter) GetNameString() strings.StringID {
-	return strings.STRING_OBJECT_BELT_SPLITTER
+func (b *BeltSplitter) GetObjectType() ss.ObjectType {
+	return ss.OBJECT_TYPE_BELTSPLITTER1
 }
 
 func (b *BeltSplitter) GetPos() utils.HexCoord {
 	return b.Pos
+}
+
+func (b *BeltSplitter) GetDir() utils.Dir {
+	return b.inConns[0].Dir
 }
 
 func (b *BeltSplitter) updateType() {
@@ -95,7 +98,7 @@ func (b *BeltSplitter) DrawGroundLevel(r *renderer.GameRenderer) {
 	if !r.IsHexOnScreen(b.Pos) {
 		return
 	}
-	r.DrawAnimatedBelt(b.Pos, b.beltType, b.speed*settings.TPS)
+	r.DrawAnimatedBelt(b.Pos, b.beltType, b.speed*ss.TPS)
 
 	// b.outConn[0].Draw(b.Pos, r)
 	// b.outConn[1].Draw(b.Pos, r)
@@ -126,23 +129,23 @@ func (b *BeltSplitter) jumpLaneItems(inLane *BeltGraphSegment, outLane1, outLane
 	}
 
 	nextOffset := iob.Offset + b.speed
-	if nextOffset < inLane.End-settings.ITEM_DW/2 {
+	if nextOffset < inLane.End-ss.ITEM_DW/2 {
 		return
 	}
-	nextOffset -= inLane.End - settings.ITEM_DW/2
+	nextOffset -= inLane.End - ss.ITEM_DW/2
 
 	if !*outPrio {
 		outLane1, outLane2 = outLane2, outLane1
 	}
 
-	if nextOffset < outLane1.GetFirstOffset()-settings.ITEM_DW {
+	if nextOffset < outLane1.GetFirstOffset()-ss.ITEM_DW {
 		outLane1.TakeItemOnBelt(iob, nextOffset)
 		items.PopLast()
 		*outPrio = !*outPrio
 		return
 	}
 
-	if nextOffset < outLane2.GetFirstOffset()-settings.ITEM_DW {
+	if nextOffset < outLane2.GetFirstOffset()-ss.ITEM_DW {
 		outLane2.TakeItemOnBelt(iob, nextOffset)
 		items.PopLast()
 	}

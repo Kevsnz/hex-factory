@@ -4,7 +4,6 @@ import (
 	"hextopdown/game/items"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
-	"hextopdown/settings/strings"
 	"hextopdown/utils"
 	"math"
 )
@@ -26,12 +25,16 @@ func NewInserter(pos utils.HexCoord, dir utils.Dir, speed float64) *Inserter {
 	}
 }
 
-func (i *Inserter) GetNameString() strings.StringID {
-	return strings.STRING_OBJECT_INSERTER
+func (i *Inserter) GetObjectType() ss.ObjectType {
+	return ss.OBJECT_TYPE_INSERTER1
 }
 
 func (i *Inserter) GetPos() utils.HexCoord {
 	return i.pos
+}
+
+func (i *Inserter) GetDir() utils.Dir {
+	return i.dir
 }
 
 func (i *Inserter) Update(ticks uint64, world HexGridWorldInteractor) {
@@ -73,7 +76,7 @@ func (i *Inserter) Update(ticks uint64, world HexGridWorldInteractor) {
 }
 
 func (i *Inserter) DrawGroundLevel(r *renderer.GameRenderer) {
-	r.DrawStructureGround2(i.pos.CenterToWorld(), ss.OBJECT_TYPE_INSERTER1, ss.SHAPE_SINGLE, i.dir)
+	r.DrawObjectGround(i.pos.CenterToWorld(), ss.OBJECT_TYPE_INSERTER1, utils.SHAPE_SINGLE, i.dir)
 }
 
 func (i *Inserter) DrawOnGroundLevel(r *renderer.GameRenderer) {

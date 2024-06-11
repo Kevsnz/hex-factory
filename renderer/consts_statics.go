@@ -80,9 +80,9 @@ type ShapeParam struct {
 	OffsetX, OffsetY float64
 }
 
-func GetShapeParam(shape ss.Shape, dir utils.Dir) ShapeParam {
+func GetShapeParam(shape utils.Shape, dir utils.Dir) ShapeParam {
 	switch shape {
-	case ss.SHAPE_DIAMOND:
+	case utils.SHAPE_DIAMOND:
 		if dir == utils.DIR_LEFT || dir == utils.DIR_RIGHT {
 			return ShapeParam{
 				Width:   ss.HEX_WIDTH * 2,
@@ -97,7 +97,7 @@ func GetShapeParam(shape ss.Shape, dir utils.Dir) ShapeParam {
 			OffsetX: ss.HEX_WIDTH * 5 / 4,
 			OffsetY: ss.HEX_WIDTH*5/2 - ss.HEX_EDGE*7/4,
 		}
-	case ss.SHAPE_BIGHEX:
+	case utils.SHAPE_BIGHEX:
 		return ShapeParam{
 			Width:   ss.HEX_WIDTH * 3,
 			Height:  ss.HEX_WIDTH * 3,

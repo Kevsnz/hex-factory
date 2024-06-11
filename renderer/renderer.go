@@ -252,7 +252,7 @@ func (r *GameRenderer) DrawBeltOnGround(hex utils.HexCoord, beltType ss.BeltType
 	}, 0, nil, typeFlip.flip)
 }
 
-func (r *GameRenderer) DrawStructureGround2(pos utils.WorldCoord, objectType ss.ObjectType, shape ss.Shape, dir utils.Dir) {
+func (r *GameRenderer) DrawObjectGround(pos utils.WorldCoord, objectType ss.ObjectType, shape utils.Shape, dir utils.Dir) {
 	x, y := r.Viewport.WorldToScreen(pos)
 	z := r.Viewport.Zoom
 	sp := GetShapeParam(shape, dir)

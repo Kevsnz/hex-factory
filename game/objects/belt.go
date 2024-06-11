@@ -5,7 +5,6 @@ import (
 	"hextopdown/game/items"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
-	"hextopdown/settings/strings"
 	"hextopdown/utils"
 )
 
@@ -103,12 +102,16 @@ func NewBelt(pos utils.HexCoord, dir utils.Dir, speed float64) *Belt {
 	}
 }
 
-func (b *Belt) GetNameString() strings.StringID {
-	return strings.STRING_OBJECT_BELT
+func (b *Belt) GetObjectType() ss.ObjectType {
+	return ss.OBJECT_TYPE_BELT1
 }
 
 func (b *Belt) GetPos() utils.HexCoord {
 	return b.Pos
+}
+
+func (b *Belt) GetDir() utils.Dir {
+	return b.outConn.Dir
 }
 
 func (b *Belt) updateType() {
