@@ -91,11 +91,19 @@ func GetShapeParam(shape utils.Shape, dir utils.Dir) ShapeParam {
 				OffsetY: ss.HEX_WIDTH*3 - ss.HEX_EDGE*5/2,
 			}
 		}
+		if dir == utils.DIR_UP_LEFT || dir == utils.DIR_DOWN_RIGHT {
+			return ShapeParam{
+				Width:   ss.HEX_WIDTH * 5 / 2,
+				Height:  ss.HEX_WIDTH * 5 / 2,
+				OffsetX: ss.HEX_WIDTH,
+				OffsetY: ss.HEX_WIDTH*5/2 - ss.HEX_EDGE*5/2,
+			}
+		}
 		return ShapeParam{
 			Width:   ss.HEX_WIDTH * 5 / 2,
 			Height:  ss.HEX_WIDTH * 5 / 2,
-			OffsetX: ss.HEX_WIDTH * 5 / 4,
-			OffsetY: ss.HEX_WIDTH*5/2 - ss.HEX_EDGE*7/4,
+			OffsetX: ss.HEX_WIDTH,
+			OffsetY: ss.HEX_WIDTH*5/2 - ss.HEX_EDGE,
 		}
 	case utils.SHAPE_BIGHEX:
 		return ShapeParam{

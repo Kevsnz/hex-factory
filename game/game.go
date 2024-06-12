@@ -163,7 +163,7 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 				if !g.canPlaceObject(hex, ss.OBJECT_TYPE_FURNACE_STONE, g.selectedDir) {
 					break
 				}
-				fur := objects.NewFurnace(hex, g.selectedDir)
+				fur := objects.NewConverter(ss.OBJECT_TYPE_FURNACE_STONE, hex, g.selectedDir)
 				g.placeObject(fur)
 			}
 		case input.ACTION_TYPE_UP:

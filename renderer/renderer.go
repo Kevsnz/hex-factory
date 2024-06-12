@@ -516,7 +516,9 @@ func (r *GameRenderer) LoadStructureGroundTextures() {
 	}
 
 	r.objectDirTextures[ss.OBJECT_TYPE_FURNACE_STONE] = [utils.DIR_COUNT]*sdl.Texture{
-		utils.DIR_LEFT: r.loadCachedTexture("shape_diamond_lr"),
+		utils.DIR_LEFT:     r.loadCachedTexture("shape_diamond_lr"),
+		utils.DIR_UP_LEFT:  r.loadCachedTexture("shape_diamond_tl_br"),
+		utils.DIR_UP_RIGHT: r.loadCachedTexture("shape_diamond_tr_bl"),
 	}
 }
 
