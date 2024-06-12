@@ -506,6 +506,8 @@ func (r *GameRenderer) LoadStructureGroundTextures() {
 	r.objectTextures[ss.OBJECT_TYPE_CHESTBOX_MEDIUM] = r.loadCachedTexture("chests/chest_medium")
 	r.objectTextures[ss.OBJECT_TYPE_CHESTBOX_LARGE] = r.loadCachedTexture("chests/chest_large")
 
+	r.objectTextures[ss.OBJECT_TYPE_ASSEMBLER_BASIC] = r.loadCachedTexture("shape_bighex")
+
 	r.objectDirTextures[ss.OBJECT_TYPE_INSERTER1] = [utils.DIR_COUNT]*sdl.Texture{
 		utils.DIR_LEFT:       r.loadCachedTexture("inserter/base_l"),
 		utils.DIR_RIGHT:      r.loadCachedTexture("inserter/base_r"),

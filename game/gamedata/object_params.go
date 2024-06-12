@@ -6,7 +6,7 @@ import (
 	"hextopdown/utils"
 )
 
-var ObjectParamsList = [ss.OBJECT_TYPE_COUNT]ObjectParameters{
+var ObjectParamsList = [ss.OBJECT_TYPE_COUNT]*ObjectParameters{
 	ss.OBJECT_TYPE_BELT1: {
 		Name:     strings.STRING_OBJECT_BELT,
 		BaseType: ss.STRUCTURE_BASETYPE_BELTLIKE,
@@ -43,8 +43,13 @@ var ObjectParamsList = [ss.OBJECT_TYPE_COUNT]ObjectParameters{
 		Shape:    utils.SHAPE_SINGLE,
 	},
 	ss.OBJECT_TYPE_FURNACE_STONE: {
-		Name:     strings.STRING_OBJECT_FURNACE,
+		Name:     strings.STRING_OBJECT_FURNACE_STONE,
 		BaseType: ss.STRUCTURE_BASETYPE_CONVERTER,
 		Shape:    utils.SHAPE_DIAMOND,
+	},
+	ss.OBJECT_TYPE_ASSEMBLER_BASIC: {
+		Name:     strings.STRING_OBJECT_ASSSEMBLER_BASIC,
+		BaseType: ss.STRUCTURE_BASETYPE_CONVERTER,
+		Shape:    utils.SHAPE_BIGHEX,
 	},
 }

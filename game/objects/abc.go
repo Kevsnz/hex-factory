@@ -7,8 +7,9 @@ import (
 )
 
 type Object struct {
-	objType ss.ObjectType
-	pos     utils.HexCoord
+	objType   ss.ObjectType
+	pos       utils.HexCoord
+	objParams *gd.ObjectParameters
 }
 
 func (o *Object) GetObjectType() ss.ObjectType {

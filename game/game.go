@@ -113,7 +113,7 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 					break
 				}
 				tier := gd.BeltlikeParamsList[objType].Tier
-				bs := objects.NewBeltSplitter(objType, hex, g.selectedDir, tier)
+				bs := objects.NewBeltSplitter(objType, hex, g.selectedDir, gd.ObjectParamsList[objType], tier)
 				g.placeObject(bs)
 			case input.ACTION_PLOP_UNDERGROUND:
 				objType := ss.OBJECT_TYPE_BELTUNDER1
@@ -124,16 +124,16 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 				reach := gd.BeltTierParamsList[tier].Reach
 				bu := g.findUnderToJoin(hex, g.selectedDir, reach)
 				if bu == nil {
-					newBelt := objects.NewBeltUnder(objType, hex, g.selectedDir, tier, true)
+					newBelt := objects.NewBeltUnder(objType, hex, g.selectedDir, gd.ObjectParamsList[objType], tier, true)
 					g.worldObjects[hex] = newBelt
 					g.selectedDir = g.selectedDir.Reverse()
 					break
 				}
 				var newBelt *objects.BeltUnder
 				if bu.IsEntry {
-					newBelt = objects.NewBeltUnder(objType, hex, g.selectedDir.Reverse(), tier, false)
+					newBelt = objects.NewBeltUnder(objType, hex, g.selectedDir.Reverse(), gd.ObjectParamsList[objType], tier, false)
 				} else {
-					newBelt = objects.NewBeltUnder(objType, hex, g.selectedDir, tier, true)
+					newBelt = objects.NewBeltUnder(objType, hex, g.selectedDir, gd.ObjectParamsList[objType], tier, true)
 				}
 				g.placeObject(newBelt)
 				if bu.IsEntry {
@@ -142,58 +142,42 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 					newBelt.JoinUnder(bu)
 				}
 			case input.ACTION_PLOP_INSERTER:
-				if !g.canPlaceObject(hex, ss.OBJECT_TYPE_INSERTER1, g.selectedDir) {
-					break
-				}
-				ins := objects.NewInserter(ss.OBJECT_TYPE_INSERTER1, hex, g.selectedDir, ss.INSERTER_SPEED_TICK)
-				g.placeObject(ins)
+				g.placeInserter(hex, g.selectedDir, ss.OBJECT_TYPE_INSERTER1)
 			case input.ACTION_PLOP_CHESTBOX_SMALL:
-				if !g.canPlaceObject(hex, ss.OBJECT_TYPE_CHESTBOX_SMALL, g.selectedDir) {
-					break
-				}
-				chest := objects.NewChestBox(ss.OBJECT_TYPE_CHESTBOX_SMALL, hex, ss.CHESTBOX_CAPACITY_SMALL)
-				g.placeObject(chest)
+				g.placeChestbox(hex, ss.OBJECT_TYPE_CHESTBOX_SMALL)
 			case input.ACTION_PLOP_CHESTBOX_MEDIUM:
-				if !g.canPlaceObject(hex, ss.OBJECT_TYPE_CHESTBOX_MEDIUM, g.selectedDir) {
-					break
-				}
-				chest := objects.NewChestBox(ss.OBJECT_TYPE_CHESTBOX_MEDIUM, hex, ss.CHESTBOX_CAPACITY_MEDIUM)
-				g.placeObject(chest)
+				g.placeChestbox(hex, ss.OBJECT_TYPE_CHESTBOX_MEDIUM)
 			case input.ACTION_PLOP_CHESTBOX_LARGE:
-				if !g.canPlaceObject(hex, ss.OBJECT_TYPE_CHESTBOX_LARGE, g.selectedDir) {
-					break
-				}
-				chest := objects.NewChestBox(ss.OBJECT_TYPE_CHESTBOX_LARGE, hex, ss.CHESTBOX_CAPACITY_LARGE)
-				g.placeObject(chest)
+				g.placeChestbox(hex, ss.OBJECT_TYPE_CHESTBOX_LARGE)
 			case input.ACTION_PLOP_FURNACE:
-				if !g.canPlaceObject(hex, ss.OBJECT_TYPE_FURNACE_STONE, g.selectedDir) {
-					break
-				}
-				fur := objects.NewConverter(ss.OBJECT_TYPE_FURNACE_STONE, hex, g.selectedDir)
-				g.placeObject(fur)
+				g.placeConverter(hex, g.selectedDir, ss.OBJECT_TYPE_FURNACE_STONE)
+			case input.ACTION_PLOP_ASSEMBLER:
+				g.placeConverter(hex, g.selectedDir, ss.OBJECT_TYPE_ASSEMBLER_BASIC)
 			}
 		case input.ACTION_TYPE_UP:
 		}
 	}
 
-	sx, sy := 0.0, 0.0
-	if ih.GetActionState(input.ACTION_MOVE_LEFT) {
-		sx -= MOVE_SPEED
-	}
+	{
+		sx, sy := 0.0, 0.0
+		if ih.GetActionState(input.ACTION_MOVE_LEFT) {
+			sx -= MOVE_SPEED
+		}
 
-	if ih.GetActionState(input.ACTION_MOVE_RIGHT) {
-		sx += MOVE_SPEED
-	}
+		if ih.GetActionState(input.ACTION_MOVE_RIGHT) {
+			sx += MOVE_SPEED
+		}
 
-	if ih.GetActionState(input.ACTION_MOVE_UP) {
-		sy -= MOVE_SPEED
-	}
+		if ih.GetActionState(input.ACTION_MOVE_UP) {
+			sy -= MOVE_SPEED
+		}
 
-	if ih.GetActionState(input.ACTION_MOVE_DOWN) {
-		sy += MOVE_SPEED
-	}
+		if ih.GetActionState(input.ACTION_MOVE_DOWN) {
+			sy += MOVE_SPEED
+		}
 
-	g.Pos.UpdatePosition(g.Pos.Pos.Shift(sx, sy), false)
+		g.Pos.UpdatePosition(g.Pos.Pos.Shift(sx, sy), false)
+	}
 }
 
 func (g *Game) processMouseActions(ih *input.InputHandler) {
@@ -216,7 +200,7 @@ func (g *Game) processMouseActions(ih *input.InputHandler) {
 			}
 			if mouseEvent.Button == input.MOUSE_BUTTON_RIGHT {
 				hex := utils.HexCoordFromWorld(mouseEvent.Coord)
-				g.removeHex(hex)
+				g.removeObjectAtHex(hex)
 			}
 		}
 	}
@@ -293,8 +277,10 @@ func (g *Game) doTick() {
 func (g *Game) Draw(r *renderer.GameRenderer) {
 	r.DrawScreen()
 
-	for _, belt := range g.worldObjects {
-		belt.DrawGroundLevel(r)
+	for hex, obj := range g.worldObjects {
+		if hex == obj.GetPos() {
+			obj.DrawGroundLevel(r)
+		}
 	}
 
 	if g.showPreppedUnder {
@@ -311,8 +297,10 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 		}
 	}
 
-	for _, belt := range g.worldObjects {
-		belt.DrawOnGroundLevel(r)
+	for hex, obj := range g.worldObjects {
+		if hex == obj.GetPos() {
+			obj.DrawOnGroundLevel(r)
+		}
 	}
 
 	r.DrawViewTarget(g.Pos)
@@ -338,9 +326,36 @@ func (g *Game) placeBelt(objType ss.ObjectType, hex utils.HexCoord, dir utils.Di
 		return nil
 	}
 	tier := gd.BeltlikeParamsList[objType].Tier
-	belt := objects.NewBelt(objType, hex, dir, tier)
+	belt := objects.NewBelt(objType, hex, dir, gd.ObjectParamsList[objType], tier)
 	g.worldObjects[hex] = belt
 	return belt
+}
+
+func (g *Game) placeChestbox(hex utils.HexCoord, objType ss.ObjectType) *objects.Storage {
+	if !g.canPlaceObject(hex, objType, g.selectedDir) {
+		return nil
+	}
+	chest := objects.NewChestBox(objType, hex, gd.ObjectParamsList[objType], gd.StorageParamsList[objType])
+	g.placeObject(chest)
+	return chest
+}
+
+func (g *Game) placeInserter(hex utils.HexCoord, dir utils.Dir, objType ss.ObjectType) *objects.Inserter {
+	if !g.canPlaceObject(hex, objType, g.selectedDir) {
+		return nil
+	}
+	inserter := objects.NewInserter(objType, hex, dir, gd.ObjectParamsList[objType], gd.InserterParamsList[objType])
+	g.placeObject(inserter)
+	return inserter
+}
+
+func (g *Game) placeConverter(hex utils.HexCoord, dir utils.Dir, objType ss.ObjectType) *objects.Converter {
+	if !g.canPlaceObject(hex, objType, g.selectedDir) {
+		return nil
+	}
+	converter := objects.NewConverter(objType, hex, dir, gd.ObjectParamsList[objType], gd.ConverterParamsList[objType])
+	g.placeObject(converter)
+	return converter
 }
 
 func (g *Game) canPlaceObject(hex utils.HexCoord, objType ss.ObjectType, dir utils.Dir) bool {
@@ -360,7 +375,7 @@ func (g *Game) placeObject(obj WorldObject) {
 	}
 }
 
-func (g *Game) removeHex(hex utils.HexCoord) {
+func (g *Game) removeObjectAtHex(hex utils.HexCoord) {
 	obj, ok := g.worldObjects[hex]
 	if !ok {
 		return

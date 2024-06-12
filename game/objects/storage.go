@@ -1,6 +1,7 @@
 package objects
 
 import (
+	gd "hextopdown/game/gamedata"
 	"hextopdown/game/items"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
@@ -9,23 +10,29 @@ import (
 
 type Storage struct {
 	Object
-	capacity int
-	slots    []*items.ItemStack
+	params *gd.StorageParameters
+	slots  []*items.ItemStack
 }
 
-func NewChestBox(objType ss.ObjectType, pos utils.HexCoord, capacity int) *Storage {
+func NewChestBox(
+	objType ss.ObjectType,
+	pos utils.HexCoord,
+	objParams *gd.ObjectParameters,
+	params *gd.StorageParameters,
+) *Storage {
 	return &Storage{
 		Object: Object{
-			objType: objType,
-			pos:     pos,
+			objType:   objType,
+			pos:       pos,
+			objParams: objParams,
 		},
-		capacity: capacity,
-		slots:    make([]*items.ItemStack, capacity),
+		params: params,
+		slots:  make([]*items.ItemStack, params.Capacity),
 	}
 }
 
 func (s *Storage) DrawGroundLevel(r *renderer.GameRenderer) {
-	r.DrawObjectGround(s.pos.CenterToWorld(), s.objType, utils.SHAPE_SINGLE, utils.DIR_LEFT)
+	r.DrawObjectGround(s.pos.CenterToWorld(), s.objType, s.objParams.Shape, utils.DIR_LEFT)
 }
 func (s *Storage) DrawOnGroundLevel(r *renderer.GameRenderer) {}
 

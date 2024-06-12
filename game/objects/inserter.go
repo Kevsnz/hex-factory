@@ -1,6 +1,7 @@
 package objects
 
 import (
+	gd "hextopdown/game/gamedata"
 	"hextopdown/game/items"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
@@ -11,20 +12,27 @@ import (
 type Inserter struct {
 	Object
 	dir        utils.Dir
-	speed      float64
-	armAngle   float64
+	params     *gd.InserterParameters
+	armPos     uint32
 	itemOnHand *items.ItemInWorld
 }
 
-func NewInserter(objType ss.ObjectType, pos utils.HexCoord, dir utils.Dir, speed float64) *Inserter {
+func NewInserter(
+	objType ss.ObjectType,
+	pos utils.HexCoord,
+	dir utils.Dir,
+	objParams *gd.ObjectParameters,
+	params *gd.InserterParameters,
+) *Inserter {
 	return &Inserter{
 		Object: Object{
-			objType: objType,
-			pos:     pos,
+			objType:   objType,
+			pos:       pos,
+			objParams: objParams,
 		},
-		dir:      dir,
-		speed:    speed,
-		armAngle: math.Pi / 2,
+		dir:    dir,
+		params: params,
+		armPos: params.SwingSpeed / 2,
 	}
 }
 
@@ -34,50 +42,56 @@ func (i *Inserter) GetDir() utils.Dir {
 
 func (i *Inserter) Update(ticks uint64, world HexGridWorldInteractor) {
 	if i.itemOnHand == nil {
-		i.armAngle = i.armAngle - i.speed
-		if i.armAngle <= 0 {
-			i.armAngle = 0
-			otherPos := i.pos.Shift(i.dir.Reverse(), 1)
-			obj, ok := world.GetItemOutputAt(otherPos)
-			if !ok {
-				return
-			}
-			item, ok := obj.TakeItemOut(otherPos.CenterToWorld().ShiftDir(i.dir.Reverse(), ss.LANE_OFFSET_WORLD))
-			if !ok {
-				return
-			}
-			i.itemOnHand = item
-			i.updateHeldItemPosition()
+		if i.armPos > 0 {
+			i.armPos--
+			return
 		}
-		return
-	}
 
-	i.armAngle = i.armAngle + i.speed
-	if i.armAngle >= math.Pi {
-		i.armAngle = math.Pi
-		otherPos := i.pos.Shift(i.dir, 1)
-		obj, ok := world.GetItemInputAt(otherPos)
+		i.armPos = 0
+		otherPos := i.pos.Shift(i.dir.Reverse(), int(i.params.Reach))
+		obj, ok := world.GetItemOutputAt(otherPos)
 		if !ok {
 			return
 		}
-		ok = obj.TakeItemIn(otherPos.CenterToWorld().ShiftDir(i.dir, ss.LANE_OFFSET_WORLD), *i.itemOnHand)
-		if ok {
-			i.itemOnHand = nil
+		item, ok := obj.TakeItemOut(otherPos.CenterToWorld().ShiftDir(i.dir.Reverse(), ss.LANE_OFFSET_WORLD))
+		if !ok {
 			return
 		}
+		i.itemOnHand = item
+		i.updateHeldItemPosition()
+		return
 	}
 
-	i.updateHeldItemPosition()
+	if i.armPos < i.params.SwingSpeed {
+		i.armPos++
+		i.updateHeldItemPosition()
+		return
+	}
+
+	i.armPos = i.params.SwingSpeed
+	otherPos := i.pos.Shift(i.dir, int(i.params.Reach))
+	obj, ok := world.GetItemInputAt(otherPos)
+	if !ok {
+		return
+	}
+	ok = obj.TakeItemIn(otherPos.CenterToWorld().ShiftDir(i.dir, ss.LANE_OFFSET_WORLD), *i.itemOnHand)
+	if ok {
+		i.itemOnHand = nil
+		return
+	}
 }
 
 func (i *Inserter) DrawGroundLevel(r *renderer.GameRenderer) {
-	r.DrawObjectGround(i.pos.CenterToWorld(), i.objType, utils.SHAPE_SINGLE, i.dir)
+	r.DrawObjectGround(i.pos.CenterToWorld(), i.objType, i.objParams.Shape, i.dir)
 }
 
 func (i *Inserter) DrawOnGroundLevel(r *renderer.GameRenderer) {
+	angle := math.Pi * float64(i.armPos) / float64(i.params.SwingSpeed)
+	armLen := ss.INSERTER_ARM_LENGTH * float64(i.params.Reach)
+
 	p1 := i.pos.CenterToWorld()
-	p2 := p1.ShiftDir(i.dir, -ss.INSERTER_ARM_LENGTH*math.Cos(i.armAngle))
-	p2.Y -= ss.INSERTER_ARM_LENGTH / 2 * math.Sin(i.armAngle)
+	p2 := p1.ShiftDir(i.dir, -armLen*math.Cos(angle))
+	p2.Y -= armLen / 2 * math.Sin(angle)
 	p1.Y -= ss.HEX_EDGE / 7
 
 	r.DrawWorldLine(p1, p2)
@@ -98,7 +112,10 @@ func (i *Inserter) updateHeldItemPosition() {
 	if i.itemOnHand == nil {
 		return
 	}
-	itemPos := i.pos.CenterToWorld().ShiftDir(i.dir, -ss.INSERTER_ARM_LENGTH*math.Cos(i.armAngle))
-	itemPos.Y -= ss.INSERTER_ARM_LENGTH / 2 * math.Sin(i.armAngle)
+	angle := math.Pi * float64(i.armPos) / float64(i.params.SwingSpeed)
+	armLen := ss.INSERTER_ARM_LENGTH * float64(i.params.Reach)
+
+	itemPos := i.pos.CenterToWorld().ShiftDir(i.dir, -armLen*math.Cos(angle))
+	itemPos.Y -= armLen / 2 * math.Sin(angle)
 	i.itemOnHand.Pos.UpdatePosition(itemPos, false)
 }

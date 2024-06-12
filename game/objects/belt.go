@@ -90,7 +90,13 @@ type Belt struct {
 	beltType ss.BeltType
 }
 
-func NewBelt(objType ss.ObjectType, pos utils.HexCoord, dir utils.Dir, tier ss.BeltTier) *Belt {
+func NewBelt(
+	objType ss.ObjectType,
+	pos utils.HexCoord,
+	dir utils.Dir,
+	objParams *gd.ObjectParameters,
+	tier ss.BeltTier,
+) *Belt {
 	beltType, ok := beltTypeMapping[typeMappingKey{dir, [3]bool{false, false, false}}]
 	if !ok {
 		panic("invalid belt type")
@@ -99,8 +105,9 @@ func NewBelt(objType ss.ObjectType, pos utils.HexCoord, dir utils.Dir, tier ss.B
 	return &Belt{
 		ObjectBeltlike: ObjectBeltlike{
 			Object: Object{
-				objType: objType,
-				pos:     pos,
+				objType:   objType,
+				pos:       pos,
+				objParams: objParams,
 			},
 			tier:       tier,
 			tierParams: &gd.BeltTierParamsList[tier],

@@ -36,7 +36,13 @@ type BeltSplitter struct {
 	onType       ss.BeltType
 }
 
-func NewBeltSplitter(objType ss.ObjectType, pos utils.HexCoord, dir utils.Dir, tier ss.BeltTier) *BeltSplitter {
+func NewBeltSplitter(
+	objType ss.ObjectType,
+	pos utils.HexCoord,
+	dir utils.Dir,
+	objParams *gd.ObjectParameters,
+	tier ss.BeltTier,
+) *BeltSplitter {
 	beltType, ok := splitterTypeMapping[dir.Reverse()]
 	if !ok {
 		panic("invalid belt type")
@@ -56,8 +62,9 @@ func NewBeltSplitter(objType ss.ObjectType, pos utils.HexCoord, dir utils.Dir, t
 	return &BeltSplitter{
 		ObjectBeltlike: ObjectBeltlike{
 			Object: Object{
-				objType: objType,
-				pos:     pos,
+				objType:   objType,
+				pos:       pos,
+				objParams: objParams,
 			},
 			tier:       tier,
 			tierParams: &gd.BeltTierParamsList[tier],

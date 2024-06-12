@@ -50,7 +50,14 @@ type BeltUnder struct {
 	Reach      int32
 }
 
-func NewBeltUnder(objType ss.ObjectType, pos utils.HexCoord, dir utils.Dir, tier ss.BeltTier, isEntry bool) *BeltUnder {
+func NewBeltUnder(
+	objType ss.ObjectType,
+	pos utils.HexCoord,
+	dir utils.Dir,
+	objParams *gd.ObjectParameters,
+	tier ss.BeltTier,
+	isEntry bool,
+) *BeltUnder {
 	speed := 1 / float64(gd.BeltTierParamsList[tier].Speed)
 
 	var inConn, outConn *BeltConnection
@@ -63,8 +70,9 @@ func NewBeltUnder(objType ss.ObjectType, pos utils.HexCoord, dir utils.Dir, tier
 	newBelt := &BeltUnder{
 		ObjectBeltlike: ObjectBeltlike{
 			Object: Object{
-				objType: objType,
-				pos:     pos,
+				objType:   objType,
+				pos:       pos,
+				objParams: objParams,
 			},
 			tier:       tier,
 			tierParams: &gd.BeltTierParamsList[tier],

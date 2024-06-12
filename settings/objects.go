@@ -26,6 +26,8 @@ const (
 
 	OBJECT_TYPE_FURNACE_STONE ObjectType = iota
 
+	OBJECT_TYPE_ASSEMBLER_BASIC ObjectType = iota
+
 	OBJECT_TYPE_COUNT ObjectType = iota
 )
 

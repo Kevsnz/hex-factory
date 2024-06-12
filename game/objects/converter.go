@@ -1,6 +1,7 @@
 package objects
 
 import (
+	gd "hextopdown/game/gamedata"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
 	"hextopdown/utils"
@@ -8,16 +9,25 @@ import (
 
 type Converter struct {
 	Object
-	dir utils.Dir
+	dir    utils.Dir
+	params *gd.ConverterParameters
 }
 
-func NewConverter(objType ss.ObjectType, pos utils.HexCoord, dir utils.Dir) *Converter {
+func NewConverter(
+	objType ss.ObjectType,
+	pos utils.HexCoord,
+	dir utils.Dir,
+	objParams *gd.ObjectParameters,
+	params *gd.ConverterParameters,
+) *Converter {
 	return &Converter{
 		Object: Object{
-			objType: objType,
-			pos:     pos,
+			objType:   objType,
+			pos:       pos,
+			objParams: objParams,
 		},
-		dir: dir,
+		dir:    dir,
+		params: params,
 	}
 }
 
@@ -28,7 +38,7 @@ func (c *Converter) GetDir() utils.Dir {
 func (c *Converter) Rotate(_ bool) {}
 
 func (c *Converter) DrawGroundLevel(r *renderer.GameRenderer) {
-	r.DrawObjectGround(c.pos.CenterToWorld(), c.objType, utils.SHAPE_DIAMOND, c.dir)
+	r.DrawObjectGround(c.pos.CenterToWorld(), c.objType, c.objParams.Shape, c.dir)
 }
 
 func (c *Converter) DrawOnGroundLevel(r *renderer.GameRenderer) {}
