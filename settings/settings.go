@@ -33,9 +33,8 @@ const JOIN2 = 0.5 - LANE_OFFSET_RATIO/3 // second join offset (closer to exit)
 
 const BELT_SPEED = 0.75                  // in hex widths
 const BELT_SPEED_TICK = BELT_SPEED / TPS // per tick
-const BELT_SPEED_FPS = BELT_SPEED / FPS  // per animation frame
 
-const BELT_UNDER_REACH = 4 // hexes including entry and exit hex
+const BELT_UNDER_REACH = 5 // hexes including entry and exit hex
 
 const INSERTER_SPEED = math.Pi * 2 / 3
 const INSERTER_SPEED_TICK = INSERTER_SPEED / TPS

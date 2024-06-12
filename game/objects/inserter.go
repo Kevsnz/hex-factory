@@ -9,28 +9,23 @@ import (
 )
 
 type Inserter struct {
-	pos        utils.HexCoord
+	Object
 	dir        utils.Dir
 	speed      float64
 	armAngle   float64
 	itemOnHand *items.ItemInWorld
 }
 
-func NewInserter(pos utils.HexCoord, dir utils.Dir, speed float64) *Inserter {
+func NewInserter(objType ss.ObjectType, pos utils.HexCoord, dir utils.Dir, speed float64) *Inserter {
 	return &Inserter{
-		pos:      pos,
+		Object: Object{
+			objType: objType,
+			pos:     pos,
+		},
 		dir:      dir,
 		speed:    speed,
 		armAngle: math.Pi / 2,
 	}
-}
-
-func (i *Inserter) GetObjectType() ss.ObjectType {
-	return ss.OBJECT_TYPE_INSERTER1
-}
-
-func (i *Inserter) GetPos() utils.HexCoord {
-	return i.pos
 }
 
 func (i *Inserter) GetDir() utils.Dir {
@@ -76,7 +71,7 @@ func (i *Inserter) Update(ticks uint64, world HexGridWorldInteractor) {
 }
 
 func (i *Inserter) DrawGroundLevel(r *renderer.GameRenderer) {
-	r.DrawObjectGround(i.pos.CenterToWorld(), ss.OBJECT_TYPE_INSERTER1, utils.SHAPE_SINGLE, i.dir)
+	r.DrawObjectGround(i.pos.CenterToWorld(), i.objType, utils.SHAPE_SINGLE, i.dir)
 }
 
 func (i *Inserter) DrawOnGroundLevel(r *renderer.GameRenderer) {

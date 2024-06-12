@@ -1,6 +1,7 @@
 package objects
 
 import (
+	gd "hextopdown/game/gamedata"
 	"hextopdown/game/items"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
@@ -38,7 +39,7 @@ var underBeltOnTypeMapping = map[onBeltUnderTypeMappingKey]ss.BeltType{
 }
 
 type BeltUnder struct {
-	Pos        utils.HexCoord
+	ObjectBeltlike
 	speed      float64
 	beltType   ss.BeltType
 	onType     ss.BeltType
@@ -46,10 +47,12 @@ type BeltUnder struct {
 	outConn    *BeltConnection
 	JoinedBelt *BeltUnder
 	IsEntry    bool
-	Reach      int
+	Reach      int32
 }
 
-func NewBeltUnder(pos utils.HexCoord, dir utils.Dir, speed float64, isEntry bool, reach int) *BeltUnder {
+func NewBeltUnder(objType ss.ObjectType, pos utils.HexCoord, dir utils.Dir, tier ss.BeltTier, isEntry bool) *BeltUnder {
+	speed := 1 / float64(gd.BeltTierParamsList[tier].Speed)
+
 	var inConn, outConn *BeltConnection
 	if isEntry {
 		inConn = NewBeltConnection(pos, dir.Reverse(), speed, true)
@@ -58,12 +61,19 @@ func NewBeltUnder(pos utils.HexCoord, dir utils.Dir, speed float64, isEntry bool
 	}
 
 	newBelt := &BeltUnder{
-		Pos:     pos,
+		ObjectBeltlike: ObjectBeltlike{
+			Object: Object{
+				objType: objType,
+				pos:     pos,
+			},
+			tier:       tier,
+			tierParams: &gd.BeltTierParamsList[tier],
+		},
 		speed:   speed,
 		IsEntry: isEntry,
 		inConn:  inConn,
 		outConn: outConn,
-		Reach:   reach,
+		Reach:   gd.BeltTierParamsList[tier].Reach,
 	}
 
 	newBelt.setBeltType()
@@ -78,14 +88,6 @@ func (b *BeltUnder) setBeltType() {
 		b.beltType = beltTypeMapping[typeMappingKey{b.outConn.Dir, [3]bool{false, false, false}}]
 		b.onType = underBeltOnTypeMapping[onBeltUnderTypeMappingKey{b.outConn.Dir, b.IsEntry}]
 	}
-}
-
-func (b *BeltUnder) GetObjectType() ss.ObjectType {
-	return ss.OBJECT_TYPE_BELTUNDER1
-}
-
-func (b *BeltUnder) GetPos() utils.HexCoord {
-	return b.Pos
 }
 
 func (b *BeltUnder) GetDir() utils.Dir {
@@ -105,23 +107,23 @@ func (b *BeltUnder) GetInConn(dir utils.Dir) *BeltConnection {
 func (b *BeltUnder) Update(ticks uint64, world HexGridWorldInteractor) {}
 
 func (b *BeltUnder) DrawGroundLevel(r *renderer.GameRenderer) {
-	r.DrawAnimatedBelt(b.Pos, b.beltType, b.speed*ss.TPS)
+	r.DrawAnimatedBelt(b.pos, b.beltType, b.speed*ss.TPS)
 }
 
 func (b *BeltUnder) DrawOnGroundLevel(r *renderer.GameRenderer) {
-	r.DrawBeltOnGround(b.Pos, b.onType)
+	r.DrawBeltOnGround(b.pos, b.onType)
 }
 
 func (b *BeltUnder) DrawItems(r *renderer.GameRenderer) {
 	if b.IsEntry {
-		b.inConn.DrawItem(b.Pos, r)
+		b.inConn.DrawItem(b.pos, r)
 		return
 	}
 
 	// if b.inConn != nil {
 	// 	b.inConn.DrawItem(b.Pos, r)
 	// }
-	b.outConn.DrawItem(b.Pos, r)
+	b.outConn.DrawItem(b.pos, r)
 }
 
 func (b *BeltUnder) Reverse() {
@@ -134,7 +136,7 @@ func (b *BeltUnder) Reverse() {
 			panic("belt connectivity inconsistency")
 		}
 		b.outConn.DisconnectNext()
-		b.outConn.Reverse(b.Pos)
+		b.outConn.Reverse(b.pos)
 		b.inConn, b.outConn = b.outConn, nil
 		return
 	}
@@ -147,7 +149,7 @@ func (b *BeltUnder) Reverse() {
 		b.ClearIn(oldInConn.Dir)
 	}
 	oldInConn.DisconnectNext()
-	oldInConn.Reverse(b.Pos)
+	oldInConn.Reverse(b.pos)
 	b.outConn = b.inConn
 	b.IsEntry = false
 	b.setBeltType()
@@ -156,9 +158,9 @@ func (b *BeltUnder) Reverse() {
 	if b2 != nil {
 		oldb2OutConn := b2.outConn
 
-		dist := b.Pos.DistanceTo(b2.GetPos())
+		dist := b.pos.DistanceTo(b2.GetPos())
 		midConn.DisconnectNext()
-		midConn.UpdateDir(b2.Pos, midConn.Dir.Reverse())
+		midConn.UpdateDir(b2.pos, midConn.Dir.Reverse())
 		midConn.ReconnectToWithDist(oldInConn, dist)
 		midConn.SwapReverseItems()
 
@@ -167,7 +169,7 @@ func (b *BeltUnder) Reverse() {
 			b2.ClearOut(oldb2OutConn.Dir)
 		}
 		oldb2OutConn.DisconnectNext()
-		oldb2OutConn.Reverse(b2.Pos)
+		oldb2OutConn.Reverse(b2.pos)
 		oldb2OutConn.ReconnectTo(midConn)
 
 		b.inConn = midConn
@@ -195,7 +197,7 @@ func (b *BeltUnder) Rotate(cw bool) {
 			b.inConn.Belt.ClearOut(b.inConn.Dir.Reverse())
 			b.ClearIn(b.inConn.Dir)
 		}
-		b.inConn.UpdateDir(b.Pos, newDir)
+		b.inConn.UpdateDir(b.pos, newDir)
 		b.setBeltType()
 		return
 	}
@@ -211,7 +213,7 @@ func (b *BeltUnder) Rotate(cw bool) {
 		b.outConn.Belt.ClearIn(b.outConn.Dir.Reverse())
 		b.ClearOut(b.outConn.Dir)
 	}
-	b.outConn.UpdateDir(b.Pos, newDir)
+	b.outConn.UpdateDir(b.pos, newDir)
 	b.setBeltType()
 }
 
@@ -220,7 +222,7 @@ func (b *BeltUnder) CanConnectTo(b2 BeltLike) bool {
 		return false
 	}
 
-	dir, err := b.Pos.DirTo(b2.GetPos())
+	dir, err := b.pos.DirTo(b2.GetPos())
 	if err != nil {
 		return false
 	}
@@ -244,7 +246,7 @@ func (b *BeltUnder) ConnectTo(b2 BeltLike) {
 		panic("it's an entry belt")
 	}
 
-	dir, err := b.Pos.DirTo(b2.GetPos())
+	dir, err := b.pos.DirTo(b2.GetPos())
 	if err != nil {
 		panic(err)
 	}
@@ -297,7 +299,7 @@ func (b *BeltUnder) DisconnectAll() {
 }
 
 func (b *BeltUnder) CanJoinUnder(hex utils.HexCoord, dir utils.Dir) bool {
-	if !b.Pos.IsStraightTo(hex) {
+	if !b.pos.IsStraightTo(hex) {
 		return false
 	}
 
@@ -308,19 +310,19 @@ func (b *BeltUnder) CanJoinUnder(hex utils.HexCoord, dir utils.Dir) bool {
 		return false
 	}
 
-	d := b.Pos.DistanceTo(hex)
-	if d > int32(b.Reach) {
+	d := b.pos.DistanceTo(hex)
+	if d+1 > b.Reach {
 		return false
 	}
 
 	if b.IsEntry && b.outConn != nil {
-		d2 := b.Pos.DistanceTo(b.JoinedBelt.GetPos())
+		d2 := b.pos.DistanceTo(b.JoinedBelt.GetPos())
 		if d >= d2 {
 			return false
 		}
 	}
 	if !b.IsEntry && b.inConn != nil {
-		d2 := b.Pos.DistanceTo(b.JoinedBelt.GetPos())
+		d2 := b.pos.DistanceTo(b.JoinedBelt.GetPos())
 		if d >= d2 {
 			return false
 		}
@@ -333,8 +335,8 @@ func (b *BeltUnder) JoinUnder(b2 *BeltUnder) {
 		panic("not an entry belt")
 	}
 
-	dist := b.Pos.DistanceTo(b2.Pos)
-	b.outConn = NewBeltConnectionWithDist(b.Pos, b.inConn.Dir.Reverse(), b.speed, false, float64(dist))
+	dist := b.pos.DistanceTo(b2.pos)
+	b.outConn = NewBeltConnectionWithDist(b.pos, b.inConn.Dir.Reverse(), b.speed, false, float64(dist))
 	b.outConn.Belt = b2
 	b.outConn.ReconnectToWithDist(b2.outConn, dist)
 	b.inConn.ReconnectTo(b.outConn)

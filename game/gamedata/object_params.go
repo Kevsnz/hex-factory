@@ -1,4 +1,4 @@
-package game
+package gamedata
 
 import (
 	ss "hextopdown/settings"
@@ -6,13 +6,7 @@ import (
 	"hextopdown/utils"
 )
 
-type ObjectParameters struct {
-	Name     strings.StringID
-	BaseType ss.ObjectBaseType
-	Shape    utils.Shape
-}
-
-var objectParamsList = [ss.OBJECT_TYPE_COUNT]ObjectParameters{
+var ObjectParamsList = [ss.OBJECT_TYPE_COUNT]ObjectParameters{
 	ss.OBJECT_TYPE_BELT1: {
 		Name:     strings.STRING_OBJECT_BELT,
 		BaseType: ss.STRUCTURE_BASETYPE_BELTLIKE,

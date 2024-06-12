@@ -1,6 +1,7 @@
 package objects
 
 import (
+	gd "hextopdown/game/gamedata"
 	"hextopdown/game/items"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
@@ -25,7 +26,7 @@ var splitterOnMapping = map[utils.Dir]ss.BeltType{
 }
 
 type BeltSplitter struct {
-	Pos          utils.HexCoord
+	ObjectBeltlike
 	inConns      [2]*BeltConnection
 	outConn      [2]*BeltConnection
 	speed        float64
@@ -35,7 +36,7 @@ type BeltSplitter struct {
 	onType       ss.BeltType
 }
 
-func NewBeltSplitter(pos utils.HexCoord, dir utils.Dir, speed float64) *BeltSplitter {
+func NewBeltSplitter(objType ss.ObjectType, pos utils.HexCoord, dir utils.Dir, tier ss.BeltTier) *BeltSplitter {
 	beltType, ok := splitterTypeMapping[dir.Reverse()]
 	if !ok {
 		panic("invalid belt type")
@@ -45,6 +46,7 @@ func NewBeltSplitter(pos utils.HexCoord, dir utils.Dir, speed float64) *BeltSpli
 		panic("invalid belt on-ground type")
 	}
 
+	speed := 1 / float64(gd.BeltTierParamsList[tier].Speed)
 	inl := newInConn(pos, dir.Reverse(), speed)
 	inr := newInConn(pos, dir.Reverse().NextCW(), speed)
 
@@ -52,7 +54,14 @@ func NewBeltSplitter(pos utils.HexCoord, dir utils.Dir, speed float64) *BeltSpli
 	outr := NewBeltConnection(pos, dir.NextCW(), speed, false)
 
 	return &BeltSplitter{
-		Pos:      pos,
+		ObjectBeltlike: ObjectBeltlike{
+			Object: Object{
+				objType: objType,
+				pos:     pos,
+			},
+			tier:       tier,
+			tierParams: &gd.BeltTierParamsList[tier],
+		},
 		inConns:  [2]*BeltConnection{inl, inr},
 		outConn:  [2]*BeltConnection{outl, outr},
 		speed:    speed,
@@ -66,14 +75,6 @@ func newInConn(pos utils.HexCoord, dir utils.Dir, speed float64) *BeltConnection
 	conn.LaneLeft.End = 0.5 + ss.ITEM_DW/2
 	conn.LaneRight.End = 0.5 + ss.ITEM_DW/2
 	return conn
-}
-
-func (b *BeltSplitter) GetObjectType() ss.ObjectType {
-	return ss.OBJECT_TYPE_BELTSPLITTER1
-}
-
-func (b *BeltSplitter) GetPos() utils.HexCoord {
-	return b.Pos
 }
 
 func (b *BeltSplitter) GetDir() utils.Dir {
@@ -95,10 +96,10 @@ func (b *BeltSplitter) updateType() {
 }
 
 func (b *BeltSplitter) DrawGroundLevel(r *renderer.GameRenderer) {
-	if !r.IsHexOnScreen(b.Pos) {
+	if !r.IsHexOnScreen(b.pos) {
 		return
 	}
-	r.DrawAnimatedBelt(b.Pos, b.beltType, b.speed*ss.TPS)
+	r.DrawAnimatedBelt(b.pos, b.beltType, b.speed*ss.TPS)
 
 	// b.outConn[0].Draw(b.Pos, r)
 	// b.outConn[1].Draw(b.Pos, r)
@@ -108,7 +109,7 @@ func (b *BeltSplitter) DrawGroundLevel(r *renderer.GameRenderer) {
 }
 
 func (b *BeltSplitter) DrawOnGroundLevel(r *renderer.GameRenderer) {
-	r.DrawBeltOnGround(b.Pos, b.onType)
+	r.DrawBeltOnGround(b.pos, b.onType)
 }
 
 func (b *BeltSplitter) Update(ticks uint64, world HexGridWorldInteractor) {
@@ -152,11 +153,11 @@ func (b *BeltSplitter) jumpLaneItems(inLane *BeltGraphSegment, outLane1, outLane
 }
 
 func (b *BeltSplitter) DrawItems(r *renderer.GameRenderer) {
-	b.outConn[0].DrawItem(b.Pos, r)
-	b.outConn[1].DrawItem(b.Pos, r)
+	b.outConn[0].DrawItem(b.pos, r)
+	b.outConn[1].DrawItem(b.pos, r)
 
-	b.inConns[0].DrawItem(b.Pos, r)
-	b.inConns[1].DrawItem(b.Pos, r)
+	b.inConns[0].DrawItem(b.pos, r)
+	b.inConns[1].DrawItem(b.pos, r)
 }
 
 func (b *BeltSplitter) GetInConn(dir utils.Dir) *BeltConnection {
@@ -225,7 +226,7 @@ func (b *BeltSplitter) CanConnectIn(dir utils.Dir) bool {
 }
 
 func (b *BeltSplitter) CanConnectTo(b2 BeltLike) bool {
-	dir, err := b.Pos.DirTo(b2.GetPos())
+	dir, err := b.pos.DirTo(b2.GetPos())
 	if err != nil {
 		return false
 	}
@@ -267,35 +268,35 @@ func (b *BeltSplitter) Rotate(cw bool) {
 			b.ClearOut(b.outConn[0].Dir)
 		}
 		b.outConn[0] = b.outConn[1]
-		b.outConn[1] = NewBeltConnection(b.Pos, dir.NextCW(), b.speed, false)
+		b.outConn[1] = NewBeltConnection(b.pos, dir.NextCW(), b.speed, false)
 
 		if b.inConns[0].Belt != nil {
 			b.inConns[0].Belt.ClearOut(b.inConns[0].Dir.Reverse())
 			b.ClearIn(b.inConns[0].Dir)
 		}
 		b.inConns[0] = b.inConns[1]
-		b.inConns[1] = newInConn(b.Pos, dir.Reverse().NextCW(), b.speed) // NewBeltConnection(b.Pos, dir.Reverse().NextCW(), b.speed, true)
+		b.inConns[1] = newInConn(b.pos, dir.Reverse().NextCW(), b.speed) // NewBeltConnection(b.Pos, dir.Reverse().NextCW(), b.speed, true)
 	} else {
 		if b.outConn[1].Belt != nil {
 			b.outConn[1].Belt.ClearIn(b.outConn[1].Dir.Reverse())
 			b.ClearOut(b.outConn[1].Dir)
 		}
 		b.outConn[1] = b.outConn[0]
-		b.outConn[0] = NewBeltConnection(b.Pos, dir, b.speed, false)
+		b.outConn[0] = NewBeltConnection(b.pos, dir, b.speed, false)
 
 		if b.inConns[1].Belt != nil {
 			b.inConns[1].Belt.ClearOut(b.inConns[1].Dir.Reverse())
 			b.ClearIn(b.inConns[1].Dir)
 		}
 		b.inConns[1] = b.inConns[0]
-		b.inConns[0] = newInConn(b.Pos, dir.Reverse(), b.speed) //NewBeltConnection(b.Pos, dir.Reverse(), b.speed, true)
+		b.inConns[0] = newInConn(b.pos, dir.Reverse(), b.speed) //NewBeltConnection(b.Pos, dir.Reverse(), b.speed, true)
 	}
 
 	b.updateType()
 }
 
 func (b *BeltSplitter) ConnectTo(b2 BeltLike) {
-	dir, err := b.Pos.DirTo(b2.GetPos())
+	dir, err := b.pos.DirTo(b2.GetPos())
 	if err != nil {
 		panic(err)
 	}

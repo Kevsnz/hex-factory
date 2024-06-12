@@ -1,11 +1,25 @@
+## General
+
+General object parameters:
+- Name (string enumeration name)
+- Base Type
+  - Belt-like
+  - Inserter
+  - Storage
+  - Converter
+- Shape
+  - Single hex
+  - Diamond
+  - Bighex
+
 ## Belts
 
 Belt tiers:
-| tier | speed(ticks/width) |
-| :--- | :----------------: |
-| T1   |         18         |
-| T2   |         9          |
-| T3   |         6          |
+| tier | speed(ticks/width) | underground reach |
+| :--- | :----------------: | :---------------: |
+| T1   |         18         |         5         |
+| T2   |         9          |         7         |
+| T3   |         6          |         9         |
 
 Belt-likes (1x1):
 | type     | function    |
@@ -17,7 +31,7 @@ Belt-likes (1x1):
 
 ## Other Objects
 
-Inserters (1x1):
+Inserters:
 | type         | swing speed | reach | stack size | filtering |
 | :----------- | :---------: | :---: | :--------: | :-------- |
 | Burner       |     30      |   1   |     1      | none      |
@@ -28,7 +42,7 @@ Inserters (1x1):
 | Filter       |     10      |   1   |     1      | yes       |
 | Stack Filter |     10      |   1   |     64     | yes       |
 
-Chestboxes (1x1):
+Storage:
 | type     | capacity |
 | :------- | :------: |
 | Wooden   |    8     |

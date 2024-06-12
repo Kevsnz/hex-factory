@@ -1,6 +1,7 @@
 package game
 
 import (
+	gd "hextopdown/game/gamedata"
 	"hextopdown/game/items"
 	"hextopdown/game/objects"
 	"hextopdown/input"
@@ -107,27 +108,32 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 				}
 				g.selectedDir = g.selectedDir.NextCCW()
 			case input.ACTION_PLOP_SPLITTER:
-				if !g.canPlaceObject(hex, ss.OBJECT_TYPE_BELTSPLITTER1, g.selectedDir) {
+				objType := ss.OBJECT_TYPE_BELTSPLITTER1
+				if !g.canPlaceObject(hex, objType, g.selectedDir) {
 					break
 				}
-				bs := objects.NewBeltSplitter(hex, g.selectedDir, ss.BELT_SPEED_TICK)
+				tier := gd.BeltlikeParamsList[objType].Tier
+				bs := objects.NewBeltSplitter(objType, hex, g.selectedDir, tier)
 				g.placeObject(bs)
 			case input.ACTION_PLOP_UNDERGROUND:
-				if !g.canPlaceObject(hex, ss.OBJECT_TYPE_BELTUNDER1, g.selectedDir) {
+				objType := ss.OBJECT_TYPE_BELTUNDER1
+				if !g.canPlaceObject(hex, objType, g.selectedDir) {
 					break
 				}
-				bu := g.findUnderToJoin(hex, g.selectedDir, ss.BELT_UNDER_REACH)
+				tier := gd.BeltlikeParamsList[objType].Tier
+				reach := gd.BeltTierParamsList[tier].Reach
+				bu := g.findUnderToJoin(hex, g.selectedDir, reach)
 				if bu == nil {
-					newBelt := objects.NewBeltUnder(hex, g.selectedDir, ss.BELT_SPEED_TICK, true, ss.BELT_UNDER_REACH)
+					newBelt := objects.NewBeltUnder(objType, hex, g.selectedDir, tier, true)
 					g.worldObjects[hex] = newBelt
 					g.selectedDir = g.selectedDir.Reverse()
 					break
 				}
 				var newBelt *objects.BeltUnder
 				if bu.IsEntry {
-					newBelt = objects.NewBeltUnder(hex, g.selectedDir.Reverse(), ss.BELT_SPEED_TICK, false, ss.BELT_UNDER_REACH)
+					newBelt = objects.NewBeltUnder(objType, hex, g.selectedDir.Reverse(), tier, false)
 				} else {
-					newBelt = objects.NewBeltUnder(hex, g.selectedDir, ss.BELT_SPEED_TICK, true, ss.BELT_UNDER_REACH)
+					newBelt = objects.NewBeltUnder(objType, hex, g.selectedDir, tier, true)
 				}
 				g.placeObject(newBelt)
 				if bu.IsEntry {
@@ -139,25 +145,25 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 				if !g.canPlaceObject(hex, ss.OBJECT_TYPE_INSERTER1, g.selectedDir) {
 					break
 				}
-				ins := objects.NewInserter(hex, g.selectedDir, ss.INSERTER_SPEED_TICK)
+				ins := objects.NewInserter(ss.OBJECT_TYPE_INSERTER1, hex, g.selectedDir, ss.INSERTER_SPEED_TICK)
 				g.placeObject(ins)
 			case input.ACTION_PLOP_CHESTBOX_SMALL:
 				if !g.canPlaceObject(hex, ss.OBJECT_TYPE_CHESTBOX_SMALL, g.selectedDir) {
 					break
 				}
-				chest := objects.NewChestBox(hex, ss.CHESTBOX_CAPACITY_SMALL)
+				chest := objects.NewChestBox(ss.OBJECT_TYPE_CHESTBOX_SMALL, hex, ss.CHESTBOX_CAPACITY_SMALL)
 				g.placeObject(chest)
 			case input.ACTION_PLOP_CHESTBOX_MEDIUM:
 				if !g.canPlaceObject(hex, ss.OBJECT_TYPE_CHESTBOX_MEDIUM, g.selectedDir) {
 					break
 				}
-				chest := objects.NewChestBox(hex, ss.CHESTBOX_CAPACITY_MEDIUM)
+				chest := objects.NewChestBox(ss.OBJECT_TYPE_CHESTBOX_MEDIUM, hex, ss.CHESTBOX_CAPACITY_MEDIUM)
 				g.placeObject(chest)
 			case input.ACTION_PLOP_CHESTBOX_LARGE:
 				if !g.canPlaceObject(hex, ss.OBJECT_TYPE_CHESTBOX_LARGE, g.selectedDir) {
 					break
 				}
-				chest := objects.NewChestBox(hex, ss.CHESTBOX_CAPACITY_LARGE)
+				chest := objects.NewChestBox(ss.OBJECT_TYPE_CHESTBOX_LARGE, hex, ss.CHESTBOX_CAPACITY_LARGE)
 				g.placeObject(chest)
 			case input.ACTION_PLOP_FURNACE:
 				if !g.canPlaceObject(hex, ss.OBJECT_TYPE_FURNACE_STONE, g.selectedDir) {
@@ -206,7 +212,7 @@ func (g *Game) processMouseActions(ih *input.InputHandler) {
 		case input.MOUSE_BUTTON_DOWN:
 			if mouseEvent.Button == input.MOUSE_BUTTON_LEFT {
 				hex := utils.HexCoordFromWorld(mouseEvent.Coord)
-				_ = g.placeBelt(hex, g.selectedDir)
+				_ = g.placeBelt(ss.OBJECT_TYPE_BELT1, hex, g.selectedDir)
 			}
 			if mouseEvent.Button == input.MOUSE_BUTTON_RIGHT {
 				hex := utils.HexCoordFromWorld(mouseEvent.Coord)
@@ -229,7 +235,7 @@ func (g *Game) processMouseMovement(ih *input.InputHandler) {
 		hex1 := utils.HexCoordFromWorld(lastMousePos)
 		hex2 := utils.HexCoordFromWorld(g.mousePos)
 		if hex1 != hex2 {
-			g.placeConnectBelts(hex1, hex2)
+			g.placeConnectBelts(hex1, hex2, ss.OBJECT_TYPE_BELT1)
 		}
 	}
 
@@ -240,7 +246,7 @@ func (g *Game) processMouseMovement(ih *input.InputHandler) {
 	} else {
 		g.showPreppedUnder = true
 		g.preppedUnderConn[0] = hex
-		g.preppedUnderConn[1] = bu.Pos
+		g.preppedUnderConn[1] = bu.GetPos()
 	}
 }
 
@@ -321,23 +327,24 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 		if obj, ok := obj.(ItemHolder); ok {
 			items = obj.GetItemList()
 		}
-		r.DrawObjectDetails(objectParamsList[objType].Name, hex, items, 0.01, 0.90)
+		r.DrawObjectDetails(gd.ObjectParamsList[objType].Name, hex, items, 0.01, 0.90)
 	} else {
 		r.DrawHexCoords(hex, 0.01, 0.96)
 	}
 }
 
-func (g *Game) placeBelt(hex utils.HexCoord, dir utils.Dir) *objects.Belt {
+func (g *Game) placeBelt(objType ss.ObjectType, hex utils.HexCoord, dir utils.Dir) *objects.Belt {
 	if _, ok := g.worldObjects[hex]; ok {
 		return nil
 	}
-	belt := objects.NewBelt(hex, dir, ss.BELT_SPEED_TICK)
+	tier := gd.BeltlikeParamsList[objType].Tier
+	belt := objects.NewBelt(objType, hex, dir, tier)
 	g.worldObjects[hex] = belt
 	return belt
 }
 
 func (g *Game) canPlaceObject(hex utils.HexCoord, objType ss.ObjectType, dir utils.Dir) bool {
-	objParams := objectParamsList[objType]
+	objParams := gd.ObjectParamsList[objType]
 	hexes := objParams.Shape.GetHexes(hex, dir)
 	for _, h := range hexes {
 		if _, ok := g.worldObjects[h]; ok {
@@ -368,7 +375,7 @@ func (g *Game) removeHex(hex utils.HexCoord) {
 	}
 }
 
-func (g *Game) placeConnectBelts(coord1, coord2 utils.HexCoord) {
+func (g *Game) placeConnectBelts(coord1, coord2 utils.HexCoord, objType ss.ObjectType) {
 	var belt1, belt2 objects.BeltLike
 	if t, ok := g.worldObjects[coord1]; ok {
 		if belt1, ok = t.(objects.BeltLike); !ok {
@@ -387,7 +394,7 @@ func (g *Game) placeConnectBelts(coord1, coord2 utils.HexCoord) {
 		if err != nil {
 			return
 		}
-		newBelt := g.placeBelt(coord2, dir)
+		newBelt := g.placeBelt(objType, coord2, dir)
 		if newBelt == nil {
 			return
 		}
@@ -399,9 +406,9 @@ func (g *Game) placeConnectBelts(coord1, coord2 utils.HexCoord) {
 	}
 }
 
-func (g *Game) findUnderToJoin(hex utils.HexCoord, dir utils.Dir, reach int) *objects.BeltUnder {
+func (g *Game) findUnderToJoin(hex utils.HexCoord, dir utils.Dir, reach int32) *objects.BeltUnder {
 	curHex := hex
-	for i := 0; i < reach; i++ {
+	for i := int32(1); i < reach; i++ {
 		curHex = curHex.Next(dir)
 		tickable, ok := g.worldObjects[curHex]
 		if !ok {
@@ -462,7 +469,7 @@ func (g *Game) GetItemOutputAt(hex utils.HexCoord) (obj objects.ItemOutput, ok b
 }
 
 func getObjectHexes(obj WorldObject) []utils.HexCoord {
-	objParams := objectParamsList[obj.GetObjectType()]
+	objParams := gd.ObjectParamsList[obj.GetObjectType()]
 	dir := utils.DIR_LEFT
 	if do, ok := obj.(DirectionalObject); ok {
 		dir = do.GetDir()

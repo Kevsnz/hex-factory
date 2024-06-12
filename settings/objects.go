@@ -11,7 +11,7 @@ const (
 	STRUCTURE_BASETYPE_COUNT ObjectBaseType = iota
 )
 
-type ObjectType uint32 // types of all the objects like "wooden chest" or "fast inserter"
+type ObjectType uint32 // concrete types of all the objects like "wooden chest" or "fast inserter"
 
 const (
 	OBJECT_TYPE_BELT1         ObjectType = iota
@@ -27,4 +27,24 @@ const (
 	OBJECT_TYPE_FURNACE_STONE ObjectType = iota
 
 	OBJECT_TYPE_COUNT ObjectType = iota
+)
+
+type BeltLikeType uint32
+
+const (
+	BELTLIKE_TYPE_NORMAL   BeltLikeType = iota
+	BELTLIKE_TYPE_UNDER    BeltLikeType = iota
+	BELTLIKE_TYPE_SPLITTER BeltLikeType = iota
+
+	BELTLIKE_TYPE_COUNT BeltLikeType = iota
+)
+
+type BeltTier uint32
+
+const (
+	BELT_TIER_NORMAL  BeltTier = iota
+	BELT_TIER_FAST    BeltTier = iota
+	BELT_TIER_EXPRESS BeltTier = iota
+
+	BELT_TIER_COUNT BeltTier = iota
 )

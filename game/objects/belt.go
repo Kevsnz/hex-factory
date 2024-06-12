@@ -2,6 +2,7 @@ package objects
 
 import (
 	"fmt"
+	gd "hextopdown/game/gamedata"
 	"hextopdown/game/items"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
@@ -82,32 +83,32 @@ var beltTypeMapping = map[typeMappingKey]ss.BeltType{
 }
 
 type Belt struct {
-	Pos      utils.HexCoord
+	ObjectBeltlike
 	inConns  [3]*BeltConnection
 	outConn  *BeltConnection
 	speed    float64
 	beltType ss.BeltType
 }
 
-func NewBelt(pos utils.HexCoord, dir utils.Dir, speed float64) *Belt {
+func NewBelt(objType ss.ObjectType, pos utils.HexCoord, dir utils.Dir, tier ss.BeltTier) *Belt {
 	beltType, ok := beltTypeMapping[typeMappingKey{dir, [3]bool{false, false, false}}]
 	if !ok {
 		panic("invalid belt type")
 	}
+	speed := 1 / float64(gd.BeltTierParamsList[tier].Speed)
 	return &Belt{
-		Pos:      pos,
+		ObjectBeltlike: ObjectBeltlike{
+			Object: Object{
+				objType: objType,
+				pos:     pos,
+			},
+			tier:       tier,
+			tierParams: &gd.BeltTierParamsList[tier],
+		},
 		outConn:  NewBeltConnection(pos, dir, speed, false),
 		speed:    speed,
 		beltType: beltType,
 	}
-}
-
-func (b *Belt) GetObjectType() ss.ObjectType {
-	return ss.OBJECT_TYPE_BELT1
-}
-
-func (b *Belt) GetPos() utils.HexCoord {
-	return b.Pos
 }
 
 func (b *Belt) GetDir() utils.Dir {
@@ -124,10 +125,10 @@ func (b *Belt) updateType() {
 }
 
 func (b *Belt) DrawGroundLevel(r *renderer.GameRenderer) {
-	if !r.IsHexOnScreen(b.Pos) {
+	if !r.IsHexOnScreen(b.pos) {
 		return
 	}
-	r.DrawAnimatedBelt(b.Pos, b.beltType, b.speed*ss.TPS)
+	r.DrawAnimatedBelt(b.pos, b.beltType, b.speed*ss.TPS)
 
 	// r.DrawHexCenter(b.Pos)
 
@@ -142,10 +143,10 @@ func (b *Belt) DrawGroundLevel(r *renderer.GameRenderer) {
 func (b *Belt) DrawOnGroundLevel(r *renderer.GameRenderer) {}
 
 func (b *Belt) DrawItems(r *renderer.GameRenderer) {
-	b.outConn.DrawItem(b.Pos, r)
+	b.outConn.DrawItem(b.pos, r)
 	for i := 0; i < 3; i++ {
 		if b.inConns[i] != nil {
-			b.inConns[i].DrawItem(b.Pos, r)
+			b.inConns[i].DrawItem(b.pos, r)
 		}
 	}
 }
@@ -168,7 +169,7 @@ func (b *Belt) Rotate(cw bool) {
 }
 
 func (b *Belt) CanConnectTo(b2 BeltLike) bool {
-	dir, err := b.Pos.DirTo(b2.GetPos())
+	dir, err := b.pos.DirTo(b2.GetPos())
 	if err != nil {
 		return false
 	}
@@ -185,7 +186,7 @@ func (b *Belt) CanConnectIn(dir utils.Dir) bool {
 }
 
 func (b *Belt) ConnectTo(b2 BeltLike) {
-	dir, err := b.Pos.DirTo(b2.GetPos())
+	dir, err := b.pos.DirTo(b2.GetPos())
 	if err != nil {
 		panic(fmt.Sprintf("unable to connect: %v", err))
 	}
@@ -348,14 +349,14 @@ func (b *Belt) CreateIn(inDir utils.Dir, b2 BeltLike) {
 		return
 	}
 
-	b.inConns[idx] = NewBeltConnection(b.Pos, inDir, b.speed, true)
+	b.inConns[idx] = NewBeltConnection(b.pos, inDir, b.speed, true)
 	b.inConns[idx].Belt = b2
 
 	if idx == 1 && b.inConns[2] != nil && b.inConns[0] == nil {
-		b.inConns[0] = NewBeltConnection(b.Pos, b.outConn.Dir.Reverse(), b.speed, true)
+		b.inConns[0] = NewBeltConnection(b.pos, b.outConn.Dir.Reverse(), b.speed, true)
 	}
 	if idx == 2 && b.inConns[1] != nil && b.inConns[0] == nil {
-		b.inConns[0] = NewBeltConnection(b.Pos, b.outConn.Dir.Reverse(), b.speed, true)
+		b.inConns[0] = NewBeltConnection(b.pos, b.outConn.Dir.Reverse(), b.speed, true)
 	}
 
 	b.fixIncomingConnections()
@@ -399,7 +400,7 @@ func (b *Belt) changeOut(dir utils.Dir, b2 BeltLike) {
 		}
 	}
 
-	b.outConn.UpdateDir(b.Pos, dir)
+	b.outConn.UpdateDir(b.pos, dir)
 	b.outConn.Belt = b2
 	if b2 != nil {
 		b.outConn.ReconnectTo(b2.GetInConn(b.outConn.Dir.Reverse()))
@@ -429,7 +430,7 @@ func (b *Belt) getInBeltsIndex(inDir utils.Dir) int {
 }
 
 func (b *Belt) GetSegmentOffset(pos utils.WorldCoord) (dir utils.Dir, offset float64, isLeft bool, ok bool) {
-	center := b.Pos.CenterToWorld()
+	center := b.pos.CenterToWorld()
 	localPos := pos.Sub(center)
 
 	minDistSq, minDistIsLeft, minDistOffset := b.outConn.GetClosestSegment(localPos)
