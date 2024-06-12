@@ -7,22 +7,22 @@ import (
 	"hextopdown/utils"
 )
 
-type ChestBox struct {
+type Storage struct {
 	Pos      utils.HexCoord
 	Capacity int
 	slots    []*items.ItemStack
 }
 
-func NewChestBox(pos utils.HexCoord, capacity int) *ChestBox {
-	return &ChestBox{
+func NewChestBox(pos utils.HexCoord, capacity int) *Storage {
+	return &Storage{
 		Pos:      pos,
 		Capacity: capacity,
 		slots:    make([]*items.ItemStack, capacity),
 	}
 }
 
-func (cb *ChestBox) GetObjectType() ss.ObjectType {
-	switch cb.Capacity {
+func (s *Storage) GetObjectType() ss.ObjectType {
+	switch s.Capacity {
 	case ss.CHESTBOX_CAPACITY_SMALL:
 		return ss.OBJECT_TYPE_CHESTBOX_SMALL
 	case ss.CHESTBOX_CAPACITY_MEDIUM:
@@ -33,40 +33,40 @@ func (cb *ChestBox) GetObjectType() ss.ObjectType {
 	panic("invalid chestbox capacity")
 }
 
-func (cb *ChestBox) GetPos() utils.HexCoord {
-	return cb.Pos
+func (s *Storage) GetPos() utils.HexCoord {
+	return s.Pos
 }
 
-func (cb *ChestBox) DrawGroundLevel(r *renderer.GameRenderer) {
-	switch cb.Capacity {
+func (s *Storage) DrawGroundLevel(r *renderer.GameRenderer) {
+	switch s.Capacity {
 	case ss.CHESTBOX_CAPACITY_SMALL:
-		r.DrawObjectGround(cb.Pos.CenterToWorld(), ss.OBJECT_TYPE_CHESTBOX_SMALL, utils.SHAPE_SINGLE, utils.DIR_LEFT)
+		r.DrawObjectGround(s.Pos.CenterToWorld(), ss.OBJECT_TYPE_CHESTBOX_SMALL, utils.SHAPE_SINGLE, utils.DIR_LEFT)
 	case ss.CHESTBOX_CAPACITY_MEDIUM:
-		r.DrawObjectGround(cb.Pos.CenterToWorld(), ss.OBJECT_TYPE_CHESTBOX_MEDIUM, utils.SHAPE_SINGLE, utils.DIR_LEFT)
+		r.DrawObjectGround(s.Pos.CenterToWorld(), ss.OBJECT_TYPE_CHESTBOX_MEDIUM, utils.SHAPE_SINGLE, utils.DIR_LEFT)
 	case ss.CHESTBOX_CAPACITY_LARGE:
-		r.DrawObjectGround(cb.Pos.CenterToWorld(), ss.OBJECT_TYPE_CHESTBOX_LARGE, utils.SHAPE_SINGLE, utils.DIR_LEFT)
+		r.DrawObjectGround(s.Pos.CenterToWorld(), ss.OBJECT_TYPE_CHESTBOX_LARGE, utils.SHAPE_SINGLE, utils.DIR_LEFT)
 	}
 }
-func (cb *ChestBox) DrawOnGroundLevel(r *renderer.GameRenderer) {}
+func (s *Storage) DrawOnGroundLevel(r *renderer.GameRenderer) {}
 
-func (cb *ChestBox) TakeItemOut(pos utils.WorldCoord) (*items.ItemInWorld, bool) {
-	for i, stack := range cb.slots {
+func (s *Storage) TakeItemOut(pos utils.WorldCoord) (*items.ItemInWorld, bool) {
+	for i, stack := range s.slots {
 		if stack == nil {
 			continue
 		}
-		item := items.NewItemInWorld2(stack.ItemType, cb.Pos.CenterToWorld())
+		item := items.NewItemInWorld2(stack.ItemType, s.Pos.CenterToWorld())
 		stack.Count--
 		if stack.Count == 0 {
-			cb.slots[i] = nil
+			s.slots[i] = nil
 		}
 		return &item, true
 	}
 	return nil, false
 }
 
-func (cb *ChestBox) TakeItemIn(pos utils.WorldCoord, item items.ItemInWorld) (ok bool) {
+func (s *Storage) TakeItemIn(pos utils.WorldCoord, item items.ItemInWorld) (ok bool) {
 	emptyIdx := -1
-	for i, stack := range cb.slots {
+	for i, stack := range s.slots {
 		if stack == nil {
 			if emptyIdx == -1 {
 				emptyIdx = i
@@ -85,14 +85,14 @@ func (cb *ChestBox) TakeItemIn(pos utils.WorldCoord, item items.ItemInWorld) (ok
 	}
 
 	stack := items.NewSingleItemStack(item.ItemType)
-	cb.slots[emptyIdx] = &stack
+	s.slots[emptyIdx] = &stack
 	return true
 }
 
-func (cb *ChestBox) GetItemList() []utils.ItemInfo {
+func (s *Storage) GetItemList() []utils.ItemInfo {
 	var info []utils.ItemInfo
 outer:
-	for _, stack := range cb.slots {
+	for _, stack := range s.slots {
 		if stack == nil {
 			continue
 		}
