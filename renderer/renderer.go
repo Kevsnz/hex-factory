@@ -31,7 +31,7 @@ type GameRenderer struct {
 	timeMs                uint64
 }
 
-func NewGameRenderer(window *sdl.Window, view utils.WorldCoord) *GameRenderer {
+func NewGameRenderer(window *sdl.Window) *GameRenderer {
 	renderer, err := sdl.CreateRenderer(window, 0, sdl.RENDERER_ACCELERATED)
 	if err != nil {
 		panic(err)
@@ -48,7 +48,7 @@ func NewGameRenderer(window *sdl.Window, view utils.WorldCoord) *GameRenderer {
 		renderer:      renderer,
 		stringManager: sm,
 		font:          font,
-		Viewport:      utils.NewViewport(view, 1.0),
+		Viewport:      utils.NewViewport(utils.WorldCoord{}, 1.0),
 	}
 }
 

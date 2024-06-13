@@ -1,6 +1,7 @@
 package game
 
 import (
+	"hextopdown/game/char"
 	gd "hextopdown/game/gamedata"
 	"hextopdown/game/items"
 	"hextopdown/game/objects"
@@ -10,10 +11,8 @@ import (
 	"hextopdown/utils"
 )
 
-const MOVE_SPEED = 8
-
 type Game struct {
-	Pos utils.WorldCoordInterpolated
+	player char.Character
 
 	worldObjects map[utils.HexCoord]WorldObject
 
@@ -23,7 +22,7 @@ type Game struct {
 
 	mousePos         utils.WorldCoord
 	Running          bool
-	Paused           bool
+	paused           bool
 	selectedDir      utils.Dir
 	preppedUnderConn [2]utils.HexCoord
 	showPreppedUnder bool
@@ -31,13 +30,18 @@ type Game struct {
 
 func NewGame() *Game {
 	return &Game{
+		player:       char.NewCharacter(utils.WorldCoord{X: 0, Y: 0}),
 		Running:      true,
-		Paused:       false,
+		paused:       false,
 		worldObjects: make(map[utils.HexCoord]WorldObject),
 	}
 }
 
 func (g *Game) Destroy() {}
+
+func (g *Game) GetPlayerPos() utils.WorldCoord {
+	return g.player.GetPos().Pos
+}
 
 func (g *Game) SetTime(t uint64) {
 	g.time = t
@@ -56,7 +60,7 @@ func (g *Game) ProcessInputFramed(ih *input.InputHandler, r *renderer.GameRender
 				g.Running = false
 			}
 			if actionEvent.Action == input.ACTION_PAUSE {
-				g.Paused = !g.Paused
+				g.paused = !g.paused
 			}
 		}
 	}
@@ -69,7 +73,7 @@ func (g *Game) processInputTicked(ih *input.InputHandler) {
 }
 
 func (g *Game) processGameActions(ih *input.InputHandler) {
-	if g.Paused {
+	if g.paused {
 		ih.KeyboardActionsTicked.Clear()
 		return
 	}
@@ -159,29 +163,29 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 	}
 
 	{
-		sx, sy := 0.0, 0.0
+		dx, dy := int64(0), int64(0)
 		if ih.GetActionState(input.ACTION_MOVE_LEFT) {
-			sx -= MOVE_SPEED
+			dx -= 1
 		}
 
 		if ih.GetActionState(input.ACTION_MOVE_RIGHT) {
-			sx += MOVE_SPEED
+			dx += 1
 		}
 
 		if ih.GetActionState(input.ACTION_MOVE_UP) {
-			sy -= MOVE_SPEED
+			dy -= 1
 		}
 
 		if ih.GetActionState(input.ACTION_MOVE_DOWN) {
-			sy += MOVE_SPEED
+			dy += 1
 		}
 
-		g.Pos.UpdatePosition(g.Pos.Pos.Shift(sx, sy), false)
+		g.player.UpdateMovement(dx, dy)
 	}
 }
 
 func (g *Game) processMouseActions(ih *input.InputHandler) {
-	if g.Paused {
+	if g.paused {
 		ih.MouseActions.Clear()
 		return
 	}
@@ -207,7 +211,7 @@ func (g *Game) processMouseActions(ih *input.InputHandler) {
 }
 
 func (g *Game) processMouseMovement(ih *input.InputHandler) {
-	if g.Paused {
+	if g.paused {
 		g.mousePos = ih.MousePos
 		return
 	}
@@ -224,7 +228,7 @@ func (g *Game) processMouseMovement(ih *input.InputHandler) {
 	}
 
 	hex := utils.HexCoordFromWorld(g.mousePos)
-	bu := g.findUnderToJoin(hex, g.selectedDir, ss.BELT_UNDER_REACH)
+	bu := g.findUnderToJoin(hex, g.selectedDir, gd.InserterParamsList[ss.OBJECT_TYPE_INSERTER1].Reach)
 	if bu == nil {
 		g.showPreppedUnder = false
 	} else {
@@ -251,7 +255,7 @@ func (g *Game) Update(t uint64, ih *input.InputHandler) {
 }
 
 func (g *Game) doTick() {
-	if g.Paused {
+	if g.paused {
 		return
 	}
 
@@ -303,9 +307,9 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 		}
 	}
 
-	r.DrawViewTarget(g.Pos)
+	r.DrawViewTarget(g.player.GetPos())
 	r.DrawArrow(0.9, 0.025, g.selectedDir)
-	r.DrawPlayerCoords(g.Pos.Pos, 0.01, 0.03)
+	r.DrawPlayerCoords(g.player.GetPos().Pos, 0.01, 0.03)
 
 	hex := utils.HexCoordFromWorld(g.mousePos)
 

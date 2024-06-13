@@ -9,6 +9,12 @@ func Abs(x int32) int32 {
 func Sign(x int32) int32 {
 	return x>>31 | 1
 }
+func SignF(x float64) float64 {
+	return float64(1 - 2*(math.Float64bits(x)>>63))
+}
+func Float64WithSign(x float64, sign float64) float64 {
+	return math.Float64frombits(math.Float64bits(x)&^(1<<63) | math.Float64bits(sign)&(1<<63))
+}
 
 func AbsF32(x float32) float32 {
 	return math.Float32frombits(math.Float32bits(x) &^ (1 << 31))

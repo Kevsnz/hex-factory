@@ -1,7 +1,5 @@
 package settings
 
-import "math"
-
 const (
 	RES_X = 1280
 	RES_Y = 960
@@ -31,13 +29,6 @@ const LANE_OFFSET_WORLD = LANE_OFFSET_RATIO * HEX_EDGE
 const JOIN1 = 0.5 + LANE_OFFSET_RATIO   // first join offset (closer to entry)
 const JOIN2 = 0.5 - LANE_OFFSET_RATIO/3 // second join offset (closer to exit)
 
-const BELT_SPEED = 0.75                  // in hex widths
-const BELT_SPEED_TICK = BELT_SPEED / TPS // per tick
-
-const BELT_UNDER_REACH = 5 // hexes including entry and exit hex
-
-const INSERTER_SPEED = math.Pi * 2 / 3
-const INSERTER_SPEED_TICK = INSERTER_SPEED / TPS
 const INSERTER_ARM_LENGTH = HEX_WIDTH
 
 const HEX_DRAW_R = HEX_EDGE + 1
@@ -57,3 +48,7 @@ const TEXTURE_SOURCE_EXT = ".png"
 const CHESTBOX_CAPACITY_SMALL = 8
 const CHESTBOX_CAPACITY_MEDIUM = 16
 const CHESTBOX_CAPACITY_LARGE = 32
+
+const CHAR_MAX_SPEED = float64(HEX_WIDTH) * 3 / TPS
+const CHAR_ACCEL = float64(HEX_WIDTH) / 2 / TPS
+const CHAR_DECCEL = CHAR_ACCEL * 2
