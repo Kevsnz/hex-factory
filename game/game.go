@@ -5,6 +5,7 @@ import (
 	gd "hextopdown/game/gamedata"
 	"hextopdown/game/items"
 	"hextopdown/game/objects"
+	"hextopdown/game/ui"
 	"hextopdown/input"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
@@ -13,6 +14,7 @@ import (
 
 type Game struct {
 	player char.Character
+	ui     *ui.UI
 
 	worldObjects map[utils.HexCoord]WorldObject
 
@@ -31,13 +33,16 @@ type Game struct {
 func NewGame() *Game {
 	return &Game{
 		player:       char.NewCharacter(utils.WorldCoord{X: 0, Y: 0}),
+		ui:           ui.NewUI(),
 		Running:      true,
 		paused:       false,
 		worldObjects: make(map[utils.HexCoord]WorldObject),
 	}
 }
 
-func (g *Game) Destroy() {}
+func (g *Game) Destroy() {
+	g.ui.Destroy()
+}
 
 func (g *Game) GetPlayerPos() utils.WorldCoord {
 	return g.player.GetPos().Pos
@@ -56,11 +61,13 @@ func (g *Game) ProcessInputFramed(ih *input.InputHandler, r *renderer.GameRender
 
 		switch actionEvent.Type {
 		case input.ACTION_TYPE_DOWN:
-			if actionEvent.Action == input.ACTION_QUIT {
+			switch actionEvent.Action {
+			case input.ACTION_QUIT:
 				g.Running = false
-			}
-			if actionEvent.Action == input.ACTION_PAUSE {
+			case input.ACTION_PAUSE:
 				g.paused = !g.paused
+			case input.ACTION_TOGGLE_UI:
+				g.ui.ShowToggle()
 			}
 		}
 	}
@@ -308,7 +315,11 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 		}
 	}
 
+	// Draw Player
 	r.DrawViewTarget(g.player.GetPos())
+
+	// Draw UI
+	g.ui.Draw(r)
 	r.DrawArrow(0.9, 0.025, g.selectedDir)
 	r.DrawPlayerCoords(g.player.GetPos().Pos, 0.01, 0.03)
 

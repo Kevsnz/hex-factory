@@ -43,6 +43,7 @@ func main() {
 	ih := input.NewInputHandler()
 	ih.SetKeybind(sdl.SCANCODE_ESCAPE, input.ACTION_QUIT)
 	ih.SetKeybind(sdl.SCANCODE_P, input.ACTION_PAUSE)
+	ih.SetKeybind(sdl.SCANCODE_F1, input.ACTION_TOGGLE_UI)
 	ih.SetKeybind(sdl.SCANCODE_W, input.ACTION_MOVE_UP)
 	ih.SetKeybind(sdl.SCANCODE_S, input.ACTION_MOVE_DOWN)
 	ih.SetKeybind(sdl.SCANCODE_A, input.ACTION_MOVE_LEFT)

@@ -21,6 +21,8 @@ const (
 	ACTION_ZOOM_IN  = ActionType(iota)
 	ACTION_ZOOM_OUT = ActionType(iota)
 
+	ACTION_TOGGLE_UI = ActionType(iota)
+
 	ACTION_ROTATE_CW        = ActionType(iota)
 	ACTION_ROTATE_CCW       = ActionType(iota)
 	ACTION_PLACE_ITEM       = ActionType(iota)
@@ -38,9 +40,10 @@ const (
 )
 
 var framedActions = map[ActionType]struct{}{
-	ACTION_PAUSE: {},
-	ACTION_QUIT:  {},
-	ACTION_FF:    {},
+	ACTION_PAUSE:     {},
+	ACTION_QUIT:      {},
+	ACTION_FF:        {},
+	ACTION_TOGGLE_UI: {},
 }
 
 type ActionEventType uint32

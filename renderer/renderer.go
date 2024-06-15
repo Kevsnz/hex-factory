@@ -625,66 +625,96 @@ func writeToCache(surface *sdl.Surface, cachedPath string) error {
 }
 
 func (r *GameRenderer) DrawString(stringID strings.StringID, pctX, pctY float32) {
-	x, y := pctX*RES_X, pctY*RES_Y
-	r.stringManager.Render(r.renderer, stringID, x, y)
+	x, y := int32(math.Round(float64(pctX*RES_X))), int32(math.Round(float64(pctY*RES_Y)))
+	cs := CompoundString{}
+	cs.AddString(stringID, r.stringManager)
+	r.stringManager.RenderCompoundString(r.renderer, &cs, x, y, TEXT_ALIGN_LEFT)
 }
 
 func (r *GameRenderer) DrawWorldCoords(coord utils.WorldCoord, precision int, pctX, pctY float32) {
-	x, y := pctX*RES_X, pctY*RES_Y
-	x = r.stringManager.RenderFloat(r.renderer, coord.X, precision, x, y)
-	x = r.stringManager.Render(r.renderer, strings.STRING_COMMASPACE, x, y)
-	r.stringManager.RenderFloat(r.renderer, coord.Y, precision, x, y)
+	x, y := int32(math.Round(float64(pctX*RES_X))), int32(math.Round(float64(pctY*RES_Y)))
+
+	cs := CompoundString{}
+	cs.AddFloat(coord.X, precision, r.stringManager)
+	cs.AddString(strings.STRING_COMMASPACE, r.stringManager)
+	cs.AddFloat(coord.Y, precision, r.stringManager)
+	r.stringManager.RenderCompoundString(r.renderer, &cs, x, y, TEXT_ALIGN_LEFT)
 }
 func (r *GameRenderer) DrawHexCoords(hex utils.HexCoord, pctX, pctY float32) {
-	x, y := pctX*RES_X, pctY*RES_Y
-	x = r.stringManager.RenderInt(r.renderer, int(hex.X), 1, x, y)
-	x = r.stringManager.Render(r.renderer, strings.STRING_COMMASPACE, x, y)
-	r.stringManager.RenderInt(r.renderer, int(hex.Y), 1, x, y)
+	x, y := int32(math.Round(float64(pctX*RES_X))), int32(math.Round(float64(pctY*RES_Y)))
+
+	cs := CompoundString{}
+	cs.AddInt(int(hex.X), 1, r.stringManager)
+	cs.AddString(strings.STRING_COMMASPACE, r.stringManager)
+	cs.AddInt(int(hex.Y), 1, r.stringManager)
+
+	r.stringManager.RenderCompoundString(r.renderer, &cs, x, y, TEXT_ALIGN_LEFT)
 }
 
 func (r *GameRenderer) DrawFpsTps(fps, tps float64, pctX, pctY float32) {
-	x, y := pctX*RES_X, pctY*RES_Y
-	x = r.stringManager.Render(r.renderer, strings.STRING_FPS, x, y)
-	x = r.stringManager.RenderFloat(r.renderer, fps, 1, x, y)
+	x, y := int32(math.Round(float64(pctX*RES_X))), int32(math.Round(float64(pctY*RES_Y)))
 
-	x = r.stringManager.Render(r.renderer, strings.STRING_SPACE, x, y)
+	cs := CompoundString{}
+	cs.AddString(strings.STRING_FPS, r.stringManager)
+	cs.AddFloat(fps, 1, r.stringManager)
 
-	x = r.stringManager.Render(r.renderer, strings.STRING_TPS, x, y)
-	r.stringManager.RenderFloat(r.renderer, tps, 1, x, y)
+	cs.AddString(strings.STRING_SPACE, r.stringManager)
+
+	cs.AddString(strings.STRING_TPS, r.stringManager)
+	cs.AddFloat(tps, 1, r.stringManager)
+
+	r.stringManager.RenderCompoundString(r.renderer, &cs, x, y, TEXT_ALIGN_LEFT)
 }
 
 func (r *GameRenderer) DrawPlayerCoords(coord utils.WorldCoord, pctX, pctY float32) {
-	x, y := pctX*RES_X, pctY*RES_Y
-	x = r.stringManager.Render(r.renderer, strings.STRING_PLAYER_COORDS, x, y)
+	x, y := int32(math.Round(float64(pctX*RES_X))), int32(math.Round(float64(pctY*RES_Y)))
 
-	x = r.stringManager.RenderFloat(r.renderer, coord.X, 2, x, y)
-	x = r.stringManager.Render(r.renderer, strings.STRING_COMMASPACE, x, y)
-	r.stringManager.RenderFloat(r.renderer, coord.Y, 2, x, y)
+	cs := CompoundString{}
+	cs.AddString(strings.STRING_PLAYER_COORDS, r.stringManager)
+	cs.AddFloat(coord.X, 2, r.stringManager)
+	cs.AddString(strings.STRING_COMMASPACE, r.stringManager)
+	cs.AddFloat(coord.Y, 2, r.stringManager)
+
+	r.stringManager.RenderCompoundString(r.renderer, &cs, x, y, TEXT_ALIGN_LEFT)
 }
 
 func (r *GameRenderer) DrawObjectDetails(
 	name strings.StringID, hex utils.HexCoord, items []utils.ItemInfo, pctX, pctY float32,
 ) {
-	x, y := pctX*RES_X, pctY*RES_Y
+	x, y := int32(math.Round(float64(pctX*RES_X))), int32(math.Round(float64(pctY*RES_Y)))
 
 	r.stringManager.Render(r.renderer, name, x, y)
 	y += 22
 
-	x2 := r.stringManager.RenderInt(r.renderer, int(hex.X), 1, x, y)
-	x2 = r.stringManager.Render(r.renderer, strings.STRING_COMMASPACE, x2, y)
-	r.stringManager.RenderInt(r.renderer, int(hex.Y), 1, x2, y)
+	cs := CompoundString{}
+	cs.AddInt(int(hex.X), 1, r.stringManager)
+	cs.AddString(strings.STRING_COMMASPACE, r.stringManager)
+	cs.AddInt(int(hex.Y), 1, r.stringManager)
+	r.stringManager.RenderCompoundString(r.renderer, &cs, x, y, TEXT_ALIGN_LEFT)
 	y += 22
 
 	for _, itemInfo := range items {
 		tex := r.itemTextures[itemInfo.Type]
 		if tex == nil {
 			r.renderer.SetDrawColor(255, 0, 255, 255)
-			r.renderer.FillRectF(&sdl.FRect{X: x, Y: y, W: 25, H: 25})
+			r.renderer.FillRect(&sdl.Rect{X: x, Y: y, W: 25, H: 25})
 			return
 		}
-		r.renderer.CopyF(tex, nil, &sdl.FRect{X: x, Y: y, W: 25, H: 25})
+		r.renderer.Copy(tex, nil, &sdl.Rect{X: x, Y: y, W: 25, H: 25})
 
 		r.stringManager.RenderInt(r.renderer, itemInfo.Count, 1, x+15, y+10)
 		x += 30
 	}
+}
+
+func (r *GameRenderer) DrawWindow(pos utils.ScreenCoord, size utils.ScreenCoord) {
+	r.renderer.SetDrawColor(0, 0, 0, 255)
+
+	r.renderer.FillRectF(fRectFromScreen(pos, size.X, size.Y))
+}
+
+func (r *GameRenderer) DrawButton(pos utils.ScreenCoord, size utils.ScreenCoord) {
+	r.renderer.SetDrawColor(32, 32, 32, 255)
+
+	r.renderer.FillRectF(fRectFromScreen(pos, size.X, size.Y))
 }
