@@ -62,6 +62,17 @@ func main() {
 	ih.SetKeybind(sdl.SCANCODE_F, input.ACTION_PLOP_FURNACE)
 	ih.SetKeybind(sdl.SCANCODE_M, input.ACTION_PLOP_ASSEMBLER)
 
+	ih.SetKeybind(sdl.SCANCODE_1, input.ACTION_SELECT_TOOL_1)
+	ih.SetKeybind(sdl.SCANCODE_2, input.ACTION_SELECT_TOOL_2)
+	ih.SetKeybind(sdl.SCANCODE_3, input.ACTION_SELECT_TOOL_3)
+	ih.SetKeybind(sdl.SCANCODE_4, input.ACTION_SELECT_TOOL_4)
+	ih.SetKeybind(sdl.SCANCODE_5, input.ACTION_SELECT_TOOL_5)
+	ih.SetKeybind(sdl.SCANCODE_6, input.ACTION_SELECT_TOOL_6)
+	ih.SetKeybind(sdl.SCANCODE_7, input.ACTION_SELECT_TOOL_7)
+	ih.SetKeybind(sdl.SCANCODE_8, input.ACTION_SELECT_TOOL_8)
+	ih.SetKeybind(sdl.SCANCODE_9, input.ACTION_SELECT_TOOL_9)
+	ih.SetKeybind(sdl.SCANCODE_0, input.ACTION_SELECT_TOOL_0)
+
 	frameTime := 0.0
 	tickTime := 0.0
 	currentTicks := sdl.GetTicks64()

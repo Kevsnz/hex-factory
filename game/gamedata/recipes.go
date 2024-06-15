@@ -13,8 +13,8 @@ type Recipe struct {
 	Converters  []ss.ObjectType
 }
 
-var RecipeList = []Recipe{
-	{
+var RecipeList = [ss.RECIPE_COUNT]Recipe{
+	ss.RECIPE_IRON_GEAR: {
 		Ingredients: []utils.ItemInfo{{Type: ss.ITEM_TYPE_IRON_PLATE, Count: 1}},
 		Products:    []utils.ItemInfo{{Type: ss.ITEM_TYPE_IRON_GEAR, Count: 1}},
 		BuildPoints: 5,

@@ -23,6 +23,17 @@ const (
 
 	ACTION_TOGGLE_UI = ActionType(iota)
 
+	ACTION_SELECT_TOOL_1 = ActionType(iota)
+	ACTION_SELECT_TOOL_2 = ActionType(iota)
+	ACTION_SELECT_TOOL_3 = ActionType(iota)
+	ACTION_SELECT_TOOL_4 = ActionType(iota)
+	ACTION_SELECT_TOOL_5 = ActionType(iota)
+	ACTION_SELECT_TOOL_6 = ActionType(iota)
+	ACTION_SELECT_TOOL_7 = ActionType(iota)
+	ACTION_SELECT_TOOL_8 = ActionType(iota)
+	ACTION_SELECT_TOOL_9 = ActionType(iota)
+	ACTION_SELECT_TOOL_0 = ActionType(iota)
+
 	ACTION_ROTATE_CW        = ActionType(iota)
 	ACTION_ROTATE_CCW       = ActionType(iota)
 	ACTION_PLACE_ITEM       = ActionType(iota)
@@ -56,7 +67,7 @@ const (
 type ActionEvent struct {
 	Action     ActionType
 	Type       ActionEventType
-	MouseCoord utils.WorldCoord // in world space
+	MouseCoord utils.ScreenCoord
 }
 
 type MouseButton uint8
@@ -88,7 +99,7 @@ const (
 )
 
 type MouseButtonEvent struct {
-	Coord  utils.WorldCoord
+	Coord  utils.ScreenCoord
 	Type   MouseButtonEventType
 	Button MouseButton
 }
@@ -98,7 +109,7 @@ type InputHandler struct {
 	KeyMappingTicked      map[sdl.Scancode]ActionType
 	ActionState           [ACTION_COUNT]bool
 	MouseButtonState      [MOUSE_BUTTON_COUNT]bool
-	MousePos              utils.WorldCoord
+	MousePos              utils.ScreenCoord
 	KeyboardActionsFramed utils.RingBuffer[ActionEvent]
 	KeyboardActionsTicked utils.RingBuffer[ActionEvent]
 	MouseActions          utils.RingBuffer[MouseButtonEvent]
@@ -142,13 +153,13 @@ func (ih *InputHandler) HandleMouseButtonEvent(event *sdl.MouseButtonEvent) {
 
 	ih.MouseButtonState[mouseButton] = event.Type == sdl.MOUSEBUTTONDOWN
 
-	coord := utils.ScreenToWorld(float32(event.X), float32(event.Y))
+	coord := utils.ScreenCoord{X: float32(event.X), Y: float32(event.Y)}
 	mouseEvent := MouseButtonEvent{coord, MouseButtonEventType(event.Type), mouseButton}
 	_ = ih.MouseActions.Push(mouseEvent)
 }
 
 func (ih *InputHandler) HandleMouseMotionEvent(event *sdl.MouseMotionEvent) {
-	ih.MousePos = utils.ScreenToWorld(float32(event.X), float32(event.Y))
+	ih.MousePos = utils.ScreenCoord{X: float32(event.X), Y: float32(event.Y)}
 }
 
 func (ih *InputHandler) SetKeybind(key sdl.Scancode, action ActionType) {

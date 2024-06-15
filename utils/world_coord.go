@@ -60,6 +60,10 @@ func (w WorldCoord) DistanceSqTo(w2 WorldCoord) float64 {
 	return (w.X-w2.X)*(w.X-w2.X) + (w.Y-w2.Y)*(w.Y-w2.Y)
 }
 
-func (w WorldCoord) ToScreenCoord() ScreenCoord {
-	return WorldToScreen2(w)
+func (w WorldCoord) ToScreen() ScreenCoord {
+	return WorldToScreen(w)
+}
+
+func (w WorldCoord) ToHex() HexCoord {
+	return HexCoordFromWorld(w)
 }

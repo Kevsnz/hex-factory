@@ -24,22 +24,26 @@ func GetViewZoom() float64 {
 	return zoom
 }
 
-func ScreenToWorld(x, y float32) WorldCoord {
-	return WorldCoord{float64(x), float64(y)}.Div(zoom).Add(pos)
-}
-
-func ScreenToWorld2(c ScreenCoord) WorldCoord {
+func ScreenToWorld(c ScreenCoord) WorldCoord {
 	return WorldCoord{float64(c.X), float64(c.Y)}.Div(zoom).Add(pos)
 }
 
-func WorldToScreen(p WorldCoord) (float32, float32) {
-	p = p.Sub(pos).Mul(zoom)
-	return float32(p.X), float32(p.Y)
-}
-
-func WorldToScreen2(p WorldCoord) ScreenCoord {
+func WorldToScreen(p WorldCoord) ScreenCoord {
 	p = p.Sub(pos).Mul(zoom)
 	return ScreenCoord{float32(p.X), float32(p.Y)}
+}
+
+func PctPosToScreen(pct ScreenCoord) ScreenCoord {
+	return ScreenCoord{pct.X * ss.RES_X, pct.Y * ss.RES_Y}
+}
+func PctScaleToScreen(pct ScreenCoord) ScreenCoord {
+	if ss.RES_X < ss.RES_Y {
+		return ScreenCoord{pct.X * ss.RES_X, pct.Y * ss.RES_X}
+	}
+	return ScreenCoord{pct.X * ss.RES_Y, pct.Y * ss.RES_Y}
+}
+func ScreenToPctPos(c ScreenCoord) ScreenCoord {
+	return ScreenCoord{c.X / ss.RES_X, c.Y / ss.RES_Y}
 }
 
 func GetZoomedHexWidth() float32 {

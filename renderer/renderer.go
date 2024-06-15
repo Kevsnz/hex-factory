@@ -36,7 +36,8 @@ func NewGameRenderer(window *sdl.Window) *GameRenderer {
 		panic(err)
 	}
 
-	font, err := ttf.OpenFont(path.Join("resources", "Roboto-Regular.ttf"), 20)
+	fontSize := math.Round(float64(utils.PctScaleToScreen(utils.ScreenCoord{X: ss.FONT_SIZE_PCT, Y: 0}).X))
+	font, err := ttf.OpenFont(path.Join("resources", "Roboto-Regular.ttf"), int(fontSize))
 	if err != nil {
 		panic(err)
 	}
@@ -91,7 +92,7 @@ func (r *GameRenderer) DrawScreen() {
 
 func (r *GameRenderer) DrawViewTarget(pos utils.WorldCoordInterpolated) {
 	drawPos := pos.GetInterpolatedPos(r.timeMs, ss.TICK_DT)
-	c := drawPos.ToScreenCoord()
+	c := drawPos.ToScreen()
 	if !isOnScreenRadius(c, 10) {
 		return
 	}
@@ -100,22 +101,22 @@ func (r *GameRenderer) DrawViewTarget(pos utils.WorldCoordInterpolated) {
 }
 
 func (r *GameRenderer) drawHexGrid() {
-	hex1 := utils.HexCoordFromWorld(utils.ScreenToWorld(0, 0))
-	hex2 := utils.HexCoordFromWorld(utils.ScreenToWorld(RES_X, 0))
-	hex3 := utils.HexCoordFromWorld(utils.ScreenToWorld(0, RES_Y))
+	hex1 := utils.ScreenCoord{X: 0, Y: 0}.ToWorld().ToHex()
+	hex2 := utils.ScreenCoord{X: RES_X, Y: 0}.ToWorld().ToHex()
+	hex3 := utils.ScreenCoord{X: 0, Y: RES_Y}.ToWorld().ToHex()
 	w := utils.GetZoomedHexWidth()
 	e := utils.GetZoomedHexEdge()
 	o := utils.GetZoomedHexOffset()
 
 	r.renderer.SetDrawColor(96, 96, 96, 255)
-	sx1, sy1 := utils.WorldToScreen(hex1.LeftTopToWorld())
+	s := hex1.LeftTopToWorld().ToScreen()
 	for hy := int32(0); hy <= hex3.Y-hex1.Y+1; hy++ {
 		yo := float32(hy) * (e + o)
 		xo := float32(hy&1) * w / 2
 		for hx := int32(-1); hx <= hex2.X-hex1.X+1; hx++ {
-			r.renderer.DrawLineF(sx1+float32(hx)*w+xo, sy1+yo, sx1+xo+float32(hx)*w+w/2, sy1+yo-o)   // top left
-			r.renderer.DrawLineF(sx1+float32(hx)*w+xo+w/2, sy1+yo-o, sx1+xo+float32(hx)*w+w, sy1+yo) // top right
-			r.renderer.DrawLineF(sx1+float32(hx)*w+xo, sy1+yo, sx1+float32(hx)*w+xo, sy1+yo+e)       // left
+			r.renderer.DrawLineF(s.X+float32(hx)*w+xo, s.Y+yo, s.X+xo+float32(hx)*w+w/2, s.Y+yo-o)   // top left
+			r.renderer.DrawLineF(s.X+float32(hx)*w+xo+w/2, s.Y+yo-o, s.X+xo+float32(hx)*w+w, s.Y+yo) // top right
+			r.renderer.DrawLineF(s.X+float32(hx)*w+xo, s.Y+yo, s.X+float32(hx)*w+xo, s.Y+yo+e)       // left
 		}
 	}
 }
@@ -233,7 +234,7 @@ func (r *GameRenderer) DrawBeltOnGround(hex utils.HexCoord, beltType ss.BeltType
 }
 
 func (r *GameRenderer) DrawObjectGround(pos utils.WorldCoord, objectType ss.ObjectType, shape utils.Shape, dir utils.Dir) {
-	c := pos.ToScreenCoord()
+	c := pos.ToScreen()
 	z := float32(utils.GetViewZoom())
 	sp := GetShapeParam(shape, dir)
 
@@ -260,7 +261,7 @@ func (r *GameRenderer) DrawObjectGround(pos utils.WorldCoord, objectType ss.Obje
 
 func (r *GameRenderer) DrawItem(pos utils.WorldCoordInterpolated, itemType ss.ItemType) {
 	drawPos := pos.GetInterpolatedPos(r.timeMs, ss.TICK_DT)
-	s := drawPos.ToScreenCoord()
+	s := drawPos.ToScreen()
 	idr := utils.GetZoomedDimension(ss.ITEM_DRAW_R)
 	if !isOnScreenRadius(s, idr) {
 		return
@@ -306,10 +307,10 @@ func (r *GameRenderer) DrawConnectionHexes(hex1, hex2 utils.HexCoord) {
 	p1 := hexCenterToScreen(hex1)
 	p2 := hexCenterToScreen(hex2)
 
-	r.drawDashedLine2(p1, p2)
+	r.drawDashedLine(p1, p2)
 }
 
-func (r *GameRenderer) drawDashedLine2(p1, p2 utils.ScreenCoord) {
+func (r *GameRenderer) drawDashedLine(p1, p2 utils.ScreenCoord) {
 	dp := p2.Sub(p1)
 	dSq := dp.LengthSq()
 	if dSq < 4*ss.DASH_LEN*ss.DASH_LEN {
@@ -348,15 +349,15 @@ func (r *GameRenderer) drawDashedLine2(p1, p2 utils.ScreenCoord) {
 }
 
 func (r *GameRenderer) DrawWorldLine(p1, p2 utils.WorldCoord) {
-	x1, y1 := utils.WorldToScreen(p1)
-	x2, y2 := utils.WorldToScreen(p2)
+	s1 := p1.ToScreen()
+	s2 := p2.ToScreen()
 
 	r.renderer.SetDrawColor(255, 0, 0, 255)
-	r.renderer.DrawLineF(x1, y1, x2, y2)
+	r.renderer.DrawLineF(s1.X, s1.Y, s2.X, s2.Y)
 }
 
 func hexCenterToScreen(hex utils.HexCoord) utils.ScreenCoord {
-	return hex.CenterToWorld().ToScreenCoord()
+	return hex.CenterToWorld().ToScreen()
 }
 
 func fRectFromScreen(c utils.ScreenCoord, w, h float32) *sdl.FRect {
@@ -624,11 +625,10 @@ func writeToCache(surface *sdl.Surface, cachedPath string) error {
 	return nil
 }
 
-func (r *GameRenderer) DrawString(stringID strings.StringID, pctX, pctY float32) {
-	x, y := int32(math.Round(float64(pctX*RES_X))), int32(math.Round(float64(pctY*RES_Y)))
+func (r *GameRenderer) DrawString(stringID strings.StringID, pos utils.ScreenCoord, align TextAlignment) {
 	cs := CompoundString{}
 	cs.AddString(stringID, r.stringManager)
-	r.stringManager.RenderCompoundString(r.renderer, &cs, x, y, TEXT_ALIGN_LEFT)
+	r.stringManager.RenderCompoundString(r.renderer, &cs, int32(pos.X), int32(pos.Y), align)
 }
 
 func (r *GameRenderer) DrawWorldCoords(coord utils.WorldCoord, precision int, pctX, pctY float32) {
@@ -678,6 +678,16 @@ func (r *GameRenderer) DrawPlayerCoords(coord utils.WorldCoord, pctX, pctY float
 	r.stringManager.RenderCompoundString(r.renderer, &cs, x, y, TEXT_ALIGN_LEFT)
 }
 
+func (r *GameRenderer) DrawCurrentTool(toolStr strings.StringID, pctX, pctY float32) {
+	x, y := int32(math.Round(float64(pctX*RES_X))), int32(math.Round(float64(pctY*RES_Y)))
+
+	cs := CompoundString{}
+	cs.AddString(strings.STRING_TOOL, r.stringManager)
+	cs.AddString(toolStr, r.stringManager)
+
+	r.stringManager.RenderCompoundString(r.renderer, &cs, x, y, TEXT_ALIGN_RIGHT)
+}
+
 func (r *GameRenderer) DrawObjectDetails(
 	name strings.StringID, hex utils.HexCoord, items []utils.ItemInfo, pctX, pctY float32,
 ) {
@@ -707,14 +717,25 @@ func (r *GameRenderer) DrawObjectDetails(
 	}
 }
 
-func (r *GameRenderer) DrawWindow(pos utils.ScreenCoord, size utils.ScreenCoord) {
-	r.renderer.SetDrawColor(0, 0, 0, 255)
+func (r *GameRenderer) DrawWindow(pos utils.ScreenCoord, size utils.ScreenCoord, active bool) {
+	rect := fRectFromScreen(pos, size.X, size.Y)
 
-	r.renderer.FillRectF(fRectFromScreen(pos, size.X, size.Y))
+	r.renderer.SetDrawColor(0, 0, 0, 255)
+	r.renderer.FillRectF(rect)
+
+	if active {
+		r.renderer.SetDrawColor(127, 127, 127, 255)
+		r.renderer.DrawRectF(rect)
+	}
 }
 
-func (r *GameRenderer) DrawButton(pos utils.ScreenCoord, size utils.ScreenCoord) {
-	r.renderer.SetDrawColor(32, 32, 32, 255)
+func (r *GameRenderer) DrawButton(pos utils.ScreenCoord, size utils.ScreenCoord, hover bool) {
+	rect := fRectFromScreen(pos, size.X, size.Y)
 
-	r.renderer.FillRectF(fRectFromScreen(pos, size.X, size.Y))
+	r.renderer.SetDrawColor(32, 32, 32, 255)
+	r.renderer.FillRectF(rect)
+	if hover {
+		r.renderer.SetDrawColor(32, 127, 32, 255)
+		r.renderer.DrawRectF(rect)
+	}
 }

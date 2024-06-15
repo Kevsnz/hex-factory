@@ -3,16 +3,21 @@ package strings
 type StringID int
 
 const (
+	// Symbols
+	STRING_X          StringID = iota
 	STRING_SPACE      StringID = iota
 	STRING_COMMA      StringID = iota
 	STRING_COMMASPACE StringID = iota
 	STRING_PERIOD     StringID = iota
 	STRING_DASH       StringID = iota
 
+	// UI Strings
 	STRING_FPS           StringID = iota
 	STRING_TPS           StringID = iota
 	STRING_PLAYER_COORDS StringID = iota
+	STRING_TOOL          StringID = iota
 
+	// Object Name Strings
 	STRING_OBJECT_UNKNOWN          StringID = iota
 	STRING_OBJECT_INSERTER         StringID = iota
 	STRING_OBJECT_CHESTBOX_SMALL   StringID = iota
@@ -24,6 +29,7 @@ const (
 	STRING_OBJECT_FURNACE_STONE    StringID = iota
 	STRING_OBJECT_ASSSEMBLER_BASIC StringID = iota
 
+	// Item Name Strings
 	STRING_ITEM_IRON_PLATE StringID = iota
 	STRING_ITEM_IRON_GEAR  StringID = iota
 
@@ -31,6 +37,7 @@ const (
 )
 
 var Strings = [STRING_COUNT]string{
+	STRING_X:          "X",
 	STRING_SPACE:      " ",
 	STRING_COMMA:      ",",
 	STRING_COMMASPACE: ", ",
@@ -40,6 +47,7 @@ var Strings = [STRING_COUNT]string{
 	STRING_FPS:           "FPS: ",
 	STRING_TPS:           "TPS: ",
 	STRING_PLAYER_COORDS: "Player coords: ",
+	STRING_TOOL:          "Current tool: ",
 
 	STRING_OBJECT_UNKNOWN:          "Unknown object",
 	STRING_OBJECT_INSERTER:         "Inserter",

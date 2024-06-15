@@ -52,3 +52,5 @@ const CHESTBOX_CAPACITY_LARGE = 32
 const CHAR_MAX_SPEED = float64(HEX_WIDTH) * 3 / TPS
 const CHAR_ACCEL = float64(HEX_WIDTH) / 2 / TPS
 const CHAR_DECCEL = CHAR_ACCEL * 2
+
+const FONT_SIZE_PCT = 0.04 // 25 lines
