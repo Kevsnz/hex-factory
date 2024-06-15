@@ -131,7 +131,7 @@ func (ih *InputHandler) HandleKeyboardEvent(event *sdl.KeyboardEvent) {
 	}
 }
 
-func (ih *InputHandler) HandleMouseButtonEvent(event *sdl.MouseButtonEvent, viewport *utils.Viewport) {
+func (ih *InputHandler) HandleMouseButtonEvent(event *sdl.MouseButtonEvent) {
 	mouseButton, ok := mouseButtonMapping[event.Button]
 	if !ok {
 		return
@@ -139,13 +139,13 @@ func (ih *InputHandler) HandleMouseButtonEvent(event *sdl.MouseButtonEvent, view
 
 	ih.MouseButtonState[mouseButton] = event.Type == sdl.MOUSEBUTTONDOWN
 
-	coord := viewport.ScreenToWorld(float32(event.X), float32(event.Y))
+	coord := utils.ScreenToWorld(float32(event.X), float32(event.Y))
 	mouseEvent := MouseButtonEvent{coord, MouseButtonEventType(event.Type), mouseButton}
 	_ = ih.MouseActions.Push(mouseEvent)
 }
 
-func (ih *InputHandler) HandleMouseMotionEvent(event *sdl.MouseMotionEvent, viewport *utils.Viewport) {
-	ih.MousePos = viewport.ScreenToWorld(float32(event.X), float32(event.Y))
+func (ih *InputHandler) HandleMouseMotionEvent(event *sdl.MouseMotionEvent) {
+	ih.MousePos = utils.ScreenToWorld(float32(event.X), float32(event.Y))
 }
 
 func (ih *InputHandler) SetKeybind(key sdl.Scancode, action ActionType) {

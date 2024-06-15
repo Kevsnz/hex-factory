@@ -116,6 +116,12 @@ func (b *BeltUnder) Update(ticks uint64, world HexGridWorldInteractor) {}
 
 func (b *BeltUnder) DrawGroundLevel(r *renderer.GameRenderer) {
 	r.DrawAnimatedBelt(b.pos, b.beltType, b.speed*ss.TPS)
+
+	// if b.IsEntry {
+	// 	b.inConn.Draw(b.pos, r)
+	// } else {
+	// 	b.outConn.Draw(b.pos, r)
+	// }
 }
 
 func (b *BeltUnder) DrawOnGroundLevel(r *renderer.GameRenderer) {

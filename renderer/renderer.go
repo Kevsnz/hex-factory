@@ -20,7 +20,6 @@ type GameRenderer struct {
 	renderer              *sdl.Renderer
 	stringManager         *StringManager
 	font                  *ttf.Font
-	Viewport              *utils.Viewport
 	beltTextures          [ss.BELT_TYPE_COUNT]*sdl.Texture
 	beltAnimationTextures [ss.BELT_TYPE_COUNT]*sdl.Texture
 	beltOnGroundTextures  [ss.BELT_ON_COUNT]*sdl.Texture
@@ -48,7 +47,6 @@ func NewGameRenderer(window *sdl.Window) *GameRenderer {
 		renderer:      renderer,
 		stringManager: sm,
 		font:          font,
-		Viewport:      utils.NewViewport(utils.WorldCoord{}, 1.0),
 	}
 }
 
@@ -81,10 +79,6 @@ func (r *GameRenderer) Destroy() {
 	r.renderer.Destroy()
 }
 
-func (r *GameRenderer) MoveTheView(pos utils.WorldCoord, dt uint64) {
-	r.Viewport.ShiftViewport(pos, dt)
-}
-
 func (r *GameRenderer) StartNewFrame(timeMs uint64) {
 	r.timeMs = timeMs
 	r.renderer.SetDrawColor(44, 48, 48, 255)
@@ -97,24 +91,24 @@ func (r *GameRenderer) DrawScreen() {
 
 func (r *GameRenderer) DrawViewTarget(pos utils.WorldCoordInterpolated) {
 	drawPos := pos.GetInterpolatedPos(r.timeMs, ss.TICK_DT)
-	cx, cy := r.Viewport.WorldToScreen(drawPos)
-	if !isOnScreenRadius(cx, cy, 10) {
+	c := drawPos.ToScreenCoord()
+	if !isOnScreenRadius(c, 10) {
 		return
 	}
 	r.renderer.SetDrawColor(127, 127, 255, 255)
-	r.renderer.FillRectF(&sdl.FRect{X: cx - 10, Y: cy - 10, W: 20, H: 20})
+	r.renderer.FillRectF(fRectFromScreenOffset(c, -10, -10, 20, 20))
 }
 
 func (r *GameRenderer) drawHexGrid() {
-	hex1 := utils.HexCoordFromWorld(r.Viewport.ScreenToWorld(0, 0))
-	hex2 := utils.HexCoordFromWorld(r.Viewport.ScreenToWorld(RES_X, 0))
-	hex3 := utils.HexCoordFromWorld(r.Viewport.ScreenToWorld(0, RES_Y))
-	w := r.Viewport.GetHexWidth()
-	e := r.Viewport.GetHexEdge()
-	o := r.Viewport.GetHexOffset()
+	hex1 := utils.HexCoordFromWorld(utils.ScreenToWorld(0, 0))
+	hex2 := utils.HexCoordFromWorld(utils.ScreenToWorld(RES_X, 0))
+	hex3 := utils.HexCoordFromWorld(utils.ScreenToWorld(0, RES_Y))
+	w := utils.GetZoomedHexWidth()
+	e := utils.GetZoomedHexEdge()
+	o := utils.GetZoomedHexOffset()
 
 	r.renderer.SetDrawColor(96, 96, 96, 255)
-	sx1, sy1 := r.Viewport.WorldToScreen(hex1.LeftTopToWorld())
+	sx1, sy1 := utils.WorldToScreen(hex1.LeftTopToWorld())
 	for hy := int32(0); hy <= hex3.Y-hex1.Y+1; hy++ {
 		yo := float32(hy) * (e + o)
 		xo := float32(hy&1) * w / 2
@@ -127,24 +121,24 @@ func (r *GameRenderer) drawHexGrid() {
 }
 
 func (r *GameRenderer) DrawHexCenter(hex utils.HexCoord) {
-	cx, cy := hexCenterToScreen(hex, r.Viewport)
-	if !isOnScreen(cx, cy) {
+	c := hexCenterToScreen(hex)
+	if !isOnScreen(c) {
 		return
 	}
 	r.renderer.SetDrawColor(0, 96, 0, 255)
-	rect := &sdl.FRect{X: float32(cx - 0), Y: float32(cy - 0), W: 1, H: 1}
+	rect := fRectFromScreen(c, 1, 1)
 	r.renderer.FillRectF(rect)
 }
 
 func (r *GameRenderer) DrawBeltConnectionIncoming(hex utils.HexCoord, dir utils.Dir, left bool, start, end float64) {
-	cx, cy := hexCenterToScreen(hex, r.Viewport)
+	c := hexCenterToScreen(hex)
+	z := float32(utils.GetViewZoom())
 
-	outOffset := radiusOffsets[dir]
-	laneOffset := lanesOffsetsLeft[dir]
+	outOffset := radiusOffsets[dir].Mul(z)
+	laneOffset := lanesOffsetsLeft[dir].Mul(z)
 
 	if left {
-		laneOffset[0] = -laneOffset[0]
-		laneOffset[1] = -laneOffset[1]
+		laneOffset = laneOffset.Inverse()
 	}
 
 	if left {
@@ -153,57 +147,48 @@ func (r *GameRenderer) DrawBeltConnectionIncoming(hex utils.HexCoord, dir utils.
 		r.renderer.SetDrawColor(0, 0, 192, 255)
 	}
 
-	sx := cx + outOffset[0]*(1-2*float32(start)) + laneOffset[0]
-	sy := cy + outOffset[1]*(1-2*float32(start)) + laneOffset[1]
+	s := c.Add(outOffset.Mul(1 - 2*float32(start))).Add(laneOffset)
+	e := c.Add(outOffset.Mul(1 - 2*float32(end))).Add(laneOffset)
 
-	ex := cx + outOffset[0]*(1-2*float32(end)) + laneOffset[0]
-	ey := cy + outOffset[1]*(1-2*float32(end)) + laneOffset[1]
-
-	if isOnScreenRadius(sx, sy, 2) {
-		r.renderer.FillRectF(&sdl.FRect{X: sx - 2, Y: sy - 2, W: 4, H: 4})
+	if isOnScreenRadius(s, 2) {
+		r.renderer.FillRectF(fRectFromScreenOffset(s, -2, -2, 4, 4))
 	}
-	if isOnScreenBox(sx, sy, ex, ey) {
-		r.renderer.DrawLineF(sx, sy, ex, ey)
+	if isOnScreenBox(s, e) {
+		r.renderer.DrawLineF(s.X, s.Y, e.X, e.Y)
 	}
 }
 
 func (r *GameRenderer) DrawBeltConnectionsOutgoing(hex utils.HexCoord, dir utils.Dir) {
-	cx, cy := hexCenterToScreen(hex, r.Viewport)
+	c := hexCenterToScreen(hex)
+	z := float32(utils.GetViewZoom())
 
-	outOffset := radiusOffsets[dir]
-	laneOffset := lanesOffsetsLeft[dir]
+	outOffset := radiusOffsets[dir].Mul(z)
+	laneOffset := lanesOffsetsLeft[dir].Mul(z)
 
-	// Left lane
 	r.renderer.SetDrawColor(192, 0, 0, 255)
-	sx := cx + laneOffset[0]
-	sy := cy + laneOffset[1]
+	// Left lane
+	s := c.Add(laneOffset)
+	e := s.Add(outOffset)
 
-	ex := sx + outOffset[0]
-	ey := sy + outOffset[1]
-
-	if isOnScreenRadius(sx, sy, 2) {
-		r.renderer.FillRectF(&sdl.FRect{X: sx - 2, Y: sy - 2, W: 4, H: 4})
+	if isOnScreenRadius(s, 2) {
+		r.renderer.FillRectF(fRectFromScreenOffset(s, -2, -2, 4, 4))
 	}
-	if isOnScreenBox(sx, sy, ex, ey) {
-		r.renderer.DrawLineF(sx, sy, ex, ey)
+	if isOnScreenBox(s, e) {
+		r.renderer.DrawLineF(s.X, s.Y, e.X, e.Y)
 	}
 
 	// Right lane
-	laneOffset[0] = -laneOffset[0]
-	laneOffset[1] = -laneOffset[1]
+	laneOffset = laneOffset.Inverse()
 	r.renderer.SetDrawColor(0, 0, 192, 255)
 
-	sx = cx + laneOffset[0]
-	sy = cy + laneOffset[1]
+	s = c.Add(laneOffset)
+	e = s.Add(outOffset)
 
-	ex = sx + outOffset[0]
-	ey = sy + outOffset[1]
-
-	if isOnScreenRadius(sx, sy, 2) {
-		r.renderer.FillRectF(&sdl.FRect{X: sx - 2, Y: sy - 2, W: 4, H: 4})
+	if isOnScreenRadius(s, 2) {
+		r.renderer.FillRectF(fRectFromScreenOffset(s, -2, -2, 4, 4))
 	}
-	if isOnScreenBox(sx, sy, ex, ey) {
-		r.renderer.DrawLineF(sx, sy, ex, ey)
+	if isOnScreenBox(s, e) {
+		r.renderer.DrawLineF(s.X, s.Y, e.X, e.Y)
 	}
 }
 
@@ -213,18 +198,18 @@ func (r *GameRenderer) DrawAnimatedBelt(hex utils.HexCoord, beltType ss.BeltType
 		panic("no animation texture for belt type")
 	}
 
-	cx, cy := hexCenterToScreen(hex, r.Viewport)
-	if !isOnScreenRadius(cx, cy, r.Viewport.GetZoomedDimension(ss.BELT_DRAW_R)) {
+	c := hexCenterToScreen(hex)
+	if !isOnScreenRadius(c, utils.GetZoomedDimension(ss.BELT_DRAW_R)) {
 		return
 	}
 	_, tsegm := math.Modf(speed * float64(r.timeMs) / 1000)
 	frame := int32(math.Floor(tsegm*ss.ANIM_BELT_STEPS)) % ss.ANIM_BELT_FRAMES
 
-	e := r.Viewport.GetHexEdge()
+	e := utils.GetZoomedHexEdge()
 	r.renderer.CopyF(
 		tex,
 		&sdl.Rect{X: 0, Y: frame * TEXTURE_SIZE_HEX, W: TEXTURE_SIZE_HEX, H: TEXTURE_SIZE_HEX},
-		&sdl.FRect{X: cx - e, Y: cy - e, W: 2 * e, H: 2 * e},
+		fRectFromScreenOffset(c, -e, -e, 2*e, 2*e),
 	)
 }
 
@@ -233,8 +218,8 @@ func (r *GameRenderer) DrawBeltOnGround(hex utils.HexCoord, beltType ss.BeltType
 		return
 	}
 
-	cx, cy := hexCenterToScreen(hex, r.Viewport)
-	if !isOnScreenRadius(cx, cy, r.Viewport.GetZoomedDimension(ss.BELT_DRAW_R)) {
+	c := hexCenterToScreen(hex)
+	if !isOnScreenRadius(c, utils.GetZoomedDimension(ss.BELT_DRAW_R)) {
 		return
 	}
 	typeFlip := beltOnFlipMapping[beltType]
@@ -243,22 +228,19 @@ func (r *GameRenderer) DrawBeltOnGround(hex utils.HexCoord, beltType ss.BeltType
 	if tex == nil {
 		panic(fmt.Sprintf("no texture for belt type %d", typeFlip.type1))
 	}
-	e := r.Viewport.GetHexEdge()
-	r.renderer.CopyExF(tex, nil, &sdl.FRect{
-		X: cx - e,
-		Y: cy - e,
-		W: 2 * e,
-		H: 2 * e,
-	}, 0, nil, typeFlip.flip)
+	e := utils.GetZoomedHexEdge()
+	r.renderer.CopyExF(tex, nil, fRectFromScreenOffset(c, -e, -e, 2*e, 2*e), 0, nil, typeFlip.flip)
 }
 
 func (r *GameRenderer) DrawObjectGround(pos utils.WorldCoord, objectType ss.ObjectType, shape utils.Shape, dir utils.Dir) {
-	x, y := r.Viewport.WorldToScreen(pos)
-	z := r.Viewport.Zoom
+	c := pos.ToScreenCoord()
+	z := float32(utils.GetViewZoom())
 	sp := GetShapeParam(shape, dir)
-	x -= float32(sp.OffsetX * z)
-	y -= float32(sp.OffsetY * z)
-	if !isOnScreenBox(x, y, x+float32(sp.Width*z), y+float32(sp.Height*z)) {
+
+	c = c.Sub(sp.Offset.Mul(z))
+	size := sp.Size.Mul(z)
+
+	if !isOnScreenBox(c, c.Add(size)) {
 		return
 	}
 
@@ -273,24 +255,24 @@ func (r *GameRenderer) DrawObjectGround(pos utils.WorldCoord, objectType ss.Obje
 		}
 	}
 
-	r.renderer.CopyF(tex, nil, &sdl.FRect{X: x, Y: y, W: float32(sp.Width * z), H: float32(sp.Height * z)})
+	r.renderer.CopyF(tex, nil, fRectFromScreen(c, size.X, size.Y))
 }
 
 func (r *GameRenderer) DrawItem(pos utils.WorldCoordInterpolated, itemType ss.ItemType) {
 	drawPos := pos.GetInterpolatedPos(r.timeMs, ss.TICK_DT)
-	sx, sy := r.Viewport.WorldToScreen(drawPos)
-	idr := r.Viewport.GetZoomedDimension(ss.ITEM_DRAW_R)
-	if !isOnScreenRadius(sx, sy, idr) {
+	s := drawPos.ToScreenCoord()
+	idr := utils.GetZoomedDimension(ss.ITEM_DRAW_R)
+	if !isOnScreenRadius(s, idr) {
 		return
 	}
 
 	tex := r.itemTextures[itemType]
 	if tex == nil {
 		r.renderer.SetDrawColor(255, 0, 255, 255)
-		r.renderer.FillRectF(&sdl.FRect{X: sx - idr, Y: sy - idr, W: 2 * idr, H: 2 * idr})
+		r.renderer.FillRectF(fRectFromScreenOffset(s, -idr, -idr, 2*idr, 2*idr))
 		return
 	}
-	r.renderer.CopyF(tex, nil, &sdl.FRect{X: sx - idr, Y: sy - idr, W: 2 * idr, H: 2 * idr})
+	r.renderer.CopyF(tex, nil, fRectFromScreenOffset(s, -idr, -idr, 2*idr, 2*idr))
 }
 
 func (r *GameRenderer) DrawArrow(pctX, pctY float32, dir utils.Dir) {
@@ -311,8 +293,8 @@ func (r *GameRenderer) Finish() {
 }
 
 func (r *GameRenderer) IsHexOnScreen(coord utils.HexCoord) bool {
-	sx, sy := hexCenterToScreen(coord, r.Viewport)
-	return isOnScreenRadius(sx, sy, r.Viewport.GetZoomedDimension(ss.HEX_DRAW_R))
+	s := hexCenterToScreen(coord)
+	return isOnScreenRadius(s, utils.GetZoomedDimension(ss.HEX_DRAW_R))
 }
 
 func (r *GameRenderer) DrawConnectionHexes(hex1, hex2 utils.HexCoord) {
@@ -321,76 +303,77 @@ func (r *GameRenderer) DrawConnectionHexes(hex1, hex2 utils.HexCoord) {
 	}
 	r.renderer.SetDrawColor(255, 255, 0, 255)
 
-	x1, y1 := hexCenterToScreen(hex1, r.Viewport)
-	x2, y2 := hexCenterToScreen(hex2, r.Viewport)
+	p1 := hexCenterToScreen(hex1)
+	p2 := hexCenterToScreen(hex2)
 
-	r.drawDashedLine(x1, y1, x2, y2)
+	r.drawDashedLine2(p1, p2)
 }
 
-func (r *GameRenderer) drawDashedLine(x1, y1, x2, y2 float32) {
-	dx := float64(x2 - x1)
-	dy := float64(y2 - y1)
-	dSq := dx*dx + dy*dy
+func (r *GameRenderer) drawDashedLine2(p1, p2 utils.ScreenCoord) {
+	dp := p2.Sub(p1)
+	dSq := dp.LengthSq()
 	if dSq < 4*ss.DASH_LEN*ss.DASH_LEN {
-		r.renderer.DrawLineF(x1, y1, x2, y2)
+		r.renderer.DrawLineF(p1.X, p1.Y, p2.X, p2.Y)
 		return
 	}
-	d := math.Sqrt(dSq)
+	d := math.Sqrt(float64(dSq))
 
 	swap := false
-	if math.Abs(dy) > math.Abs(dx) {
+	if utils.AbsF32(dp.Y) > utils.AbsF32(dp.X) {
 		swap = true
-		dx, dy = dy, dx
-		x1, x2, y1, y2 = y1, y2, x1, x2
+		dp = dp.SwapXY()
+		p1 = p1.SwapXY()
+		p2 = p2.SwapXY()
 	}
 
 	dashes := int(math.Round(d / (2 * ss.DASH_LEN)))
-	dxStep := dx / float64(dashes*2+1)
-	dyStep := dy / float64(dashes*2+1)
-
+	dStep := dp.Div(float32(dashes*2 + 1))
 	for i := 0; i < dashes; i++ {
-		xd1 := x1 + float32(dxStep*float64(i*2))
-		yd1 := y1 + float32(dyStep*float64(i*2))
-		xd2 := x1 + float32(dxStep*float64(i*2+1))
-		yd2 := y1 + float32(dyStep*float64(i*2+1))
+		pd1 := p1.Add(dStep.Mul(float32(i * 2)))
+		pd2 := p1.Add(dStep.Mul(float32(i*2 + 1)))
+
 		if swap {
-			r.renderer.DrawLineF(yd1, xd1, yd2, xd2)
+			r.renderer.DrawLineF(pd1.Y, pd1.X, pd2.Y, pd2.X)
 		} else {
-			r.renderer.DrawLineF(xd1, yd1, xd2, yd2)
+			r.renderer.DrawLineF(pd1.X, pd1.Y, pd2.X, pd2.Y)
 		}
 	}
 
-	xd1 := x1 + float32(dxStep*float64(dashes*2))
-	yd1 := y1 + float32(dyStep*float64(dashes*2))
+	pd1 := p1.Add(dStep.Mul(float32(dashes * 2)))
 	if swap {
-		r.renderer.DrawLineF(yd1, xd1, y2, x2)
+		r.renderer.DrawLineF(pd1.Y, pd1.X, p2.Y, p2.X)
 	} else {
-		r.renderer.DrawLineF(xd1, yd1, x2, y2)
+		r.renderer.DrawLineF(pd1.X, pd1.Y, p2.X, p2.Y)
 	}
 }
 
 func (r *GameRenderer) DrawWorldLine(p1, p2 utils.WorldCoord) {
-	x1, y1 := r.Viewport.WorldToScreen(p1)
-	x2, y2 := r.Viewport.WorldToScreen(p2)
+	x1, y1 := utils.WorldToScreen(p1)
+	x2, y2 := utils.WorldToScreen(p2)
 
 	r.renderer.SetDrawColor(255, 0, 0, 255)
 	r.renderer.DrawLineF(x1, y1, x2, y2)
 }
 
-func hexCenterToScreen(hex utils.HexCoord, viewport *utils.Viewport) (float32, float32) {
-	return viewport.WorldToScreen(hex.CenterToWorld())
+func hexCenterToScreen(hex utils.HexCoord) utils.ScreenCoord {
+	return hex.CenterToWorld().ToScreenCoord()
 }
 
-func isOnScreen(x, y float32) bool {
-	return x >= 0 && x < RES_X && y >= 0 && y < RES_Y
+func fRectFromScreen(c utils.ScreenCoord, w, h float32) *sdl.FRect {
+	return &sdl.FRect{X: c.X, Y: c.Y, W: w, H: h}
+}
+func fRectFromScreenOffset(c utils.ScreenCoord, ox, oy, w, h float32) *sdl.FRect {
+	return &sdl.FRect{X: c.X + ox, Y: c.Y + oy, W: w, H: h}
 }
 
-func isOnScreenRadius(x, y, radius float32) bool {
-	return x >= -radius && x < RES_X+radius && y >= -radius && y < RES_Y+radius
+func isOnScreen(c utils.ScreenCoord) bool {
+	return c.X >= 0 && c.X < RES_X && c.Y >= 0 && c.Y < RES_Y
 }
-
-func isOnScreenBox(x1, y1, x2, y2 float32) bool {
-	return max(x1, x2) >= 0 && min(x1, x2) < RES_X && max(y1, y2) >= 0 && min(y1, y2) < RES_Y
+func isOnScreenRadius(c utils.ScreenCoord, radius float32) bool {
+	return c.X >= -radius && c.X < RES_X+radius && c.Y >= -radius && c.Y < RES_Y+radius
+}
+func isOnScreenBox(c1 utils.ScreenCoord, c2 utils.ScreenCoord) bool {
+	return max(c1.X, c2.X) >= 0 && min(c1.X, c2.X) < RES_X && max(c1.Y, c2.Y) >= 0 && min(c1.Y, c2.Y) < RES_Y
 }
 
 func (r *GameRenderer) LoadTextures() {
@@ -640,20 +623,6 @@ func writeToCache(surface *sdl.Surface, cachedPath string) error {
 	fp.Write(surface.Pixels())
 	return nil
 }
-
-// func (r *GameRenderer) DrawText(text string, x, y int32, color sdl.Color) {
-// 	surface, err := r.font.RenderUTF8Blended(text, color)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	defer surface.Free()
-// 	texture, err := r.renderer.CreateTextureFromSurface(surface)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	defer texture.Destroy()
-// 	r.renderer.Copy(texture, nil, &sdl.Rect{X: x, Y: y, W: surface.W, H: surface.H})
-// }
 
 func (r *GameRenderer) DrawString(stringID strings.StringID, pctX, pctY float32) {
 	x, y := pctX*RES_X, pctY*RES_Y

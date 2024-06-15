@@ -137,12 +137,10 @@ func (b *Belt) DrawGroundLevel(r *renderer.GameRenderer) {
 	}
 	r.DrawAnimatedBelt(b.pos, b.beltType, b.speed*ss.TPS)
 
-	// r.DrawHexCenter(b.Pos)
-
-	// b.outConn.Draw(b.Pos, r)
+	// b.outConn.Draw(b.pos, r)
 	// for i := 0; i < 3; i++ {
 	// 	if b.inConns[i] != nil {
-	// 		b.inConns[i].Draw(b.Pos, r)
+	// 		b.inConns[i].Draw(b.pos, r)
 	// 	}
 	// }
 }

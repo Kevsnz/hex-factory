@@ -15,22 +15,22 @@ const (
 const LOR = ss.LANE_OFFSET_RATIO
 const TEXTURE_SIZE_HEX = 400
 
-var radiusOffsets = [utils.DIR_COUNT][2]float32{
-	utils.DIR_LEFT:       {-ss.HEX_WIDTH / 2.0, 0},
-	utils.DIR_UP_LEFT:    {-ss.HEX_WIDTH / 4.0, -(ss.HEX_EDGE/2.0 + ss.HEX_OFFSET/2.0)},
-	utils.DIR_UP_RIGHT:   {ss.HEX_WIDTH / 4.0, -(ss.HEX_EDGE/2.0 + ss.HEX_OFFSET/2.0)},
-	utils.DIR_RIGHT:      {ss.HEX_WIDTH / 2.0, 0},
-	utils.DIR_DOWN_RIGHT: {ss.HEX_WIDTH / 4.0, (ss.HEX_EDGE/2.0 + ss.HEX_OFFSET/2.0)},
-	utils.DIR_DOWN_LEFT:  {-ss.HEX_WIDTH / 4.0, (ss.HEX_EDGE/2.0 + ss.HEX_OFFSET/2.0)},
+var radiusOffsets = [utils.DIR_COUNT]utils.ScreenCoord{
+	utils.DIR_LEFT:       {X: -ss.HEX_WIDTH / 2.0, Y: 0},
+	utils.DIR_UP_LEFT:    {X: -ss.HEX_WIDTH / 4.0, Y: -(ss.HEX_EDGE/2.0 + ss.HEX_OFFSET/2.0)},
+	utils.DIR_UP_RIGHT:   {X: ss.HEX_WIDTH / 4.0, Y: -(ss.HEX_EDGE/2.0 + ss.HEX_OFFSET/2.0)},
+	utils.DIR_RIGHT:      {X: ss.HEX_WIDTH / 2.0, Y: 0},
+	utils.DIR_DOWN_RIGHT: {X: ss.HEX_WIDTH / 4.0, Y: (ss.HEX_EDGE/2.0 + ss.HEX_OFFSET/2.0)},
+	utils.DIR_DOWN_LEFT:  {X: -ss.HEX_WIDTH / 4.0, Y: (ss.HEX_EDGE/2.0 + ss.HEX_OFFSET/2.0)},
 }
 
-var lanesOffsetsLeft = [utils.DIR_COUNT][2]float32{
-	utils.DIR_LEFT:       {0.0, ss.HEX_EDGE * LOR},
-	utils.DIR_UP_LEFT:    {-ss.HEX_WIDTH / 2.0 * LOR, ss.HEX_OFFSET * LOR},
-	utils.DIR_UP_RIGHT:   {-ss.HEX_WIDTH / 2.0 * LOR, -ss.HEX_OFFSET * LOR},
-	utils.DIR_RIGHT:      {0.0, -ss.HEX_EDGE * LOR},
-	utils.DIR_DOWN_RIGHT: {ss.HEX_WIDTH / 2.0 * LOR, -ss.HEX_OFFSET * LOR},
-	utils.DIR_DOWN_LEFT:  {ss.HEX_WIDTH / 2.0 * LOR, ss.HEX_OFFSET * LOR},
+var lanesOffsetsLeft = [utils.DIR_COUNT]utils.ScreenCoord{
+	utils.DIR_LEFT:       {X: 0.0, Y: ss.HEX_EDGE * LOR},
+	utils.DIR_UP_LEFT:    {X: -ss.HEX_WIDTH / 2.0 * LOR, Y: ss.HEX_OFFSET * LOR},
+	utils.DIR_UP_RIGHT:   {X: -ss.HEX_WIDTH / 2.0 * LOR, Y: -ss.HEX_OFFSET * LOR},
+	utils.DIR_RIGHT:      {X: 0.0, Y: -ss.HEX_EDGE * LOR},
+	utils.DIR_DOWN_RIGHT: {X: ss.HEX_WIDTH / 2.0 * LOR, Y: -ss.HEX_OFFSET * LOR},
+	utils.DIR_DOWN_LEFT:  {X: ss.HEX_WIDTH / 2.0 * LOR, Y: ss.HEX_OFFSET * LOR},
 }
 
 type beltTypeFlip struct {
@@ -76,8 +76,8 @@ var beltOnFlipMapping = [ss.BELT_ON_COUNT]beltTypeFlip{
 }
 
 type ShapeParam struct {
-	Width, Height    float64
-	OffsetX, OffsetY float64
+	Size   utils.ScreenCoord
+	Offset utils.ScreenCoord
 }
 
 func GetShapeParam(shape utils.Shape, dir utils.Dir) ShapeParam {
@@ -85,39 +85,29 @@ func GetShapeParam(shape utils.Shape, dir utils.Dir) ShapeParam {
 	case utils.SHAPE_DIAMOND:
 		if dir == utils.DIR_LEFT || dir == utils.DIR_RIGHT {
 			return ShapeParam{
-				Width:   ss.HEX_WIDTH * 2,
-				Height:  ss.HEX_WIDTH * 3,
-				OffsetX: ss.HEX_WIDTH / 2,
-				OffsetY: ss.HEX_WIDTH*3 - ss.HEX_EDGE*5/2,
+				Size:   utils.ScreenCoord{X: ss.HEX_WIDTH * 2, Y: ss.HEX_WIDTH * 3},
+				Offset: utils.ScreenCoord{X: ss.HEX_WIDTH / 2, Y: ss.HEX_WIDTH*3 - ss.HEX_EDGE*5/2},
 			}
 		}
 		if dir == utils.DIR_UP_LEFT || dir == utils.DIR_DOWN_RIGHT {
 			return ShapeParam{
-				Width:   ss.HEX_WIDTH * 5 / 2,
-				Height:  ss.HEX_WIDTH * 5 / 2,
-				OffsetX: ss.HEX_WIDTH,
-				OffsetY: ss.HEX_WIDTH*5/2 - ss.HEX_EDGE*5/2,
+				Size:   utils.ScreenCoord{X: ss.HEX_WIDTH * 5 / 2, Y: ss.HEX_WIDTH * 5 / 2},
+				Offset: utils.ScreenCoord{X: ss.HEX_WIDTH, Y: ss.HEX_WIDTH*5/2 - ss.HEX_EDGE*5/2},
 			}
 		}
 		return ShapeParam{
-			Width:   ss.HEX_WIDTH * 5 / 2,
-			Height:  ss.HEX_WIDTH * 5 / 2,
-			OffsetX: ss.HEX_WIDTH,
-			OffsetY: ss.HEX_WIDTH*5/2 - ss.HEX_EDGE,
+			Size:   utils.ScreenCoord{X: ss.HEX_WIDTH * 5 / 2, Y: ss.HEX_WIDTH * 5 / 2},
+			Offset: utils.ScreenCoord{X: ss.HEX_WIDTH, Y: ss.HEX_WIDTH*5/2 - ss.HEX_EDGE},
 		}
 	case utils.SHAPE_BIGHEX:
 		return ShapeParam{
-			Width:   ss.HEX_WIDTH * 3,
-			Height:  ss.HEX_WIDTH * 3,
-			OffsetX: ss.HEX_WIDTH * 3 / 2,
-			OffsetY: ss.HEX_WIDTH*3 - ss.HEX_EDGE*5/2,
+			Size:   utils.ScreenCoord{X: ss.HEX_WIDTH * 3, Y: ss.HEX_WIDTH * 3},
+			Offset: utils.ScreenCoord{X: ss.HEX_WIDTH * 3 / 2, Y: ss.HEX_WIDTH*3 - ss.HEX_EDGE*5/2},
 		}
 	default: // single
 		return ShapeParam{
-			Width:   ss.HEX_HEIGHT,
-			Height:  ss.HEX_HEIGHT,
-			OffsetX: ss.HEX_HEIGHT / 2,
-			OffsetY: ss.HEX_HEIGHT / 2,
+			Size:   utils.ScreenCoord{X: ss.HEX_HEIGHT, Y: ss.HEX_HEIGHT},
+			Offset: utils.ScreenCoord{X: ss.HEX_HEIGHT / 2, Y: ss.HEX_HEIGHT / 2},
 		}
 	}
 }

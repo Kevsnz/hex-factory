@@ -108,11 +108,11 @@ func (b *BeltSplitter) DrawGroundLevel(r *renderer.GameRenderer) {
 	}
 	r.DrawAnimatedBelt(b.pos, b.beltType, b.speed*ss.TPS)
 
-	// b.outConn[0].Draw(b.Pos, r)
-	// b.outConn[1].Draw(b.Pos, r)
+	// b.outConn[0].Draw(b.pos, r)
+	// b.outConn[1].Draw(b.pos, r)
 
-	// b.inConns[0].Draw(b.Pos, r)
-	// b.inConns[1].Draw(b.Pos, r)
+	// b.inConns[0].Draw(b.pos, r)
+	// b.inConns[1].Draw(b.pos, r)
 }
 
 func (b *BeltSplitter) DrawOnGroundLevel(r *renderer.GameRenderer) {

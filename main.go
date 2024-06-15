@@ -7,6 +7,7 @@ import (
 	"hextopdown/game"
 	"hextopdown/input"
 	"hextopdown/renderer"
+	"hextopdown/utils"
 )
 
 const MAX_FPS = 100
@@ -34,7 +35,7 @@ func main() {
 	gameState := game.NewGame()
 	defer gameState.Destroy()
 
-	r := renderer.NewGameRenderer(window, gameState.GetPlayerPos())
+	r := renderer.NewGameRenderer(window)
 	defer r.Destroy()
 
 	r.LoadTextures()
@@ -75,17 +76,17 @@ gameloop:
 			case *sdl.KeyboardEvent:
 				ih.HandleKeyboardEvent(ev)
 			case *sdl.MouseButtonEvent:
-				ih.HandleMouseButtonEvent(ev, r.Viewport)
+				ih.HandleMouseButtonEvent(ev)
 			case *sdl.MouseMotionEvent:
-				ih.HandleMouseMotionEvent(ev, r.Viewport)
+				ih.HandleMouseMotionEvent(ev)
 			}
 		}
 
 		if ih.GetActionState(input.ACTION_ZOOM_IN) {
-			r.Viewport.ZoomIn(currentTicks - lastTicks)
+			utils.ZoomViewIn(currentTicks - lastTicks)
 		}
 		if ih.GetActionState(input.ACTION_ZOOM_OUT) {
-			r.Viewport.ZoomOut(currentTicks - lastTicks)
+			utils.ZoomViewOut(currentTicks - lastTicks)
 		}
 		gameState.ProcessInputFramed(ih, r)
 		if !gameState.Running {
@@ -94,7 +95,7 @@ gameloop:
 
 		gameState.Update(currentTicks, ih)
 
-		r.MoveTheView(gameState.GetPlayerPos(), currentTicks-lastTicks)
+		utils.ShiftView(gameState.GetPlayerPos(), currentTicks-lastTicks)
 
 		r.StartNewFrame(currentTicks)
 		gameState.Draw(r)

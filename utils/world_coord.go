@@ -1,6 +1,8 @@
 package utils
 
-import "math"
+import (
+	"math"
+)
 
 var sincos = [DIR_COUNT][2]float64{
 	DIR_LEFT:       {math.Sin(math.Pi), math.Cos(math.Pi)},
@@ -56,4 +58,8 @@ func (w WorldCoord) Shift(x, y float64) WorldCoord {
 
 func (w WorldCoord) DistanceSqTo(w2 WorldCoord) float64 {
 	return (w.X-w2.X)*(w.X-w2.X) + (w.Y-w2.Y)*(w.Y-w2.Y)
+}
+
+func (w WorldCoord) ToScreenCoord() ScreenCoord {
+	return WorldToScreen2(w)
 }

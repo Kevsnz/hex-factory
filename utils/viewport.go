@@ -17,64 +17,68 @@ const VIEW_MOVE_DT_MULT = 2.0
 
 var cornerOffset = WorldCoord{X: ss.RES_X / 2.0, Y: ss.RES_Y / 2.0}
 
-type Viewport struct {
-	pos  WorldCoord
-	Zoom float64 // multiply world coordinated to get screen coordinates
+var pos = WorldCoord{X: 0.0, Y: 0.0}
+var zoom = float64(1.0) // multiply world coordinates to get screen coordinates
+
+func GetViewZoom() float64 {
+	return zoom
 }
 
-func NewViewport(view WorldCoord, zoom float64) *Viewport {
-	return &Viewport{
-		pos:  view.Sub(cornerOffset),
-		Zoom: zoom,
-	}
+func ScreenToWorld(x, y float32) WorldCoord {
+	return WorldCoord{float64(x), float64(y)}.Div(zoom).Add(pos)
 }
 
-func (v *Viewport) ScreenToWorld(x, y float32) WorldCoord {
-	return WorldCoord{float64(x), float64(y)}.Div(v.Zoom).Add(v.pos)
+func ScreenToWorld2(c ScreenCoord) WorldCoord {
+	return WorldCoord{float64(c.X), float64(c.Y)}.Div(zoom).Add(pos)
 }
 
-func (v *Viewport) WorldToScreen(pos WorldCoord) (float32, float32) {
-	pos = pos.Sub(v.pos).Mul(v.Zoom)
-	return float32(pos.X), float32(pos.Y)
+func WorldToScreen(p WorldCoord) (float32, float32) {
+	p = p.Sub(pos).Mul(zoom)
+	return float32(p.X), float32(p.Y)
 }
 
-func (v *Viewport) GetHexWidth() float32 {
-	return ss.HEX_WIDTH * float32(v.Zoom)
+func WorldToScreen2(p WorldCoord) ScreenCoord {
+	p = p.Sub(pos).Mul(zoom)
+	return ScreenCoord{float32(p.X), float32(p.Y)}
 }
 
-func (v *Viewport) GetHexEdge() float32 {
-	return ss.HEX_EDGE * float32(v.Zoom)
+func GetZoomedHexWidth() float32 {
+	return ss.HEX_WIDTH * float32(zoom)
 }
 
-func (v *Viewport) GetHexOffset() float32 {
-	return ss.HEX_OFFSET * float32(v.Zoom)
+func GetZoomedHexEdge() float32 {
+	return ss.HEX_EDGE * float32(zoom)
 }
 
-func (v *Viewport) GetZoomedDimension(dim float32) float32 {
-	return dim * float32(v.Zoom)
+func GetZoomedHexOffset() float32 {
+	return ss.HEX_OFFSET * float32(zoom)
 }
 
-func (v *Viewport) ShiftViewport(target WorldCoord, dt uint64) {
+func GetZoomedDimension(dim float32) float32 {
+	return dim * float32(zoom)
+}
+
+func ShiftView(target WorldCoord, dt uint64) {
 	l := math.Min(1.0, VIEW_MOVE_LAMBDA*float64(dt*VIEW_MOVE_DT_MULT)/1000.0)
 
 	// newpos = l * target + (1-l) * pos
-	v.pos = target.Sub(cornerOffset.Div(float64(v.Zoom))).Mul(l).Add(v.pos.Mul(1.0 - l))
+	pos = target.Sub(cornerOffset.Div(float64(zoom))).Mul(l).Add(pos.Mul(1.0 - l))
 }
 
-func (v *Viewport) ZoomIn(dt uint64) {
-	cc := v.pos.Add(cornerOffset.Div(float64(v.Zoom)))
+func ZoomViewIn(dt uint64) {
+	cc := pos.Add(cornerOffset.Div(float64(zoom)))
 
-	newZoom := float64(v.Zoom) * (1.0 + ZOOM_SPEED*math.Min(float64(dt), 1000.0)/1000.0)
-	v.Zoom = math.Min(newZoom, ZOOM_MAX)
+	newZoom := float64(zoom) * (1.0 + ZOOM_SPEED*math.Min(float64(dt), 1000.0)/1000.0)
+	zoom = math.Min(newZoom, ZOOM_MAX)
 
-	v.pos = cc.Sub(cornerOffset.Div(float64(v.Zoom)))
+	pos = cc.Sub(cornerOffset.Div(float64(zoom)))
 }
 
-func (v *Viewport) ZoomOut(dt uint64) {
-	cc := v.pos.Add(cornerOffset.Div(float64(v.Zoom)))
+func ZoomViewOut(dt uint64) {
+	cc := pos.Add(cornerOffset.Div(float64(zoom)))
 
-	newZoom := float64(v.Zoom) / (1.0 + ZOOM_SPEED*math.Min(float64(dt), 1000.0)/1000.0)
-	v.Zoom = math.Max(newZoom, ZOOM_MIN)
+	newZoom := float64(zoom) / (1.0 + ZOOM_SPEED*math.Min(float64(dt), 1000.0)/1000.0)
+	zoom = math.Max(newZoom, ZOOM_MIN)
 
-	v.pos = cc.Sub(cornerOffset.Div(float64(v.Zoom)))
+	pos = cc.Sub(cornerOffset.Div(float64(zoom)))
 }

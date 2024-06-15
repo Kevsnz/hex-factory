@@ -228,7 +228,8 @@ func (g *Game) processMouseMovement(ih *input.InputHandler) {
 	}
 
 	hex := utils.HexCoordFromWorld(g.mousePos)
-	bu := g.findUnderToJoin(hex, g.selectedDir, gd.InserterParamsList[ss.OBJECT_TYPE_INSERTER1].Reach)
+	tier := gd.BeltlikeParamsList[ss.OBJECT_TYPE_BELTUNDER1].Tier
+	bu := g.findUnderToJoin(hex, g.selectedDir, gd.BeltTierParamsList[tier].Reach)
 	if bu == nil {
 		g.showPreppedUnder = false
 	} else {
