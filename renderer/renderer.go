@@ -27,6 +27,7 @@ type GameRenderer struct {
 	objectDirTextures     [ss.OBJECT_TYPE_COUNT][utils.DIR_COUNT]*sdl.Texture
 	itemTextures          [ss.ITEM_TYPE_COUNT]*sdl.Texture
 	arrowTextures         [2]*sdl.Texture
+	iconsItems            *sdl.Texture
 	timeMs                uint64
 }
 
@@ -75,6 +76,7 @@ func (r *GameRenderer) Destroy() {
 			tex.Destroy()
 		}
 	}
+	r.iconsItems.Destroy()
 	r.font.Close()
 	r.stringManager.Destroy()
 	r.renderer.Destroy()
@@ -289,6 +291,31 @@ func (r *GameRenderer) DrawArrow(pctX, pctY float32, dir utils.Dir) {
 	}, 0, nil, idxFlip.flip)
 }
 
+func (r *GameRenderer) DrawItemIcon(pos utils.ScreenCoord, size float32, itemType ss.ItemType) {
+	_, _, w, _, err := r.iconsItems.Query()
+	if err != nil {
+		panic("Failed to query icons items texture")
+	}
+	w /= TEXTURE_ICON_SIZE
+
+	for i, item := range iconItemList {
+		if item != itemType {
+			continue
+		}
+
+		r.renderer.CopyF(
+			r.iconsItems,
+			&sdl.Rect{
+				X: (int32(i) % w) * TEXTURE_ICON_SIZE,
+				Y: (int32(i) / w) * TEXTURE_ICON_SIZE,
+				W: TEXTURE_ICON_SIZE,
+				H: TEXTURE_ICON_SIZE,
+			},
+			&sdl.FRect{X: pos.X, Y: pos.Y, W: size, H: size})
+		break
+	}
+}
+
 func (r *GameRenderer) Finish() {
 	r.renderer.Present()
 }
@@ -383,6 +410,8 @@ func (r *GameRenderer) LoadTextures() {
 	r.LoadItemTextures()
 	r.LoadArrowTextures()
 	r.LoadStructureGroundTextures()
+
+	r.iconsItems = r.loadCachedTexture("icons/item_icons")
 }
 
 func (r *GameRenderer) LoadArrowTextures() {
@@ -742,14 +771,7 @@ func (r *GameRenderer) DrawButton(pos utils.ScreenCoord, size utils.ScreenCoord,
 	}
 }
 func (r *GameRenderer) DrawButtonText(pos utils.ScreenCoord, size utils.ScreenCoord, text strings.StringID, hover bool) {
-	rect := fRectFromScreen(pos, size.X, size.Y)
-
-	r.renderer.SetDrawColor(32, 32, 32, 255)
-	r.renderer.FillRectF(rect)
-	if hover {
-		r.renderer.SetDrawColor(32, 127, 32, 255)
-		r.renderer.DrawRectF(rect)
-	}
+	r.DrawButton(pos, size, hover)
 
 	cs := CompoundString{}
 	cs.AddString(text, r.stringManager)
@@ -757,4 +779,8 @@ func (r *GameRenderer) DrawButtonText(pos utils.ScreenCoord, size utils.ScreenCo
 	posX := math.Round(float64(pos.X))
 	posY := math.Round(float64(pos.Y))
 	r.stringManager.RenderCompoundString(r.renderer, &cs, int32(posX), int32(posY), TEXT_ALIGN_CENTER)
+}
+func (r *GameRenderer) DrawButtonIcon(pos utils.ScreenCoord, size utils.ScreenCoord, item ss.ItemType, hover bool) {
+	r.DrawButton(pos, size, hover)
+	r.DrawItemIcon(pos, size.Y, item)
 }

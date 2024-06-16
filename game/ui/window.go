@@ -20,25 +20,13 @@ type Window struct {
 	Pos      utils.ScreenCoord
 	Size     utils.ScreenCoord
 	Title    strings.StringID
-	Children []iControl
+	children []iControl
 	Visible  bool
 }
 
-// func NewWindow(pos, size utils.ScreenCoord, cfgs ...func(ConfigurableWindow)) *Window {
-// 	w := &Window{
-// 		Pos:     pos,
-// 		Size:    size,
-// 		Visible: true,
-// 	}
-// 	for _, cfg := range cfgs {
-// 		cfg(w)
-// 	}
-// 	return w
-// }
-
 func (w *Window) AddChild(c iControl, ca ControlAlignment) {
 	c.SetPos(ca.ConvertCoords(c.GetPos(), c.GetSize(), w.Size))
-	w.Children = append(w.Children, c)
+	w.children = append(w.children, c)
 }
 
 func (w *Window) Draw(r *renderer.GameRenderer) {
@@ -47,7 +35,7 @@ func (w *Window) Draw(r *renderer.GameRenderer) {
 	}
 
 	r.DrawWindow(w.Pos, w.Size, w.Title)
-	for _, child := range w.Children {
+	for _, child := range w.children {
 		child.Draw(r, w.Pos)
 	}
 }
@@ -62,7 +50,7 @@ func (w *Window) HandleMouseMovement(mp utils.ScreenCoord) {
 		return
 	}
 
-	for _, child := range w.Children {
+	for _, child := range w.children {
 		child.HandleMouseMovement(mp)
 	}
 }
@@ -77,7 +65,7 @@ func (w *Window) HandleMouseAction(mbe input.MouseButtonEvent) bool {
 		return false
 	}
 
-	for _, child := range w.Children {
+	for _, child := range w.children {
 		if child.HandleMouseAction(mbe) {
 			return true
 		}

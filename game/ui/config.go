@@ -11,7 +11,7 @@ type ConfigurableWindow interface {
 }
 
 func WithCloseBox(w ConfigurableWindow) {
-	closebox := NewButton(
+	closebox := NewButtonText(
 		utils.ScreenCoord{X: CLOSE_BOX_PADDING_PCT, Y: CLOSE_BOX_PADDING_PCT}.PctScaleToScreen(),
 		utils.ScreenCoord{X: CLOSE_BOX_SIZE_PCT, Y: CLOSE_BOX_SIZE_PCT}.PctScaleToScreen(),
 		strings.STRING_X,

@@ -14,6 +14,7 @@ const (
 
 const LOR = ss.LANE_OFFSET_RATIO
 const TEXTURE_SIZE_HEX = 400
+const TEXTURE_ICON_SIZE = 64
 
 var radiusOffsets = [utils.DIR_COUNT]utils.ScreenCoord{
 	utils.DIR_LEFT:       {X: -ss.HEX_WIDTH / 2.0, Y: 0},
@@ -110,4 +111,9 @@ func GetShapeParam(shape utils.Shape, dir utils.Dir) ShapeParam {
 			Offset: utils.ScreenCoord{X: ss.HEX_HEIGHT / 2, Y: ss.HEX_HEIGHT / 2},
 		}
 	}
+}
+
+var iconItemList = []ss.ItemType{
+	ss.ITEM_TYPE_IRON_GEAR,
+	ss.ITEM_TYPE_IRON_PLATE,
 }

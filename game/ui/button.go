@@ -2,35 +2,13 @@ package ui
 
 import (
 	"hextopdown/input"
-	"hextopdown/renderer"
-	"hextopdown/settings/strings"
 	"hextopdown/utils"
 )
 
 type Button struct {
 	ControlBase
-	text    strings.StringID
 	down    bool
 	onClick func()
-}
-
-func NewButton(pos, size utils.ScreenCoord, text strings.StringID, onClick func()) *Button {
-	return &Button{
-		ControlBase: ControlBase{
-			Pos:  pos,
-			Size: size,
-		},
-		text:    text,
-		onClick: onClick,
-	}
-}
-
-func (b *Button) within(mp utils.ScreenCoord) bool {
-	return mp.X >= 0 && mp.X < b.Size.X && mp.Y >= 0 && mp.Y < b.Size.Y
-}
-
-func (b *Button) Draw(r *renderer.GameRenderer, parentPos utils.ScreenCoord) {
-	r.DrawButtonText(b.Pos.Add(parentPos), b.Size, b.text, b.down)
 }
 
 func (b *Button) HandleMouseMovement(mp utils.ScreenCoord) {

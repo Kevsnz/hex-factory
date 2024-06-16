@@ -43,7 +43,16 @@ func (c *Converter) DrawGroundLevel(r *renderer.GameRenderer) {
 	r.DrawObjectGround(c.pos.CenterToWorld(), c.objType, c.objParams.Shape, c.dir)
 }
 
-func (c *Converter) DrawOnGroundLevel(r *renderer.GameRenderer) {}
+func (c *Converter) DrawOnGroundLevel(r *renderer.GameRenderer) {
+	if c.recipe != ss.RECIPE_COUNT {
+		iconSize := utils.ScreenCoord{X: ss.FONT_SIZE_PCT * 2, Y: ss.FONT_SIZE_PCT * 2}.PctScaleToScreen()
+		r.DrawItemIcon(
+			c.pos.CenterToWorld().ToScreen().Sub(iconSize.Div(2)),
+			iconSize.X,
+			gd.RecipeList[c.recipe].Products[0].Type,
+		)
+	}
+}
 
 func (c *Converter) GetRecipe() ss.Recipe {
 	return c.recipe
