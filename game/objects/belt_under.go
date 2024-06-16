@@ -56,8 +56,13 @@ func NewBeltUnder(
 	dir utils.Dir,
 	objParams *gd.ObjectParameters,
 	tier ss.BeltTier,
-	isEntry bool,
-) *BeltUnder {
+	toJoin *BeltUnder,
+) (*BeltUnder, bool) {
+	isEntry := true
+	if toJoin != nil && toJoin.IsEntry {
+		isEntry = false
+		dir = dir.Reverse()
+	}
 	speed := 1 / float64(gd.BeltTierParamsList[tier].Speed)
 
 	var inConn, outConn *BeltConnection
@@ -85,7 +90,16 @@ func NewBeltUnder(
 	}
 
 	newBelt.setBeltType()
-	return newBelt
+
+	if toJoin != nil {
+		if toJoin.IsEntry {
+			toJoin.JoinUnder(newBelt)
+		} else {
+			newBelt.JoinUnder(toJoin)
+		}
+	}
+
+	return newBelt, toJoin == nil
 }
 
 func (b *BeltUnder) setBeltType() {

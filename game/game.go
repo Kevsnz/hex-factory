@@ -191,62 +191,15 @@ func (g *Game) processMouseActions(ih *input.InputHandler) {
 
 		switch mouseEvent.Type {
 		case input.MOUSE_BUTTON_DOWN:
-			if mouseEvent.Button == input.MOUSE_BUTTON_LEFT {
+			switch mouseEvent.Button {
+			case input.MOUSE_BUTTON_LEFT:
 				hex := utils.HexCoordFromWorld(mouseEvent.Coord.ToWorld())
 				if g.selectedObjType != ss.OBJECT_TYPE_COUNT {
-					switch g.selectedObjType {
-					case ss.OBJECT_TYPE_BELT1:
-						_ = g.placeBelt(g.selectedObjType, hex, g.selectedDir)
-					case ss.OBJECT_TYPE_BELTSPLITTER1:
-						if !g.canPlaceObject(hex, g.selectedObjType, g.selectedDir) {
-							break
-						}
-						tier := gd.BeltlikeParamsList[g.selectedObjType].Tier
-						bs := objects.NewBeltSplitter(g.selectedObjType, hex, g.selectedDir, gd.ObjectParamsList[g.selectedObjType], tier)
-						g.placeObject(bs)
-					case ss.OBJECT_TYPE_BELTUNDER1:
-						if !g.canPlaceObject(hex, g.selectedObjType, g.selectedDir) {
-							break
-						}
-						tier := gd.BeltlikeParamsList[g.selectedObjType].Tier
-						reach := gd.BeltTierParamsList[tier].Reach
-						bu := g.findUnderToJoin(hex, g.selectedDir, reach)
-						if bu == nil {
-							newBelt := objects.NewBeltUnder(g.selectedObjType, hex, g.selectedDir, gd.ObjectParamsList[g.selectedObjType], tier, true)
-							g.worldObjects[hex] = newBelt
-							g.selectedDir = g.selectedDir.Reverse()
-							break
-						}
-						var newBelt *objects.BeltUnder
-						if bu.IsEntry {
-							newBelt = objects.NewBeltUnder(g.selectedObjType, hex, g.selectedDir.Reverse(), gd.ObjectParamsList[g.selectedObjType], tier, false)
-						} else {
-							newBelt = objects.NewBeltUnder(g.selectedObjType, hex, g.selectedDir, gd.ObjectParamsList[g.selectedObjType], tier, true)
-						}
-						g.placeObject(newBelt)
-						if bu.IsEntry {
-							bu.JoinUnder(newBelt)
-						} else {
-							newBelt.JoinUnder(bu)
-						}
-					case ss.OBJECT_TYPE_INSERTER1:
-						g.placeInserter(hex, g.selectedDir, g.selectedObjType)
-					case ss.OBJECT_TYPE_CHESTBOX_SMALL:
-						g.placeStorage(hex, g.selectedObjType)
-					case ss.OBJECT_TYPE_CHESTBOX_MEDIUM:
-						g.placeStorage(hex, g.selectedObjType)
-					case ss.OBJECT_TYPE_CHESTBOX_LARGE:
-						g.placeStorage(hex, g.selectedObjType)
-					case ss.OBJECT_TYPE_FURNACE_STONE:
-						g.placeConverter(hex, g.selectedDir, g.selectedObjType)
-					case ss.OBJECT_TYPE_ASSEMBLER_BASIC:
-						g.placeConverter(hex, g.selectedDir, g.selectedObjType)
-					}
-				} else {
-					// Interact with world objects
+					g.useSelectedTool(hex)
+				} else if t, ok := g.worldObjects[hex]; ok {
+					g.interactWithWorldObject(t)
 				}
-			}
-			if mouseEvent.Button == input.MOUSE_BUTTON_RIGHT {
+			case input.MOUSE_BUTTON_RIGHT:
 				hex := utils.HexCoordFromWorld(mouseEvent.Coord.ToWorld())
 				g.removeObjectAtHex(hex)
 			}
@@ -383,6 +336,33 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 	}
 }
 
+func (g *Game) useSelectedTool(hex utils.HexCoord) {
+	switch gd.ObjectParamsList[g.selectedObjType].BaseType {
+	case ss.STRUCTURE_BASETYPE_BELTLIKE:
+		_ = g.placeBeltlike(g.selectedObjType, hex, g.selectedDir)
+		return
+	case ss.STRUCTURE_BASETYPE_INSERTER:
+		_ = g.placeInserter(hex, g.selectedDir, g.selectedObjType)
+		return
+	case ss.STRUCTURE_BASETYPE_STORAGE:
+		_ = g.placeStorage(hex, g.selectedObjType)
+		return
+	case ss.STRUCTURE_BASETYPE_CONVERTER:
+		_ = g.placeConverter(hex, g.selectedDir, g.selectedObjType)
+		return
+	}
+}
+
+func (g *Game) interactWithWorldObject(wo WorldObject) {
+	switch obj := wo.(type) {
+	case *objects.Converter:
+		if !obj.RecipeChangeable() {
+			break
+		}
+		g.ui.ShowRecipeWindow([]ss.Recipe{ss.RECIPE_IRON_GEAR}, func(r ss.Recipe) { obj.ChangeRecipe(r) })
+	}
+}
+
 func (g *Game) selectObjType(objType ss.ObjectType) {
 	if g.selectedObjType == objType {
 		g.selectedObjType = ss.OBJECT_TYPE_COUNT
@@ -391,14 +371,29 @@ func (g *Game) selectObjType(objType ss.ObjectType) {
 	}
 }
 
-func (g *Game) placeBelt(objType ss.ObjectType, hex utils.HexCoord, dir utils.Dir) *objects.Belt {
-	if _, ok := g.worldObjects[hex]; ok {
+func (g *Game) placeBeltlike(objType ss.ObjectType, hex utils.HexCoord, dir utils.Dir) objects.BeltLike {
+	if !g.canPlaceObject(hex, objType, dir) {
 		return nil
 	}
+
 	tier := gd.BeltlikeParamsList[objType].Tier
-	belt := objects.NewBelt(objType, hex, dir, gd.ObjectParamsList[objType], tier)
-	g.worldObjects[hex] = belt
-	return belt
+
+	var newbelt objects.BeltLike
+	switch gd.BeltlikeParamsList[objType].Type {
+	case ss.BELTLIKE_TYPE_NORMAL:
+		newbelt = objects.NewBelt(objType, hex, dir, gd.ObjectParamsList[objType], tier)
+	case ss.BELTLIKE_TYPE_SPLITTER:
+		newbelt = objects.NewBeltSplitter(objType, hex, dir, gd.ObjectParamsList[objType], tier)
+	case ss.BELTLIKE_TYPE_UNDER:
+		bu, sw := g.findUnderToJoin(hex, dir, gd.BeltTierParamsList[tier].Reach), false
+		newbelt, sw = objects.NewBeltUnder(objType, hex, dir, gd.ObjectParamsList[objType], tier, bu)
+		if sw {
+			g.selectedDir = dir.Reverse()
+		}
+	}
+
+	g.placeObject(newbelt.(WorldObject))
+	return newbelt
 }
 
 func (g *Game) placeStorage(hex utils.HexCoord, objType ss.ObjectType) *objects.Storage {
@@ -462,16 +457,16 @@ func (g *Game) removeObjectAtHex(hex utils.HexCoord) {
 
 func (g *Game) placeConnectBelts(coord1, coord2 utils.HexCoord, objType ss.ObjectType) {
 	var belt1, belt2 objects.BeltLike
-	if t, ok := g.worldObjects[coord1]; ok {
-		if belt1, ok = t.(objects.BeltLike); !ok {
+	if obj, ok := g.worldObjects[coord1]; ok {
+		if belt1, ok = obj.(objects.BeltLike); !ok {
 			return
 		}
 	} else {
 		return
 	}
 
-	if t, ok := g.worldObjects[coord2]; ok {
-		if belt2, ok = t.(objects.BeltLike); !ok {
+	if obj, ok := g.worldObjects[coord2]; ok {
+		if belt2, ok = obj.(objects.BeltLike); !ok {
 			return
 		}
 	} else {
@@ -479,8 +474,9 @@ func (g *Game) placeConnectBelts(coord1, coord2 utils.HexCoord, objType ss.Objec
 		if err != nil {
 			return
 		}
-		newBelt := g.placeBelt(objType, coord2, dir)
-		if newBelt == nil {
+		newBelt := g.placeBeltlike(objType, coord2, dir)
+		//lint:ignore S1040 // it's a nil check!!!
+		if _, ok := newBelt.(objects.BeltLike); !ok {
 			return
 		}
 		belt2 = newBelt
