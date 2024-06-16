@@ -1,3 +1,5 @@
+//go:generate go-winres make
+
 package main
 
 import (
@@ -26,7 +28,7 @@ func main() {
 	}
 
 	window, err := sdl.CreateWindow("Hex Top Down World!", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-		renderer.RES_X, renderer.RES_Y, 0)
+		renderer.RES_X, renderer.RES_Y, sdl.WINDOW_ALLOW_HIGHDPI)
 	if err != nil {
 		panic(err)
 	}
