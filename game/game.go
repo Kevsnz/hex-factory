@@ -189,18 +189,17 @@ func (g *Game) processMouseActions(ih *input.InputHandler) {
 			continue
 		}
 
+		hex := utils.HexCoordFromWorld(mouseEvent.Coord.ToWorld())
 		switch mouseEvent.Type {
 		case input.MOUSE_BUTTON_DOWN:
 			switch mouseEvent.Button {
 			case input.MOUSE_BUTTON_LEFT:
-				hex := utils.HexCoordFromWorld(mouseEvent.Coord.ToWorld())
-				if g.selectedObjType != ss.OBJECT_TYPE_COUNT {
+				if obj, ok := g.worldObjects[hex]; ok {
+					g.interactWithWorldObject(obj)
+				} else if g.selectedObjType != ss.OBJECT_TYPE_COUNT {
 					g.useSelectedTool(hex)
-				} else if t, ok := g.worldObjects[hex]; ok {
-					g.interactWithWorldObject(t)
 				}
 			case input.MOUSE_BUTTON_RIGHT:
-				hex := utils.HexCoordFromWorld(mouseEvent.Coord.ToWorld())
 				g.removeObjectAtHex(hex)
 			}
 		}

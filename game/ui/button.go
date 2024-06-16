@@ -30,8 +30,7 @@ func (b *Button) within(mp utils.ScreenCoord) bool {
 }
 
 func (b *Button) Draw(r *renderer.GameRenderer, parentPos utils.ScreenCoord) {
-	r.DrawButton(b.Pos.Add(parentPos), b.Size, b.down)
-	r.DrawString(b.text, b.Pos.Add(parentPos).Add(b.Size.Div(2)), renderer.TEXT_ALIGN_CENTER)
+	r.DrawButtonText(b.Pos.Add(parentPos), b.Size, b.text, b.down)
 }
 
 func (b *Button) HandleMouseMovement(mp utils.ScreenCoord) {

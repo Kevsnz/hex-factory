@@ -3,6 +3,7 @@ package ui
 import (
 	"hextopdown/input"
 	"hextopdown/renderer"
+	"hextopdown/settings/strings"
 	"hextopdown/utils"
 )
 
@@ -18,21 +19,22 @@ type iControl interface {
 type Window struct {
 	Pos      utils.ScreenCoord
 	Size     utils.ScreenCoord
+	Title    strings.StringID
 	Children []iControl
 	Visible  bool
 }
 
-func NewWindow(pos, size utils.ScreenCoord, cfgs ...func(ConfigurableWindow)) *Window {
-	w := &Window{
-		Pos:     pos,
-		Size:    size,
-		Visible: true,
-	}
-	for _, cfg := range cfgs {
-		cfg(w)
-	}
-	return w
-}
+// func NewWindow(pos, size utils.ScreenCoord, cfgs ...func(ConfigurableWindow)) *Window {
+// 	w := &Window{
+// 		Pos:     pos,
+// 		Size:    size,
+// 		Visible: true,
+// 	}
+// 	for _, cfg := range cfgs {
+// 		cfg(w)
+// 	}
+// 	return w
+// }
 
 func (w *Window) AddChild(c iControl, ca ControlAlignment) {
 	c.SetPos(ca.ConvertCoords(c.GetPos(), c.GetSize(), w.Size))
@@ -44,7 +46,7 @@ func (w *Window) Draw(r *renderer.GameRenderer) {
 		return
 	}
 
-	r.DrawWindow(w.Pos, w.Size, false)
+	r.DrawWindow(w.Pos, w.Size, w.Title)
 	for _, child := range w.Children {
 		child.Draw(r, w.Pos)
 	}

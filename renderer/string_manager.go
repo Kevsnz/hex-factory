@@ -20,16 +20,35 @@ const (
 
 type CompoundString struct {
 	strings []*stringTexture
+	W, H    int32
 }
 
 func (s *CompoundString) AddString(sid strings.StringID, sm *StringManager) {
 	s.strings = append(s.strings, sm.stringTextures[sid])
+	s.W += sm.stringTextures[sid].W
+	if sm.stringTextures[sid].H > s.H {
+		s.H = sm.stringTextures[sid].H
+	}
 }
 func (s *CompoundString) AddInt(number int, minDigits int, sm *StringManager) {
-	s.strings = append(s.strings, sm.StringListInt(number, minDigits)...)
+	digitTexs := sm.StringListInt(number, minDigits)
+	for _, tex := range digitTexs {
+		s.strings = append(s.strings, tex)
+		s.W += tex.W
+		if tex.H > s.H {
+			s.H = tex.H
+		}
+	}
 }
 func (s *CompoundString) AddFloat(number float64, precision int, sm *StringManager) {
-	s.strings = append(s.strings, sm.StringListFloat(number, precision)...)
+	digitTexs := sm.StringListFloat(number, precision)
+	for _, tex := range digitTexs {
+		s.strings = append(s.strings, tex)
+		s.W += tex.W
+		if tex.H > s.H {
+			s.H = tex.H
+		}
+	}
 }
 
 type stringTexture struct {
@@ -86,21 +105,31 @@ func (s *StringManager) createTexture(r *sdl.Renderer, str string, color sdl.Col
 	return &stringTexture{texture, surface.W, surface.H}
 }
 
-func (s *StringManager) calcWidthHeight(strings []*stringTexture) (int32, int32) {
-	width := int32(0)
-	maxHeigth := int32(0)
-
-	for _, tex := range strings {
-		width += tex.W
-		if tex.H > maxHeigth {
-			maxHeigth = tex.H
-		}
+func (s *StringManager) RenderCompoundString(r *sdl.Renderer, cs *CompoundString, x, y int32, align TextAlignment) int32 {
+	switch align {
+	case TEXT_ALIGN_RIGHT:
+		x -= cs.W
+	case TEXT_ALIGN_CENTER:
+		x -= cs.W / 2
 	}
-	return width, maxHeigth
+	y -= cs.H / 2
+
+	for _, st := range cs.strings {
+		if st == nil {
+			panic("string not prerendered")
+		}
+		r.Copy(st.Texture, nil, &sdl.Rect{X: x, Y: y, W: st.W, H: st.H})
+		x += st.W
+	}
+	return cs.W
 }
 
-func (s *StringManager) RenderCompoundString(r *sdl.Renderer, cs *CompoundString, x, y int32, align TextAlignment) int32 {
-	w, h := s.calcWidthHeight(cs.strings)
+func (s *StringManager) Render(r *sdl.Renderer, id strings.StringID, x, y int32, align TextAlignment) int32 {
+	st := s.stringTextures[id]
+	if st == nil {
+		panic("string not prerendered")
+	}
+	w, h := st.W, st.H
 
 	switch align {
 	case TEXT_ALIGN_RIGHT:
@@ -110,21 +139,6 @@ func (s *StringManager) RenderCompoundString(r *sdl.Renderer, cs *CompoundString
 	}
 	y -= h / 2
 
-	for _, st := range cs.strings {
-		if st == nil {
-			panic("string not prerendered")
-		}
-		r.Copy(st.Texture, nil, &sdl.Rect{X: x, Y: y, W: st.W, H: st.H})
-		x += st.W
-	}
-	return w
-}
-
-func (s *StringManager) Render(r *sdl.Renderer, id strings.StringID, x, y int32) int32 {
-	st := s.stringTextures[id]
-	if st == nil {
-		panic("string not prerendered")
-	}
 	r.Copy(st.Texture, nil, &sdl.Rect{X: x, Y: y, W: st.W, H: st.H})
 	return st.W
 }

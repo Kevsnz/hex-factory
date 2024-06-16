@@ -50,7 +50,7 @@ func (c *Converter) GetRecipe() ss.Recipe {
 }
 
 func (c *Converter) RecipeChangeable() bool {
-	return c.params.AutoRecipe
+	return !c.params.AutoRecipe
 }
 
 func (c *Converter) ChangeRecipe(recipe ss.Recipe) {

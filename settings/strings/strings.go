@@ -16,6 +16,7 @@ const (
 	STRING_TPS           StringID = iota
 	STRING_PLAYER_COORDS StringID = iota
 	STRING_TOOL          StringID = iota
+	STRING_RECIPE        StringID = iota
 
 	// Object Name Strings
 	STRING_OBJECT_UNKNOWN          StringID = iota
@@ -48,6 +49,7 @@ var Strings = [STRING_COUNT]string{
 	STRING_TPS:           "TPS: ",
 	STRING_PLAYER_COORDS: "Player coords: ",
 	STRING_TOOL:          "Current tool: ",
+	STRING_RECIPE:        "Recipe",
 
 	STRING_OBJECT_UNKNOWN:          "Unknown object",
 	STRING_OBJECT_INSERTER:         "Inserter",

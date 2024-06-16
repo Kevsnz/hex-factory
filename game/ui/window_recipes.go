@@ -2,6 +2,7 @@ package ui
 
 import (
 	ss "hextopdown/settings"
+	"hextopdown/settings/strings"
 	"hextopdown/utils"
 )
 
@@ -19,8 +20,9 @@ type WindowRecipes struct {
 func NewWindowRecipes() *WindowRecipes {
 	wnd := &WindowRecipes{
 		Window: Window{
-			Pos:  utils.ScreenCoord{X: WND_RECIPES_X_PCT, Y: WND_RECIPES_Y_PCT}.PctPosToScreen(),
-			Size: utils.ScreenCoord{X: WND_RECIPES_W_PCT, Y: WND_RECIPES_H_PCT}.PctScaleToScreen(),
+			Pos:   utils.ScreenCoord{X: WND_RECIPES_X_PCT, Y: WND_RECIPES_Y_PCT}.PctPosToScreen(),
+			Size:  utils.ScreenCoord{X: WND_RECIPES_W_PCT, Y: WND_RECIPES_H_PCT}.PctScaleToScreen(),
+			Title: strings.STRING_RECIPE,
 		},
 	}
 	WithCloseBox(wnd)
@@ -32,4 +34,5 @@ func (w *WindowRecipes) ShowSelector(recipeList []ss.Recipe, onSelect func(ss.Re
 	w.recipeList = make([]ss.Recipe, 0, len(recipeList))
 	w.recipeList = append(w.recipeList, recipeList...)
 	w.onSelect = onSelect
+	w.Visible = true
 }

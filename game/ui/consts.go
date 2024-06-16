@@ -1,6 +1,9 @@
 package ui
 
-import "hextopdown/utils"
+import (
+	"hextopdown/settings"
+	"hextopdown/utils"
+)
 
 type ControlAlignment int
 
@@ -26,5 +29,5 @@ func (ca ControlAlignment) ConvertCoords(pos, size, space utils.ScreenCoord) uti
 	}
 }
 
-const CLOSE_BOX_SIZE_PCT = 0.02
-const CLOSE_BOX_PADDING_PCT = 0.001
+const CLOSE_BOX_SIZE_PCT = settings.FONT_SIZE_PCT * 2 / 3
+const CLOSE_BOX_PADDING_PCT = settings.FONT_SIZE_PCT / 8

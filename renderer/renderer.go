@@ -693,15 +693,17 @@ func (r *GameRenderer) DrawObjectDetails(
 ) {
 	x, y := int32(math.Round(float64(pctX*RES_X))), int32(math.Round(float64(pctY*RES_Y)))
 
-	r.stringManager.Render(r.renderer, name, x, y)
-	y += 22
-
 	cs := CompoundString{}
+	cs.AddString(name, r.stringManager)
+	r.stringManager.RenderCompoundString(r.renderer, &cs, x, y, TEXT_ALIGN_LEFT)
+	y += cs.H
+
+	cs = CompoundString{}
 	cs.AddInt(int(hex.X), 1, r.stringManager)
 	cs.AddString(strings.STRING_COMMASPACE, r.stringManager)
 	cs.AddInt(int(hex.Y), 1, r.stringManager)
 	r.stringManager.RenderCompoundString(r.renderer, &cs, x, y, TEXT_ALIGN_LEFT)
-	y += 22
+	y += cs.H
 
 	for _, itemInfo := range items {
 		tex := r.itemTextures[itemInfo.Type]
@@ -717,16 +719,16 @@ func (r *GameRenderer) DrawObjectDetails(
 	}
 }
 
-func (r *GameRenderer) DrawWindow(pos utils.ScreenCoord, size utils.ScreenCoord, active bool) {
+func (r *GameRenderer) DrawWindow(pos utils.ScreenCoord, size utils.ScreenCoord, title strings.StringID) {
 	rect := fRectFromScreen(pos, size.X, size.Y)
 
 	r.renderer.SetDrawColor(0, 0, 0, 255)
 	r.renderer.FillRectF(rect)
 
-	if active {
-		r.renderer.SetDrawColor(127, 127, 127, 255)
-		r.renderer.DrawRectF(rect)
-	}
+	cs := CompoundString{}
+	cs.AddString(title, r.stringManager)
+	posX := math.Round(float64(pos.Add(size.Div(2)).X))
+	r.stringManager.RenderCompoundString(r.renderer, &cs, int32(posX), int32(pos.Y)+cs.H/2, TEXT_ALIGN_CENTER)
 }
 
 func (r *GameRenderer) DrawButton(pos utils.ScreenCoord, size utils.ScreenCoord, hover bool) {
@@ -738,4 +740,21 @@ func (r *GameRenderer) DrawButton(pos utils.ScreenCoord, size utils.ScreenCoord,
 		r.renderer.SetDrawColor(32, 127, 32, 255)
 		r.renderer.DrawRectF(rect)
 	}
+}
+func (r *GameRenderer) DrawButtonText(pos utils.ScreenCoord, size utils.ScreenCoord, text strings.StringID, hover bool) {
+	rect := fRectFromScreen(pos, size.X, size.Y)
+
+	r.renderer.SetDrawColor(32, 32, 32, 255)
+	r.renderer.FillRectF(rect)
+	if hover {
+		r.renderer.SetDrawColor(32, 127, 32, 255)
+		r.renderer.DrawRectF(rect)
+	}
+
+	cs := CompoundString{}
+	cs.AddString(text, r.stringManager)
+	pos = pos.Add(size.Div(2))
+	posX := math.Round(float64(pos.X))
+	posY := math.Round(float64(pos.Y))
+	r.stringManager.RenderCompoundString(r.renderer, &cs, int32(posX), int32(posY), TEXT_ALIGN_CENTER)
 }
