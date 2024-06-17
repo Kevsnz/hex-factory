@@ -400,17 +400,17 @@ func (b *BeltUnder) MoveItems(ticks uint64, processed map[*BeltGraphSegment]stru
 	}
 }
 
-func (b *BeltUnder) TakeItemOut(pos utils.WorldCoord) (*items.ItemInWorld, bool) {
+func (b *BeltUnder) TakeItemOut(pos utils.WorldCoord, allowedItems []ss.ItemType) (*items.ItemInWorld, bool) {
 	var closestItem *items.ItemOnBelt
 	var closestConn *BeltConnection
 
 	if b.IsEntry {
-		if iob, _ := b.inConn.FindClosestItem(pos); iob != nil {
+		if iob, _ := b.inConn.FindClosestItem(pos, allowedItems); iob != nil {
 			closestItem = iob
 			closestConn = b.inConn
 		}
 	} else {
-		if iob, _ := b.outConn.FindClosestItem(pos); iob != nil {
+		if iob, _ := b.outConn.FindClosestItem(pos, allowedItems); iob != nil {
 			closestItem = iob
 			closestConn = b.outConn
 		}

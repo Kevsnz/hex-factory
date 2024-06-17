@@ -324,13 +324,13 @@ func (b *BeltSplitter) MoveItems(ticks uint64, processed map[*BeltGraphSegment]s
 	b.outConn[1].MoveItems(ticks, processed)
 }
 
-func (b *BeltSplitter) TakeItemOut(pos utils.WorldCoord) (*items.ItemInWorld, bool) {
+func (b *BeltSplitter) TakeItemOut(pos utils.WorldCoord, allowedItems []ss.ItemType) (*items.ItemInWorld, bool) {
 	var closestItem *items.ItemOnBelt
 	closestDistSq := 99999999999.0
 	var closestConn *BeltConnection
 
 	for i := 0; i < 2; i++ {
-		if iob, distSq := b.outConn[i].FindClosestItem(pos); iob != nil {
+		if iob, distSq := b.outConn[i].FindClosestItem(pos, allowedItems); iob != nil {
 			if distSq < closestDistSq {
 				closestItem = iob
 				closestDistSq = distSq
@@ -343,7 +343,7 @@ func (b *BeltSplitter) TakeItemOut(pos utils.WorldCoord) (*items.ItemInWorld, bo
 		if b.inConns[i] == nil {
 			continue
 		}
-		if iob, distSq := b.inConns[i].FindClosestItem(pos); iob != nil {
+		if iob, distSq := b.inConns[i].FindClosestItem(pos, allowedItems); iob != nil {
 			if distSq < closestDistSq {
 				closestItem = iob
 				closestDistSq = distSq

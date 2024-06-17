@@ -53,7 +53,7 @@ func (i *Inserter) Update(ticks uint64, world HexGridWorldInteractor) {
 		if !ok {
 			return
 		}
-		item, ok := obj.TakeItemOut(otherPos.CenterToWorld().ShiftDir(i.dir.Reverse(), ss.LANE_OFFSET_WORLD))
+		item, ok := obj.TakeItemOut(otherPos.CenterToWorld().ShiftDir(i.dir.Reverse(), ss.LANE_OFFSET_WORLD), nil)
 		if !ok {
 			return
 		}

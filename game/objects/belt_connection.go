@@ -265,14 +265,14 @@ func moveItemsWholeGraph(graphStart *BeltGraphSegment, ticks uint64, processed m
 	}
 }
 
-func (bc *BeltConnection) FindClosestItem(pos utils.WorldCoord) (*items.ItemOnBelt, float64) {
+func (bc *BeltConnection) FindClosestItem(pos utils.WorldCoord, allowedItems []ss.ItemType) (*items.ItemOnBelt, float64) {
 	var closestItem *items.ItemOnBelt
 	minDistSq := 99999999999.0
-	if item, distSq := bc.LaneLeft.FindClosestItem(pos); item != nil && distSq < minDistSq {
+	if item, distSq := bc.LaneLeft.FindClosestItem(pos, allowedItems); item != nil && distSq < minDistSq {
 		minDistSq = distSq
 		closestItem = item
 	}
-	if item, distSq := bc.LaneRight.FindClosestItem(pos); item != nil && distSq < minDistSq {
+	if item, distSq := bc.LaneRight.FindClosestItem(pos, allowedItems); item != nil && distSq < minDistSq {
 		minDistSq = distSq
 		closestItem = item
 	}

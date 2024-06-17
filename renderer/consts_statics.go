@@ -113,7 +113,7 @@ func GetShapeParam(shape utils.Shape, dir utils.Dir) ShapeParam {
 	}
 }
 
-var iconItemList = []ss.ItemType{
-	ss.ITEM_TYPE_IRON_GEAR,
-	ss.ITEM_TYPE_IRON_PLATE,
+var iconItemList = map[ss.ItemType]int{
+	ss.ITEM_TYPE_IRON_GEAR:  0,
+	ss.ITEM_TYPE_IRON_PLATE: 1,
 }

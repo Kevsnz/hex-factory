@@ -36,11 +36,15 @@ func (s *Storage) DrawGroundLevel(r *renderer.GameRenderer) {
 }
 func (s *Storage) DrawOnGroundLevel(r *renderer.GameRenderer) {}
 
-func (s *Storage) TakeItemOut(pos utils.WorldCoord) (*items.ItemInWorld, bool) {
+func (s *Storage) TakeItemOut(pos utils.WorldCoord, allowedItems []ss.ItemType) (*items.ItemInWorld, bool) {
 	for i, stack := range s.slots {
 		if stack == nil {
 			continue
 		}
+		if !utils.ItemInList(stack.ItemType, allowedItems) {
+			continue
+		}
+
 		item := items.NewItemInWorld2(stack.ItemType, s.pos.CenterToWorld())
 		stack.Count--
 		if stack.Count == 0 {
@@ -49,6 +53,22 @@ func (s *Storage) TakeItemOut(pos utils.WorldCoord) (*items.ItemInWorld, bool) {
 		return &item, true
 	}
 	return nil, false
+}
+
+func (s *Storage) GetAcceptableItems() []ss.ItemType {
+	for _, stack := range s.slots {
+		if stack == nil {
+			return nil
+		}
+	}
+
+	info := []ss.ItemType{}
+	for _, stack := range s.slots {
+		if stack.Count < ss.StackMaxSizes[stack.ItemType] {
+			info = append(info, stack.ItemType)
+		}
+	}
+	return info
 }
 
 func (s *Storage) TakeItemIn(pos utils.WorldCoord, item items.ItemInWorld) (ok bool) {

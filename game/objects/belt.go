@@ -467,6 +467,7 @@ func (b *Belt) CanPlaceItem(dir utils.Dir, isLeft bool, offset float64) bool {
 	return b.inConns[idx].CanPlaceItem(offset, isLeft)
 }
 
+func (b *Belt) GetAcceptableItems() []ss.ItemType { return nil }
 func (b *Belt) TakeItemIn(pos utils.WorldCoord, item items.ItemInWorld) (ok bool) {
 	dir, offset, isLeft, ok := b.GetSegmentOffset(pos)
 	if !ok {
@@ -485,12 +486,12 @@ func (b *Belt) TakeItemIn(pos utils.WorldCoord, item items.ItemInWorld) (ok bool
 	return true
 }
 
-func (b *Belt) TakeItemOut(pos utils.WorldCoord) (*items.ItemInWorld, bool) {
+func (b *Belt) TakeItemOut(pos utils.WorldCoord, allowedItems []ss.ItemType) (*items.ItemInWorld, bool) {
 	var closestItem *items.ItemOnBelt
 	closestDistSq := 99999999999.0
 	var closestConn *BeltConnection
 
-	if iob, distSq := b.outConn.FindClosestItem(pos); iob != nil {
+	if iob, distSq := b.outConn.FindClosestItem(pos, allowedItems); iob != nil {
 		closestItem = iob
 		closestDistSq = distSq
 		closestConn = b.outConn
@@ -500,7 +501,7 @@ func (b *Belt) TakeItemOut(pos utils.WorldCoord) (*items.ItemInWorld, bool) {
 		if b.inConns[i] == nil {
 			continue
 		}
-		if iob, distSq := b.inConns[i].FindClosestItem(pos); iob != nil {
+		if iob, distSq := b.inConns[i].FindClosestItem(pos, allowedItems); iob != nil {
 			if distSq < closestDistSq {
 				closestItem = iob
 				closestDistSq = distSq

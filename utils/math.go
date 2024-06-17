@@ -1,6 +1,9 @@
 package utils
 
-import "math"
+import (
+	"hextopdown/settings"
+	"math"
+)
 
 func Abs(x int32) int32 {
 	return x * (x>>31 | 1)
@@ -23,4 +26,13 @@ func AbsF32(x float32) float32 {
 func GetFrameInterpolatedValue(x1, x2 float64, tickMs, timeMs, step_dt uint64) float64 {
 	dx := (x2 - x1) * float64(timeMs-tickMs) / float64(step_dt)
 	return x1 + dx
+}
+
+func ItemInList(itemType settings.ItemType, itemList []settings.ItemType) bool {
+	for _, i := range itemList {
+		if i == itemType {
+			return true
+		}
+	}
+	return false
 }

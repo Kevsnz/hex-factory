@@ -303,7 +303,7 @@ func (bgs *BeltGraphSegment) PushItemsReversed(iobs []*items.ItemOnBelt) {
 	}
 }
 
-func (bgs *BeltGraphSegment) FindClosestItem(pos utils.WorldCoord) (*items.ItemOnBelt, float64) {
+func (bgs *BeltGraphSegment) FindClosestItem(pos utils.WorldCoord, allowedItems []ss.ItemType) (*items.ItemOnBelt, float64) {
 	if bgs.Items.Len() == 0 {
 		return nil, 0
 	}
@@ -312,6 +312,9 @@ func (bgs *BeltGraphSegment) FindClosestItem(pos utils.WorldCoord) (*items.ItemO
 	closestDistSq := ss.ITEM_D * ss.ITEM_D * 2.0
 	for i := 0; i < bgs.Items.Len(); i++ {
 		iob := bgs.Items.Peek(i)
+		if !utils.ItemInList(iob.Item.ItemType, allowedItems) {
+			continue
+		}
 		if iob.Item.Pos.Pos.DistanceSqTo(pos) < closestDistSq {
 			closestDistSq = iob.Item.Pos.Pos.DistanceSqTo(pos)
 			closestIdx = i

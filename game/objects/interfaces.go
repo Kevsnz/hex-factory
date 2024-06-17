@@ -3,6 +3,7 @@ package objects
 import (
 	"hextopdown/game/items"
 	"hextopdown/renderer"
+	"hextopdown/settings"
 	"hextopdown/utils"
 )
 
@@ -26,8 +27,9 @@ type HexGridWorldInteractor interface {
 }
 
 type ItemOutput interface {
-	TakeItemOut(pos utils.WorldCoord) (item *items.ItemInWorld, ok bool)
+	TakeItemOut(pos utils.WorldCoord, allowedItems []settings.ItemType) (item *items.ItemInWorld, ok bool)
 }
 type ItemInput interface {
+	GetAcceptableItems() []settings.ItemType // nil = any item, {} = no items
 	TakeItemIn(pos utils.WorldCoord, item items.ItemInWorld) (ok bool)
 }
