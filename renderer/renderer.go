@@ -362,6 +362,22 @@ func (r *GameRenderer) DrawDecal(pos utils.WorldCoord, sizeHexes float32, decal 
 	r.renderer.CopyF(tex, nil, fRectFromScreen(c.Sub(ss.Div(2)), ss.X, ss.Y))
 }
 
+func (r *GameRenderer) DrawProgressBar(pos utils.WorldCoord, sizeHexes float32, part, max uint32) {
+	c := pos.ToScreen()
+
+	s := utils.GetZoomedHexWidth()
+	if !isOnScreenRadius(c, s*sizeHexes) {
+		return
+	}
+	ss := utils.ScreenCoord{X: s, Y: s / 8}.Mul(sizeHexes)
+	c.Y += s / 2
+
+	r.renderer.SetDrawColor(0, 0, 0, 255)
+	r.renderer.FillRectF(fRectFromScreen(c.Sub(ss.Div(2)), ss.X, ss.Y))
+	r.renderer.SetDrawColor(0, 255, 0, 255)
+	r.renderer.FillRectF(fRectFromScreen(c.Sub(ss.Div(2)), ss.X*float32(part)/float32(max), ss.Y))
+}
+
 func (r *GameRenderer) Finish() {
 	r.renderer.Present()
 }
@@ -559,6 +575,7 @@ func (r *GameRenderer) LoadBeltTextures() {
 
 func (r *GameRenderer) LoadItemTextures() {
 	r.itemTextures[ss.ITEM_TYPE_IRON_PLATE] = r.loadCachedTexture("items/iron_plate")
+	r.itemTextures[ss.ITEM_TYPE_IRON_GEAR] = r.loadCachedTexture("items/iron_gear")
 }
 
 func (r *GameRenderer) LoadStructureGroundTextures() {
@@ -774,14 +791,7 @@ func (r *GameRenderer) DrawObjectDetails(
 	y += cs.H
 
 	for _, itemInfo := range items {
-		tex := r.itemTextures[itemInfo.Type]
-		if tex == nil {
-			r.renderer.SetDrawColor(255, 0, 255, 255)
-			r.renderer.FillRect(&sdl.Rect{X: x, Y: y, W: 25, H: 25})
-			return
-		}
-		r.renderer.Copy(tex, nil, &sdl.Rect{X: x, Y: y, W: 25, H: 25})
-
+		r.DrawItemIconScreen(utils.ScreenCoord{X: float32(x), Y: float32(y)}, 25, itemInfo.Type)
 		r.stringManager.RenderInt(r.renderer, itemInfo.Count, 1, x+15, y+10)
 		x += 30
 	}

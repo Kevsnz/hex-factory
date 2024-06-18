@@ -308,17 +308,21 @@ func (bgs *BeltGraphSegment) FindClosestItem(pos utils.WorldCoord, allowedItems 
 		return nil, 0
 	}
 
-	var closestIdx int
+	var closestIdx int = -1
 	closestDistSq := ss.ITEM_D * ss.ITEM_D * 2.0
 	for i := 0; i < bgs.Items.Len(); i++ {
 		iob := bgs.Items.Peek(i)
-		if !utils.ItemInList(iob.Item.ItemType, allowedItems) {
+		if allowedItems != nil && !utils.ItemInList(iob.Item.ItemType, allowedItems) {
 			continue
 		}
-		if iob.Item.Pos.Pos.DistanceSqTo(pos) < closestDistSq {
+		if closestIdx == -1 || iob.Item.Pos.Pos.DistanceSqTo(pos) < closestDistSq {
 			closestDistSq = iob.Item.Pos.Pos.DistanceSqTo(pos)
 			closestIdx = i
 		}
+	}
+
+	if closestIdx == -1 {
+		return nil, 0
 	}
 	return bgs.Items.Peek(closestIdx), closestDistSq
 }

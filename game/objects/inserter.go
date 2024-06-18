@@ -53,7 +53,10 @@ func (i *Inserter) Update(ticks uint64, world HexGridWorldInteractor) {
 		if !ok {
 			return
 		}
-		item, ok := obj.TakeItemOut(otherPos.CenterToWorld().ShiftDir(i.dir.Reverse(), ss.LANE_OFFSET_WORLD), nil)
+		item, ok := obj.TakeItemOut(
+			otherPos.CenterToWorld().ShiftDir(i.dir.Reverse(), ss.LANE_OFFSET_WORLD),
+			i.getAllowedItems(world),
+		)
 		if !ok {
 			return
 		}
@@ -78,6 +81,11 @@ func (i *Inserter) Update(ticks uint64, world HexGridWorldInteractor) {
 	if ok {
 		i.itemOnHand = nil
 		return
+	}
+
+	if !isItemAllowed(i.itemOnHand.ItemType, i.getAllowedItems(world)) {
+		// TODO Drop held items!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		i.itemOnHand = nil
 	}
 }
 
@@ -118,4 +126,26 @@ func (i *Inserter) updateHeldItemPosition() {
 	itemPos := i.pos.CenterToWorld().ShiftDir(i.dir, -armLen*math.Cos(angle))
 	itemPos.Y -= armLen / 2 * math.Sin(angle)
 	i.itemOnHand.Pos.UpdatePosition(itemPos, false)
+}
+
+func (i *Inserter) getAllowedItems(world HexGridWorldInteractor) []ss.ItemType {
+	otherPos := i.pos.Shift(i.dir, int(i.params.Reach))
+	obj, ok := world.GetItemInputAt(otherPos)
+	if !ok {
+		return nil
+	}
+
+	return obj.GetAcceptableItems()
+}
+
+func isItemAllowed(iType ss.ItemType, allowedItems []ss.ItemType) bool {
+	if allowedItems == nil {
+		return true
+	}
+	for _, item := range allowedItems {
+		if iType == item {
+			return true
+		}
+	}
+	return false
 }

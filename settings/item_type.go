@@ -11,8 +11,8 @@ const (
 )
 
 var StackMaxSizes = [ITEM_TYPE_COUNT]int{
-	ITEM_TYPE_IRON_PLATE: 64,
-	ITEM_TYPE_IRON_GEAR:  64,
+	ITEM_TYPE_IRON_PLATE: 24,
+	ITEM_TYPE_IRON_GEAR:  24,
 }
 
 var TypeStrings = [ITEM_TYPE_COUNT]strings.StringID{
