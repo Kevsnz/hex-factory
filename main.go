@@ -9,6 +9,7 @@ import (
 	"hextopdown/game"
 	"hextopdown/input"
 	"hextopdown/renderer"
+	ss "hextopdown/settings"
 	"hextopdown/utils"
 )
 
@@ -81,6 +82,7 @@ func main() {
 	lastTicks := currentTicks
 
 	gameState.SetTime(currentTicks)
+	utils.SetView(gameState.GetPlayerPos())
 gameloop:
 	for {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -113,7 +115,8 @@ gameloop:
 
 		r.StartNewFrame(currentTicks)
 		gameState.Draw(r)
-		r.DrawFpsTps(1000.0/frameTime, 1000.0/tickTime, 0.01, 0.01)
+		r.DrawFpsTps(1000.0/frameTime, 1000.0/tickTime, ss.FONT_SIZE_PCT/3, ss.FONT_SIZE_PCT*0.5)
+		r.DrawPlayerCoords(gameState.GetPlayerPos(), ss.FONT_SIZE_PCT/3, ss.FONT_SIZE_PCT*1.65)
 		r.Finish()
 
 		nextTicks := sdl.GetTicks64()

@@ -315,7 +315,6 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 	// Draw UI
 	g.ui.Draw(r)
 	r.DrawArrow(0.9, 0.025, g.selectedDir)
-	r.DrawPlayerCoords(g.player.GetPos().Pos, 0.01, 0.03)
 
 	hex := utils.HexCoordFromWorld(g.mousePos.ToWorld())
 
@@ -325,13 +324,13 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 		if obj, ok := obj.(ItemHolder); ok {
 			items = obj.GetItemList()
 		}
-		r.DrawObjectDetails(gd.ObjectParamsList[objType].Name, hex, items, 0.01, 0.90)
+		r.DrawObjectDetails(gd.ObjectParamsList[objType].Name, hex, items, ss.FONT_SIZE_PCT/3, 0.90)
 	} else {
-		r.DrawHexCoords(hex, 0.01, 0.96)
+		r.DrawHexCoords(hex, ss.FONT_SIZE_PCT/3, 1-ss.FONT_SIZE_PCT)
 	}
 
 	if g.selectedObjType != ss.OBJECT_TYPE_COUNT {
-		r.DrawCurrentTool(gd.ObjectParamsList[g.selectedObjType].Name, 0.98, 0.1)
+		r.DrawCurrentTool(gd.ObjectParamsList[g.selectedObjType].Name, 1-ss.FONT_SIZE_PCT/3, 0.1)
 	}
 }
 

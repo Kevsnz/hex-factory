@@ -2,7 +2,9 @@ package renderer
 
 import (
 	"fmt"
+	ss "hextopdown/settings"
 	"hextopdown/settings/strings"
+	"hextopdown/utils"
 	"math"
 	"path"
 
@@ -63,7 +65,8 @@ type StringManager struct {
 }
 
 func NewStringManager() *StringManager {
-	font, err := ttf.OpenFont(path.Join("resources", "Roboto-Regular.ttf"), 20)
+	fontSize := math.Round(float64(utils.PctScaleToScreen(utils.ScreenCoord{X: ss.FONT_SIZE_PCT, Y: 0}).X))
+	font, err := ttf.OpenFont(path.Join("resources", "Roboto-Regular.ttf"), int(fontSize))
 	if err != nil {
 		panic(err)
 	}

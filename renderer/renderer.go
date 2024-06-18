@@ -13,13 +13,11 @@ import (
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
-	"github.com/veandco/go-sdl2/ttf"
 )
 
 type GameRenderer struct {
 	renderer              *sdl.Renderer
 	stringManager         *StringManager
-	font                  *ttf.Font
 	beltTextures          [ss.BELT_TYPE_COUNT]*sdl.Texture
 	beltAnimationTextures [ss.BELT_TYPE_COUNT]*sdl.Texture
 	beltOnGroundTextures  [ss.BELT_ON_COUNT]*sdl.Texture
@@ -38,18 +36,12 @@ func NewGameRenderer(window *sdl.Window) *GameRenderer {
 		panic(err)
 	}
 
-	fontSize := math.Round(float64(utils.PctScaleToScreen(utils.ScreenCoord{X: ss.FONT_SIZE_PCT, Y: 0}).X))
-	font, err := ttf.OpenFont(path.Join("resources", "Roboto-Regular.ttf"), int(fontSize))
-	if err != nil {
-		panic(err)
-	}
 	sm := NewStringManager()
 	sm.Prerender(renderer)
 
 	return &GameRenderer{
 		renderer:      renderer,
 		stringManager: sm,
-		font:          font,
 	}
 }
 
@@ -81,7 +73,6 @@ func (r *GameRenderer) Destroy() {
 		tex.Destroy()
 	}
 	r.iconsItems.Destroy()
-	r.font.Close()
 	r.stringManager.Destroy()
 	r.renderer.Destroy()
 }
@@ -283,16 +274,11 @@ func (r *GameRenderer) DrawItem(pos utils.WorldCoordInterpolated, itemType ss.It
 }
 
 func (r *GameRenderer) DrawArrow(pctX, pctY float32, dir utils.Dir) {
-	x := pctX * RES_X
-	y := pctY * RES_Y
+	p := utils.ScreenCoord{X: pctX * RES_X, Y: pctY * RES_Y}
+	s := utils.ScreenCoord{X: ss.FONT_SIZE_PCT * 2, Y: ss.FONT_SIZE_PCT * 2}.PctScaleToScreen()
 	idxFlip := arrowDirMapping[dir]
 
-	r.renderer.CopyExF(r.arrowTextures[idxFlip.idx], nil, &sdl.FRect{
-		X: x,
-		Y: y,
-		W: 64,
-		H: 64,
-	}, 0, nil, idxFlip.flip)
+	r.renderer.CopyExF(r.arrowTextures[idxFlip.idx], nil, fRectFromScreen(p, s.X, s.Y), 0, nil, idxFlip.flip)
 }
 
 func (r *GameRenderer) DrawItemIconWorld(pos utils.WorldCoord, sizeHexes float32, itemType ss.ItemType) {

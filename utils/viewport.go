@@ -62,6 +62,10 @@ func GetZoomedDimension(dim float32) float32 {
 	return dim * float32(zoom)
 }
 
+func SetView(target WorldCoord) {
+	pos = target.Sub(cornerOffset.Div(float64(zoom)))
+}
+
 func ShiftView(target WorldCoord, dt uint64) {
 	l := math.Min(1.0, VIEW_MOVE_LAMBDA*float64(dt*VIEW_MOVE_DT_MULT)/1000.0)
 
