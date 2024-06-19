@@ -560,6 +560,7 @@ func (r *GameRenderer) LoadBeltTextures() {
 }
 
 func (r *GameRenderer) LoadItemTextures() {
+	r.itemTextures[ss.ITEM_TYPE_IRON_ORE] = r.loadCachedTexture("items/iron_ore")
 	r.itemTextures[ss.ITEM_TYPE_IRON_PLATE] = r.loadCachedTexture("items/iron_plate")
 	r.itemTextures[ss.ITEM_TYPE_IRON_GEAR] = r.loadCachedTexture("items/iron_gear")
 }

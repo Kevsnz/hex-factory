@@ -106,7 +106,7 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 				if !ok {
 					break
 				}
-				item := items.NewItemInWorld2(ss.ITEM_TYPE_IRON_PLATE, g.mousePos.ToWorld())
+				item := items.NewItemInWorld2(ss.ITEM_TYPE_IRON_ORE, g.mousePos.ToWorld())
 				_ = itemTaker.TakeItemIn(g.mousePos.ToWorld(), item)
 			case input.ACTION_ROTATE_CW:
 				if g.selectedObjType != ss.OBJECT_TYPE_COUNT {

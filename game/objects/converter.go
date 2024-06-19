@@ -99,13 +99,34 @@ func (c *Converter) ChangeRecipe(recipe ss.Recipe) {
 }
 
 func (c *Converter) GetAcceptableItems() []ss.ItemType {
+	if c.params.AutoRecipe {
+		items := []ss.ItemType{}
+
+		if c.recipe != nil {
+			for i, ing := range c.recipe.Ingredients {
+				if c.inputCounts[i] < ing.Count*CONVERTER_OVERSTOCK_FACTOR {
+					items = append(items, ing.Type)
+				}
+			}
+			return items
+		}
+
+		list := gd.GetAvailableRecipes(c.objType)
+		for _, id := range list {
+			for _, ingr := range gd.RecipeList[id].Ingredients {
+				items = append(items, ingr.Type)
+			}
+		}
+		return items
+	}
+
 	if c.recipe == nil {
 		return []ss.ItemType{}
 	}
 
 	items := []ss.ItemType{}
-	for _, ing := range c.recipe.Ingredients {
-		if c.inputCounts[ing.Type] < ing.Count*CONVERTER_OVERSTOCK_FACTOR {
+	for i, ing := range c.recipe.Ingredients {
+		if c.inputCounts[i] < ing.Count*CONVERTER_OVERSTOCK_FACTOR {
 			items = append(items, ing.Type)
 		}
 	}
@@ -114,7 +135,9 @@ func (c *Converter) GetAcceptableItems() []ss.ItemType {
 
 func (c *Converter) TakeItemIn(pos utils.WorldCoord, item items.ItemInWorld) (ok bool) {
 	if c.recipe == nil {
-		return false
+		if !c.params.AutoRecipe || !c.setFittingRecipe(item.ItemType) {
+			return false
+		}
 	}
 
 	for i, ing := range c.recipe.Ingredients {
@@ -205,7 +228,53 @@ func (c *Converter) TakeItemOut(pos utils.WorldCoord, allowedItems []ss.ItemType
 		}
 		item := items.NewItemInWorld2(prod.Type, pos)
 		c.outputCounts[i] -= 1
+
+		if c.params.AutoRecipe {
+			c.checkResetRecipe()
+		}
 		return &item, true
 	}
 	return nil, false
+}
+
+func (c *Converter) setFittingRecipe(itemType ss.ItemType) bool {
+	for _, id := range gd.GetAvailableRecipes(c.objType) {
+		for _, ing := range gd.RecipeList[id].Ingredients {
+			if ing.Type == itemType {
+				c.recipe = &gd.RecipeList[id]
+				c.inputCounts = make([]int, len(c.recipe.Ingredients))
+				c.outputCounts = make([]int, len(c.recipe.Products))
+				c.conversionProgress = 0
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func (c *Converter) checkResetRecipe() {
+	if c.recipe == nil {
+		return
+	}
+	if c.conversionProgress != 0 {
+		return
+	}
+
+	for _, c := range c.inputCounts {
+		if c > 0 {
+			return
+		}
+	}
+
+	for _, c := range c.outputCounts {
+		if c > 0 {
+			return
+		}
+	}
+
+	c.recipe = nil
+	c.conversionProgress = 0
+	c.inputCounts = nil
+	c.outputCounts = nil
 }
