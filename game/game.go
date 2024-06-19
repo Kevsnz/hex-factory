@@ -23,6 +23,7 @@ type Game struct {
 	TickTime uint64
 
 	mousePos         utils.ScreenCoord
+	mousePosLast     utils.WorldCoord
 	Running          bool
 	paused           bool
 	selectedObjType  ss.ObjectType
@@ -212,15 +213,14 @@ func (g *Game) processMouseMovement(ih *input.InputHandler) {
 		return
 	}
 
-	lastMousePos := g.mousePos
-	g.mousePos = ih.MousePos
-
-	if g.mousePos != lastMousePos {
-		g.ui.HandleMouseMovement(g.mousePos)
+	if ih.MousePos != g.mousePos {
+		g.ui.HandleMouseMovement(ih.MousePos)
 	}
 
+	g.mousePos = ih.MousePos
+
 	if ih.GetMouseButtonState(input.MOUSE_BUTTON_LEFT) {
-		hex1 := utils.HexCoordFromWorld(lastMousePos.ToWorld())
+		hex1 := utils.HexCoordFromWorld(g.mousePosLast)
 		hex2 := utils.HexCoordFromWorld(g.mousePos.ToWorld())
 
 		if g.selectedObjType == ss.OBJECT_TYPE_BELT1 && hex1 != hex2 {
@@ -228,8 +228,15 @@ func (g *Game) processMouseMovement(ih *input.InputHandler) {
 		}
 	}
 
+	g.mousePosLast = g.mousePos.ToWorld()
+
+	if g.selectedObjType == ss.OBJECT_TYPE_COUNT || gd.ObjectParamsList[g.selectedObjType].BaseType != ss.STRUCTURE_BASETYPE_BELTLIKE {
+		g.showPreppedUnder = false
+		return
+	}
+
 	hex := utils.HexCoordFromWorld(g.mousePos.ToWorld())
-	tier := gd.BeltlikeParamsList[ss.OBJECT_TYPE_BELTUNDER1].Tier
+	tier := gd.BeltlikeParamsList[g.selectedObjType].Tier
 	bu := g.findUnderToJoin(hex, g.selectedDir, gd.BeltTierParamsList[tier].Reach)
 	if bu == nil {
 		g.showPreppedUnder = false
@@ -324,9 +331,9 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 		if obj, ok := obj.(ItemHolder); ok {
 			items = obj.GetItemList()
 		}
-		r.DrawObjectDetails(gd.ObjectParamsList[objType].Name, hex, items, ss.FONT_SIZE_PCT/3, 0.90)
+		r.DrawObjectDetails(gd.ObjectParamsList[objType].Name, hex, items, ss.FONT_SIZE_PCT/3, 1-ss.FONT_SIZE_PCT*3.65)
 	} else {
-		r.DrawHexCoords(hex, ss.FONT_SIZE_PCT/3, 1-ss.FONT_SIZE_PCT)
+		r.DrawHexCoords(hex, ss.FONT_SIZE_PCT/3, 1-ss.FONT_SIZE_PCT*1.15)
 	}
 
 	if g.selectedObjType != ss.OBJECT_TYPE_COUNT {

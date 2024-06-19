@@ -1,5 +1,9 @@
 package utils
 
+import (
+	"hextopdown/settings"
+)
+
 var hexesDiamond = [DIR_COUNT][4]HexCoord{
 	DIR_LEFT:       {{X: 0, Y: 0}, {X: 1, Y: -1}, {X: 1, Y: 0}, {X: 0, Y: 1}},
 	DIR_RIGHT:      {{X: 0, Y: 0}, {X: 1, Y: -1}, {X: 1, Y: 0}, {X: 0, Y: 1}},
@@ -35,6 +39,22 @@ func (s Shape) GetHexes(pos HexCoord, dir Dir) []HexCoord {
 		return hexes
 	}
 	panic("invalid shape")
+}
+
+func (s Shape) GetCenterOffset(dir Dir) WorldCoord {
+	if s != SHAPE_DIAMOND {
+		return WorldCoord{X: 0, Y: 0}
+	}
+
+	if dir == DIR_LEFT || dir == DIR_RIGHT {
+		return WorldCoord{X: settings.HEX_WIDTH / 2, Y: 0}
+	}
+
+	if dir == DIR_UP_LEFT || dir == DIR_DOWN_RIGHT {
+		return WorldCoord{X: settings.HEX_WIDTH / 4, Y: settings.HEX_EDGE * 3 / 4}
+	}
+
+	return WorldCoord{X: settings.HEX_WIDTH / 4, Y: -settings.HEX_EDGE * 3 / 4}
 }
 
 const (

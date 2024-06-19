@@ -115,8 +115,8 @@ gameloop:
 
 		r.StartNewFrame(currentTicks)
 		gameState.Draw(r)
-		r.DrawFpsTps(1000.0/frameTime, 1000.0/tickTime, ss.FONT_SIZE_PCT/3, ss.FONT_SIZE_PCT*0.5)
-		r.DrawPlayerCoords(gameState.GetPlayerPos(), ss.FONT_SIZE_PCT/3, ss.FONT_SIZE_PCT*1.65)
+		r.DrawFpsTps(1000.0/frameTime, 1000.0/tickTime, ss.FONT_SIZE_PCT/3, ss.FONT_SIZE_PCT*0.65)
+		r.DrawPlayerCoords(gameState.GetPlayerPos(), ss.FONT_SIZE_PCT/3, ss.FONT_SIZE_PCT*1.8)
 		r.Finish()
 
 		nextTicks := sdl.GetTicks64()

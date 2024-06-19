@@ -775,12 +775,12 @@ func (r *GameRenderer) DrawObjectDetails(
 	cs.AddString(strings.STRING_COMMASPACE, r.stringManager)
 	cs.AddInt(int(hex.Y), 1, r.stringManager)
 	r.stringManager.RenderCompoundString(r.renderer, &cs, x, y, TEXT_ALIGN_LEFT)
-	y += cs.H
+	y += cs.H / 2
 
 	for _, itemInfo := range items {
-		r.DrawItemIconScreen(utils.ScreenCoord{X: float32(x), Y: float32(y)}, 25, itemInfo.Type)
-		r.stringManager.RenderInt(r.renderer, itemInfo.Count, 1, x+15, y+10)
-		x += 30
+		r.DrawItemIconScreen(utils.ScreenCoord{X: float32(x), Y: float32(y)}, float32(fontHeight*1.5), itemInfo.Type)
+		r.stringManager.RenderInt(r.renderer, itemInfo.Count, 1, x, y+int32(fontHeight/2))
+		x += int32(fontHeight * 2)
 	}
 }
 

@@ -16,6 +16,8 @@ const LOR = ss.LANE_OFFSET_RATIO
 const TEXTURE_SIZE_HEX = 400
 const TEXTURE_ICON_SIZE = 64
 
+var fontHeight = ss.FONT_SIZE_PCT * RES_Y
+
 var radiusOffsets = [utils.DIR_COUNT]utils.ScreenCoord{
 	utils.DIR_LEFT:       {X: -ss.HEX_WIDTH / 2.0, Y: 0},
 	utils.DIR_UP_LEFT:    {X: -ss.HEX_WIDTH / 4.0, Y: -(ss.HEX_EDGE/2.0 + ss.HEX_OFFSET/2.0)},

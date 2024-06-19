@@ -50,9 +50,10 @@ func (c *Converter) DrawGroundLevel(r *renderer.GameRenderer) {
 
 func (c *Converter) DrawOnGroundLevel(r *renderer.GameRenderer) {
 	if c.recipe != nil {
-		r.DrawDecal(c.pos.CenterToWorld(), 1.25, renderer.DECAL_BLACK_SPOT_FUZZY)
-		r.DrawItemIconWorld(c.pos.CenterToWorld(), 0.9, c.recipe.Products[0].Type)
-		r.DrawProgressBar(c.pos.CenterToWorld(), 1.25, c.conversionProgress, c.recipe.BuildPoints)
+		p := c.pos.CenterToWorld().Add(c.objParams.Shape.GetCenterOffset(c.dir))
+		r.DrawDecal(p, 1.25, renderer.DECAL_BLACK_SPOT_FUZZY)
+		r.DrawItemIconWorld(p, 0.8, c.recipe.Products[0].Type)
+		r.DrawProgressBar(p, 1.25, c.conversionProgress, c.recipe.BuildPoints)
 	}
 }
 
