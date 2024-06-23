@@ -6,6 +6,7 @@ import (
 	"hextopdown/game/items"
 	"hextopdown/game/objects"
 	"hextopdown/game/ui"
+	"hextopdown/game/world"
 	"hextopdown/input"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
@@ -16,7 +17,8 @@ type Game struct {
 	player char.Character
 	ui     *ui.UI
 
-	worldObjects map[utils.HexCoord]WorldObject
+	chunks       map[utils.ChunkCoord]*world.Chunk
+	worldObjects map[utils.HexCoord]world.WorldObject
 
 	tick     uint64
 	time     uint64 // time of last tick
@@ -38,7 +40,8 @@ func NewGame() *Game {
 		ui:              ui.NewUI(),
 		Running:         true,
 		paused:          false,
-		worldObjects:    make(map[utils.HexCoord]WorldObject),
+		chunks:          make(map[utils.ChunkCoord]*world.Chunk),
+		worldObjects:    make(map[utils.HexCoord]world.WorldObject),
 		selectedObjType: ss.OBJECT_TYPE_COUNT,
 	}
 }
@@ -268,21 +271,21 @@ func (g *Game) doTick() {
 		return
 	}
 
-	processedObjects := make(map[WorldObject]struct{})
+	processedObjects := make(map[world.WorldObject]struct{})
 	processedBgs := make(map[*objects.BeltGraphSegment]struct{})
-	for _, tickable := range g.worldObjects {
-		if _, ok := processedObjects[tickable]; ok {
+	for _, obj := range g.worldObjects {
+		if _, ok := processedObjects[obj]; ok {
 			continue
 		}
 
-		if obj, ok := tickable.(ItemMover); ok {
+		if obj, ok := obj.(ItemMover); ok {
 			obj.MoveItems(g.tick, processedBgs)
 		}
-		if obj, ok := tickable.(Tickable); ok {
+		if obj, ok := obj.(Tickable); ok {
 			obj.Update(g.tick, g)
 		}
 
-		processedObjects[tickable] = struct{}{}
+		processedObjects[obj] = struct{}{}
 	}
 	g.tick++
 }
@@ -358,7 +361,7 @@ func (g *Game) useSelectedTool(hex utils.HexCoord) {
 	}
 }
 
-func (g *Game) interactWithWorldObject(wo WorldObject) {
+func (g *Game) interactWithWorldObject(wo world.WorldObject) {
 	switch obj := wo.(type) {
 	case *objects.Converter:
 		if !obj.RecipeChangeable() {
@@ -397,7 +400,7 @@ func (g *Game) placeBeltlike(objType ss.ObjectType, hex utils.HexCoord, dir util
 		}
 	}
 
-	g.placeObject(newbelt.(WorldObject))
+	g.placeObject(newbelt.(world.WorldObject))
 	return newbelt
 }
 
@@ -439,7 +442,7 @@ func (g *Game) canPlaceObject(hex utils.HexCoord, objType ss.ObjectType, dir uti
 	return true
 }
 
-func (g *Game) placeObject(obj WorldObject) {
+func (g *Game) placeObject(obj world.WorldObject) {
 	for _, h := range getObjectHexes(obj) {
 		g.worldObjects[h] = obj
 	}
@@ -496,11 +499,11 @@ func (g *Game) findUnderToJoin(hex utils.HexCoord, dir utils.Dir, reach int32) *
 	curHex := hex
 	for i := int32(1); i < reach; i++ {
 		curHex = curHex.Next(dir)
-		tickable, ok := g.worldObjects[curHex]
+		obj, ok := g.worldObjects[curHex]
 		if !ok {
 			continue
 		}
-		bu, ok := tickable.(*objects.BeltUnder)
+		bu, ok := obj.(*objects.BeltUnder)
 		if !ok {
 			continue
 		}
@@ -554,7 +557,28 @@ func (g *Game) GetItemOutputAt(hex utils.HexCoord) (obj objects.ItemOutput, ok b
 	return nil, false
 }
 
-func getObjectHexes(obj WorldObject) []utils.HexCoord {
+func (g *Game) getChunk(hex utils.HexCoord) *world.Chunk {
+	ch, ok := g.chunks[hex.GetChunkCoord()]
+	if !ok {
+		ch = world.NewChunk(hex.GetChunkCoord())
+		g.chunks[hex.GetChunkCoord()] = ch
+	}
+	return ch
+}
+
+func (g *Game) getWorldObject(hex utils.HexCoord) (world.WorldObject, bool) {
+	ch := g.getChunk(hex)
+	obj, ok := ch.GetWorldObject(hex)
+	return obj, ok
+}
+func (g *Game) setWorldObject(hex utils.HexCoord, obj world.WorldObject) {
+	g.getChunk(hex).SetWorldObject(hex, obj)
+}
+func (g *Game) clearHex(hex utils.HexCoord) {
+	g.getChunk(hex).RemoveWorldObject(hex)
+}
+
+func getObjectHexes(obj world.WorldObject) []utils.HexCoord {
 	objParams := gd.ObjectParamsList[obj.GetObjectType()]
 	dir := utils.DIR_LEFT
 	if do, ok := obj.(DirectionalObject); ok {

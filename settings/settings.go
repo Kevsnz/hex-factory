@@ -17,6 +17,8 @@ const (
 	HEX_HEIGHT = HEX_EDGE + 2*HEX_OFFSET
 )
 
+const CHUNK_SIZE = 1 << 4
+
 const ITEM_R = (HEX_WIDTH + 0.01) / 12.0 // Item Radius (in world coordinates)
 const ITEM_D = ITEM_R * 2.0              // Min distance between items (in world coordinates)
 const ITEM_DW = ITEM_D / HEX_WIDTH       // Min distance between items (in hex widths)

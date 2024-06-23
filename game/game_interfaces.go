@@ -3,17 +3,9 @@ package game
 import (
 	"hextopdown/game/objects"
 	"hextopdown/renderer"
-
-	"hextopdown/settings"
 	"hextopdown/utils"
 )
 
-type WorldObject interface {
-	GetObjectType() settings.ObjectType
-	GetPos() utils.HexCoord
-	DrawGroundLevel(r *renderer.GameRenderer)
-	DrawOnGroundLevel(r *renderer.GameRenderer)
-}
 type DirectionalObject interface {
 	GetDir() utils.Dir
 	Rotate(cw bool)

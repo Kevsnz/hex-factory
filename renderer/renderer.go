@@ -17,6 +17,7 @@ import (
 
 type GameRenderer struct {
 	renderer                  *sdl.Renderer
+	ChunkRenderer             *ChunkRenderer
 	stringManager             *StringManager
 	beltTextures              [ss.BELT_TYPE_COUNT]*sdl.Texture
 	beltAnimationTextures     [ss.BELT_TYPE_COUNT]*sdl.Texture
@@ -43,6 +44,7 @@ func NewGameRenderer(window *sdl.Window) *GameRenderer {
 
 	return &GameRenderer{
 		renderer:      renderer,
+		ChunkRenderer: NewChunkRenderer(renderer),
 		stringManager: sm,
 	}
 }
@@ -84,6 +86,7 @@ func (r *GameRenderer) Destroy() {
 	}
 	r.iconsItems.Destroy()
 	r.stringManager.Destroy()
+	r.ChunkRenderer.Destroy()
 	r.renderer.Destroy()
 }
 

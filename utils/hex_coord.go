@@ -37,17 +37,17 @@ func HexCoordFromWorld(pos WorldCoord) HexCoord {
 	return HexCoord{X: hx, Y: hy}
 }
 
-func (c *HexCoord) LeftTopToWorld() WorldCoord {
+func (hc HexCoord) LeftTopToWorld() WorldCoord {
 	return WorldCoord{
-		float64(c.X)*ss.HEX_WIDTH + float64(c.Y)*(ss.HEX_WIDTH/2),
-		float64(c.Y) * (ss.HEX_EDGE + ss.HEX_OFFSET),
+		float64(hc.X)*ss.HEX_WIDTH + float64(hc.Y)*(ss.HEX_WIDTH/2),
+		float64(hc.Y) * (ss.HEX_EDGE + ss.HEX_OFFSET),
 	}
 }
 
-func (c *HexCoord) CenterToWorld() WorldCoord {
+func (hc HexCoord) CenterToWorld() WorldCoord {
 	return WorldCoord{
-		float64(c.X)*ss.HEX_WIDTH + float64(c.Y)*(ss.HEX_WIDTH/2) + ss.HEX_WIDTH/2,
-		float64(c.Y)*(ss.HEX_EDGE+ss.HEX_OFFSET) + ss.HEX_EDGE/2,
+		float64(hc.X)*ss.HEX_WIDTH + float64(hc.Y)*(ss.HEX_WIDTH/2) + ss.HEX_WIDTH/2,
+		float64(hc.Y)*(ss.HEX_EDGE+ss.HEX_OFFSET) + ss.HEX_EDGE/2,
 	}
 }
 
@@ -90,4 +90,12 @@ func (hc HexCoord) DistanceTo(other HexCoord) int32 {
 
 func (hc HexCoord) Add(other HexCoord) HexCoord {
 	return HexCoord{X: hc.X + other.X, Y: hc.Y + other.Y}
+}
+
+func (hc HexCoord) GetChunkCoord() ChunkCoord {
+	return ChunkCoord{X: hc.X / ss.CHUNK_SIZE, Y: hc.Y / ss.CHUNK_SIZE}
+}
+
+func (hc HexCoord) CoordsWithinChunk() HexCoord {
+	return HexCoord{X: hc.X % ss.CHUNK_SIZE, Y: hc.Y % ss.CHUNK_SIZE}
 }
