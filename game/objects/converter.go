@@ -49,6 +49,8 @@ func (c *Converter) DrawGroundLevel(r *renderer.GameRenderer) {
 }
 
 func (c *Converter) DrawOnGroundLevel(r *renderer.GameRenderer) {
+	r.DrawObjectOnGround(c.pos.CenterToWorld(), c.objType, c.objParams.Shape, c.dir)
+
 	if c.recipe != nil {
 		p := c.pos.CenterToWorld().Add(c.objParams.Shape.GetCenterOffset(c.dir))
 		r.DrawDecal(p, 1.25, renderer.DECAL_BLACK_SPOT_FUZZY)

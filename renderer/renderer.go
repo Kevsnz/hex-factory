@@ -16,18 +16,20 @@ import (
 )
 
 type GameRenderer struct {
-	renderer              *sdl.Renderer
-	stringManager         *StringManager
-	beltTextures          [ss.BELT_TYPE_COUNT]*sdl.Texture
-	beltAnimationTextures [ss.BELT_TYPE_COUNT]*sdl.Texture
-	beltOnGroundTextures  [ss.BELT_ON_COUNT]*sdl.Texture
-	objectTextures        [ss.OBJECT_TYPE_COUNT]*sdl.Texture
-	objectDirTextures     [ss.OBJECT_TYPE_COUNT][utils.DIR_COUNT]*sdl.Texture
-	itemTextures          [ss.ITEM_TYPE_COUNT]*sdl.Texture
-	arrowTextures         [2]*sdl.Texture
-	iconsItems            *sdl.Texture
-	decalTextures         [DECAL_COUNT]*sdl.Texture
-	timeMs                uint64
+	renderer                  *sdl.Renderer
+	stringManager             *StringManager
+	beltTextures              [ss.BELT_TYPE_COUNT]*sdl.Texture
+	beltAnimationTextures     [ss.BELT_TYPE_COUNT]*sdl.Texture
+	beltOnGroundTextures      [ss.BELT_ON_COUNT]*sdl.Texture
+	objectGroundTextures      [ss.OBJECT_TYPE_COUNT]*sdl.Texture
+	objectOnGroundTextures    [ss.OBJECT_TYPE_COUNT]*sdl.Texture
+	objectGroundDirTextures   [ss.OBJECT_TYPE_COUNT][utils.DIR_COUNT]*sdl.Texture
+	objectOnGroundDirTextures [ss.OBJECT_TYPE_COUNT][utils.DIR_COUNT]*sdl.Texture
+	itemTextures              [ss.ITEM_TYPE_COUNT]*sdl.Texture
+	arrowTextures             [2]*sdl.Texture
+	iconsItems                *sdl.Texture
+	decalTextures             [DECAL_COUNT]*sdl.Texture
+	timeMs                    uint64
 }
 
 func NewGameRenderer(window *sdl.Window) *GameRenderer {
@@ -61,10 +63,18 @@ func (r *GameRenderer) Destroy() {
 	for _, tex := range r.arrowTextures {
 		tex.Destroy()
 	}
-	for _, tex := range r.objectTextures {
+	for _, tex := range r.objectGroundTextures {
 		tex.Destroy()
 	}
-	for _, texs := range r.objectDirTextures {
+	for _, tex := range r.objectOnGroundTextures {
+		tex.Destroy()
+	}
+	for _, texs := range r.objectGroundDirTextures {
+		for _, tex := range texs {
+			tex.Destroy()
+		}
+	}
+	for _, texs := range r.objectOnGroundDirTextures {
 		for _, tex := range texs {
 			tex.Destroy()
 		}
@@ -242,13 +252,41 @@ func (r *GameRenderer) DrawObjectGround(pos utils.WorldCoord, objectType ss.Obje
 		return
 	}
 
-	tex := r.objectTextures[objectType]
+	tex := r.objectGroundTextures[objectType]
 	if tex == nil {
-		tex = r.objectDirTextures[objectType][dir]
+		tex = r.objectGroundDirTextures[objectType][dir]
 		if tex == nil {
-			tex = r.objectDirTextures[objectType][dir.Reverse()] // mirrored shape
+			tex = r.objectGroundDirTextures[objectType][dir.Reverse()] // mirrored shape
 			if tex == nil {
-				panic(fmt.Sprintf("no texture for object type %d, dir %d", objectType, dir))
+				r.DrawString(strings.STRING_NOTEXTURE, c.Add(size.Div(2)), TEXT_ALIGN_CENTER)
+				return
+			}
+		}
+	}
+
+	r.renderer.CopyF(tex, nil, fRectFromScreen(c, size.X, size.Y))
+}
+
+func (r *GameRenderer) DrawObjectOnGround(pos utils.WorldCoord, objectType ss.ObjectType, shape utils.Shape, dir utils.Dir) {
+	c := pos.ToScreen()
+	z := float32(utils.GetViewZoom())
+	sp := GetShapeParam(shape, dir)
+
+	c = c.Sub(sp.Offset.Mul(z))
+	size := sp.Size.Mul(z)
+
+	if !isOnScreenBox(c, c.Add(size)) {
+		return
+	}
+
+	tex := r.objectOnGroundTextures[objectType]
+	if tex == nil {
+		tex = r.objectOnGroundDirTextures[objectType][dir]
+		if tex == nil {
+			tex = r.objectOnGroundDirTextures[objectType][dir.Reverse()] // mirrored shape
+			if tex == nil {
+				r.DrawString(strings.STRING_NOTEXTURE, c.Add(size.Div(2)), TEXT_ALIGN_CENTER)
+				return
 			}
 		}
 	}
@@ -453,22 +491,23 @@ func isOnScreenBox(c1 utils.ScreenCoord, c2 utils.ScreenCoord) bool {
 }
 
 func (r *GameRenderer) LoadTextures() {
-	r.LoadBeltTextures()
-	r.LoadOnGroundTextures()
-	r.LoadItemTextures()
-	r.LoadArrowTextures()
-	r.LoadStructureGroundTextures()
-	r.LoadDecalTextures()
+	r.loadBeltTextures()
+	r.loadOnGroundTextures()
+	r.loadItemTextures()
+	r.loadArrowTextures()
+	r.loadStructureGroundTextures()
+	r.loadStructureOnGroundTextures()
+	r.loadDecalTextures()
 
 	r.iconsItems = r.loadCachedTexture("icons/item_icons")
 }
 
-func (r *GameRenderer) LoadArrowTextures() {
+func (r *GameRenderer) loadArrowTextures() {
 	r.arrowTextures[0] = r.loadCachedTexture("arrow-l-r")
 	r.arrowTextures[1] = r.loadCachedTexture("arrow-tl-br")
 }
 
-func (r *GameRenderer) LoadOnGroundTextures() {
+func (r *GameRenderer) loadOnGroundTextures() {
 	r.beltOnGroundTextures[ss.BELT_ON_UNDER_IN_RIGHT] = r.loadCachedTexture("on-beltunder-in-r")
 	r.beltOnGroundTextures[ss.BELT_ON_UNDER_IN_DOWNRIGHT] = r.loadCachedTexture("on-beltunder-in-br")
 	r.beltOnGroundTextures[ss.BELT_ON_UNDER_IN_UPLEFT] = r.loadCachedTexture("on-beltunder-in-tl")
@@ -483,7 +522,7 @@ func (r *GameRenderer) LoadOnGroundTextures() {
 	r.beltOnGroundTextures[ss.BELT_ON_SPLITTER_RIGHTDOWNRIGHT_LEFTUPLEFT] = r.loadCachedTexture("on-beltsplitter-rbr-ltl")
 }
 
-func (r *GameRenderer) LoadBeltTextures() {
+func (r *GameRenderer) loadBeltTextures() {
 	// Straights
 	r.beltAnimationTextures[ss.BELT_TYPE_LEFT_RIGHT] = r.loadCachedTexture("belts/L_R")
 	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT_LEFT] = r.loadCachedTexture("belts/R_L")
@@ -559,20 +598,20 @@ func (r *GameRenderer) LoadBeltTextures() {
 	r.beltAnimationTextures[ss.BELT_TYPE_SPLITTER_LEFTDOWNLEFT_RIGHTUPRIGHT] = r.loadCachedTexture("belts/SP_BLL_TRR")
 }
 
-func (r *GameRenderer) LoadItemTextures() {
+func (r *GameRenderer) loadItemTextures() {
 	r.itemTextures[ss.ITEM_TYPE_IRON_ORE] = r.loadCachedTexture("items/iron_ore")
 	r.itemTextures[ss.ITEM_TYPE_IRON_PLATE] = r.loadCachedTexture("items/iron_plate")
 	r.itemTextures[ss.ITEM_TYPE_IRON_GEAR] = r.loadCachedTexture("items/iron_gear")
 }
 
-func (r *GameRenderer) LoadStructureGroundTextures() {
-	r.objectTextures[ss.OBJECT_TYPE_CHESTBOX_SMALL] = r.loadCachedTexture("chests/chest_small")
-	r.objectTextures[ss.OBJECT_TYPE_CHESTBOX_MEDIUM] = r.loadCachedTexture("chests/chest_medium")
-	r.objectTextures[ss.OBJECT_TYPE_CHESTBOX_LARGE] = r.loadCachedTexture("chests/chest_large")
+func (r *GameRenderer) loadStructureGroundTextures() {
+	r.objectGroundTextures[ss.OBJECT_TYPE_CHESTBOX_SMALL] = r.loadCachedTexture("chests/chest_small")
+	r.objectGroundTextures[ss.OBJECT_TYPE_CHESTBOX_MEDIUM] = r.loadCachedTexture("chests/chest_medium")
+	r.objectGroundTextures[ss.OBJECT_TYPE_CHESTBOX_LARGE] = r.loadCachedTexture("chests/chest_large")
 
-	r.objectTextures[ss.OBJECT_TYPE_ASSEMBLER_BASIC] = r.loadCachedTexture("shape_bighex")
+	r.objectGroundTextures[ss.OBJECT_TYPE_ASSEMBLER_BASIC] = r.loadCachedTexture("shape_bighex")
 
-	r.objectDirTextures[ss.OBJECT_TYPE_INSERTER1] = [utils.DIR_COUNT]*sdl.Texture{
+	r.objectGroundDirTextures[ss.OBJECT_TYPE_INSERTER1] = [utils.DIR_COUNT]*sdl.Texture{
 		utils.DIR_LEFT:       r.loadCachedTexture("inserter/base_l"),
 		utils.DIR_RIGHT:      r.loadCachedTexture("inserter/base_r"),
 		utils.DIR_UP_LEFT:    r.loadCachedTexture("inserter/base_tl"),
@@ -581,14 +620,24 @@ func (r *GameRenderer) LoadStructureGroundTextures() {
 		utils.DIR_DOWN_RIGHT: r.loadCachedTexture("inserter/base_br"),
 	}
 
-	r.objectDirTextures[ss.OBJECT_TYPE_FURNACE_STONE] = [utils.DIR_COUNT]*sdl.Texture{
+	r.objectGroundDirTextures[ss.OBJECT_TYPE_FURNACE_STONE] = [utils.DIR_COUNT]*sdl.Texture{
 		utils.DIR_LEFT:     r.loadCachedTexture("shape_diamond_lr"),
 		utils.DIR_UP_LEFT:  r.loadCachedTexture("shape_diamond_tl_br"),
 		utils.DIR_UP_RIGHT: r.loadCachedTexture("shape_diamond_tr_bl"),
 	}
 }
 
-func (r *GameRenderer) LoadDecalTextures() {
+func (r *GameRenderer) loadStructureOnGroundTextures() {
+	r.objectOnGroundTextures[ss.OBJECT_TYPE_ASSEMBLER_BASIC] = r.loadCachedTexture("objects/onground/assembly_machine")
+
+	r.objectOnGroundDirTextures[ss.OBJECT_TYPE_FURNACE_STONE] = [utils.DIR_COUNT]*sdl.Texture{
+		utils.DIR_LEFT:     r.loadCachedTexture("objects/onground/stone_furnace_lr"),
+		utils.DIR_UP_LEFT:  r.loadCachedTexture("objects/onground/stone_furnace_tl_br"),
+		utils.DIR_UP_RIGHT: r.loadCachedTexture("objects/onground/stone_furnace_tr_bl"),
+	}
+}
+
+func (r *GameRenderer) loadDecalTextures() {
 	r.decalTextures[DECAL_BLACK_SPOT_FUZZY] = r.loadCachedTexture("decals/black_spot_fuzzy")
 }
 
