@@ -17,8 +17,7 @@ type Game struct {
 	player char.Character
 	ui     *ui.UI
 
-	chunks       map[utils.ChunkCoord]*world.Chunk
-	worldObjects map[utils.HexCoord]world.WorldObject
+	chunks map[utils.ChunkCoord]*world.Chunk
 
 	tick     uint64
 	time     uint64 // time of last tick
@@ -41,7 +40,6 @@ func NewGame() *Game {
 		Running:         true,
 		paused:          false,
 		chunks:          make(map[utils.ChunkCoord]*world.Chunk),
-		worldObjects:    make(map[utils.HexCoord]world.WorldObject),
 		selectedObjType: ss.OBJECT_TYPE_COUNT,
 	}
 }
@@ -117,7 +115,7 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 					g.selectedDir = g.selectedDir.NextCW()
 					break
 				}
-				if t, ok := g.worldObjects[hex]; ok {
+				if t, ok := g.getWorldObject(hex); ok {
 					if obj, ok := t.(DirectionalObject); ok {
 						g.rotateObject(obj, true)
 					}
@@ -127,7 +125,7 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 					g.selectedDir = g.selectedDir.NextCCW()
 					break
 				}
-				if t, ok := g.worldObjects[hex]; ok {
+				if t, ok := g.getWorldObject(hex); ok {
 					if obj, ok := t.(DirectionalObject); ok {
 						g.rotateObject(obj, false)
 					}
@@ -198,7 +196,7 @@ func (g *Game) processMouseActions(ih *input.InputHandler) {
 		case input.MOUSE_BUTTON_DOWN:
 			switch mouseEvent.Button {
 			case input.MOUSE_BUTTON_LEFT:
-				if obj, ok := g.worldObjects[hex]; ok {
+				if obj, ok := g.getWorldObject(hex); ok {
 					g.interactWithWorldObject(obj)
 				} else if g.selectedObjType != ss.OBJECT_TYPE_COUNT {
 					g.useSelectedTool(hex)
@@ -273,50 +271,59 @@ func (g *Game) doTick() {
 
 	processedObjects := make(map[world.WorldObject]struct{})
 	processedBgs := make(map[*objects.BeltGraphSegment]struct{})
-	for _, obj := range g.worldObjects {
-		if _, ok := processedObjects[obj]; ok {
-			continue
-		}
+	for _, ch := range g.chunks {
+		for _, obj := range ch.GetWorldObjects() {
+			if _, ok := processedObjects[obj]; ok {
+				continue
+			}
 
-		if obj, ok := obj.(ItemMover); ok {
-			obj.MoveItems(g.tick, processedBgs)
-		}
-		if obj, ok := obj.(Tickable); ok {
-			obj.Update(g.tick, g)
-		}
+			if obj, ok := obj.(ItemMover); ok {
+				obj.MoveItems(g.tick, processedBgs)
+			}
+			if obj, ok := obj.(Tickable); ok {
+				obj.Update(g.tick, g)
+			}
 
-		processedObjects[obj] = struct{}{}
+			processedObjects[obj] = struct{}{}
+		}
 	}
 	g.tick++
 }
 
 func (g *Game) Draw(r *renderer.GameRenderer) {
-	r.DrawScreen()
+	ctl, cbr := r.ChunkRenderer.GetVisibleChunkCoords()
+	chunks := make([]*world.Chunk, 0, (cbr.X-ctl.X+1)*(cbr.Y-ctl.Y+1))
 
-	for hex, obj := range g.worldObjects {
-		if hex == obj.GetPos() {
-			obj.DrawGroundLevel(r)
+	for y := ctl.Y; y <= cbr.Y; y++ {
+		for x := ctl.X; x <= cbr.X; x++ {
+			coord := utils.ChunkCoord{X: x, Y: y}
+			ch, ok := g.chunks[coord]
+			if !ok {
+				ch = world.NewChunk(coord)
+				g.chunks[coord] = ch
+			}
+			chunks = append(chunks, ch)
 		}
+	}
+
+	for _, ch := range chunks {
+		ch.DrawGround(r)
+	}
+
+	for _, ch := range chunks {
+		ch.DrawObjectsGroundLevel(r)
 	}
 
 	if g.showPreppedUnder {
 		r.DrawConnectionHexes(g.preppedUnderConn[0], g.preppedUnderConn[1])
 	}
 
-	for _, obj := range g.worldObjects {
-		if !r.IsHexOnScreen(obj.GetPos()) {
-			continue
-		}
-		switch drawer := obj.(type) {
-		case ItemDrawer:
-			drawer.DrawItems(r)
-		}
+	for _, ch := range chunks {
+		ch.DrawItems(r)
 	}
 
-	for hex, obj := range g.worldObjects {
-		if hex == obj.GetPos() {
-			obj.DrawOnGroundLevel(r)
-		}
+	for _, ch := range chunks {
+		ch.DrawObjectsOnGroundLevel(r)
 	}
 
 	// Draw Player
@@ -328,7 +335,7 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 
 	hex := utils.HexCoordFromWorld(g.mousePos.ToWorld())
 
-	if obj, ok := g.worldObjects[hex]; ok {
+	if obj, ok := g.getWorldObject(hex); ok {
 		objType := obj.GetObjectType()
 		var items []utils.ItemInfo
 		if obj, ok := obj.(ItemHolder); ok {
@@ -336,7 +343,9 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 		}
 		r.DrawObjectDetails(gd.ObjectParamsList[objType].Name, hex, items, ss.FONT_SIZE_PCT/3, 1-ss.FONT_SIZE_PCT*3.65)
 	} else {
-		r.DrawHexCoords(hex, ss.FONT_SIZE_PCT/3, 1-ss.FONT_SIZE_PCT*1.15)
+		r.DrawHexCoords(hex, ss.FONT_SIZE_PCT/3, 1-ss.FONT_SIZE_PCT*3.45)
+		r.DrawHexCoords(utils.HexCoord(hex.GetChunkCoord()), ss.FONT_SIZE_PCT/3, 1-ss.FONT_SIZE_PCT*2.3)
+		r.DrawHexCoords(hex.CoordsWithinChunk(), ss.FONT_SIZE_PCT/3, 1-ss.FONT_SIZE_PCT*1.15)
 	}
 
 	if g.selectedObjType != ss.OBJECT_TYPE_COUNT {
@@ -435,7 +444,7 @@ func (g *Game) canPlaceObject(hex utils.HexCoord, objType ss.ObjectType, dir uti
 	objParams := gd.ObjectParamsList[objType]
 	hexes := objParams.Shape.GetHexes(hex, dir)
 	for _, h := range hexes {
-		if _, ok := g.worldObjects[h]; ok {
+		if _, ok := g.getWorldObject(h); ok {
 			return false
 		}
 	}
@@ -444,12 +453,12 @@ func (g *Game) canPlaceObject(hex utils.HexCoord, objType ss.ObjectType, dir uti
 
 func (g *Game) placeObject(obj world.WorldObject) {
 	for _, h := range getObjectHexes(obj) {
-		g.worldObjects[h] = obj
+		g.setWorldObject(h, obj)
 	}
 }
 
 func (g *Game) removeObjectAtHex(hex utils.HexCoord) {
-	obj, ok := g.worldObjects[hex]
+	obj, ok := g.getWorldObject(hex)
 	if !ok {
 		return
 	}
@@ -459,13 +468,13 @@ func (g *Game) removeObjectAtHex(hex utils.HexCoord) {
 	}
 
 	for _, h := range getObjectHexes(obj) {
-		delete(g.worldObjects, h)
+		g.clearHex(h)
 	}
 }
 
 func (g *Game) placeConnectBelts(coord1, coord2 utils.HexCoord, objType ss.ObjectType) {
 	var belt1, belt2 objects.BeltLike
-	if obj, ok := g.worldObjects[coord1]; ok {
+	if obj, ok := g.getWorldObject(coord1); ok {
 		if belt1, ok = obj.(objects.BeltLike); !ok {
 			return
 		}
@@ -473,7 +482,7 @@ func (g *Game) placeConnectBelts(coord1, coord2 utils.HexCoord, objType ss.Objec
 		return
 	}
 
-	if obj, ok := g.worldObjects[coord2]; ok {
+	if obj, ok := g.getWorldObject(coord2); ok {
 		if belt2, ok = obj.(objects.BeltLike); !ok {
 			return
 		}
@@ -499,7 +508,7 @@ func (g *Game) findUnderToJoin(hex utils.HexCoord, dir utils.Dir, reach int32) *
 	curHex := hex
 	for i := int32(1); i < reach; i++ {
 		curHex = curHex.Next(dir)
-		obj, ok := g.worldObjects[curHex]
+		obj, ok := g.getWorldObject(curHex)
 		if !ok {
 			continue
 		}
@@ -540,7 +549,7 @@ func (g *Game) rotateObject(obj DirectionalObject, cw bool) {
 }
 
 func (g *Game) GetItemInputAt(hex utils.HexCoord) (obj objects.ItemInput, ok bool) {
-	if obj, ok := g.worldObjects[hex]; ok {
+	if obj, ok := g.getWorldObject(hex); ok {
 		if ii, ok := obj.(objects.ItemInput); ok {
 			return ii, true
 		}
@@ -549,7 +558,7 @@ func (g *Game) GetItemInputAt(hex utils.HexCoord) (obj objects.ItemInput, ok boo
 }
 
 func (g *Game) GetItemOutputAt(hex utils.HexCoord) (obj objects.ItemOutput, ok bool) {
-	if obj, ok := g.worldObjects[hex]; ok {
+	if obj, ok := g.getWorldObject(hex); ok {
 		if io, ok := obj.(objects.ItemOutput); ok {
 			return io, true
 		}

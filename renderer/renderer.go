@@ -34,7 +34,7 @@ type GameRenderer struct {
 }
 
 func NewGameRenderer(window *sdl.Window) *GameRenderer {
-	renderer, err := sdl.CreateRenderer(window, 0, sdl.RENDERER_ACCELERATED)
+	renderer, err := sdl.CreateRenderer(window, 0, sdl.RENDERER_ACCELERATED|sdl.RENDERER_TARGETTEXTURE)
 	if err != nil {
 		panic(err)
 	}
@@ -96,10 +96,6 @@ func (r *GameRenderer) StartNewFrame(timeMs uint64) {
 	r.renderer.Clear()
 }
 
-func (r *GameRenderer) DrawScreen() {
-	r.drawHexGrid()
-}
-
 func (r *GameRenderer) DrawViewTarget(pos utils.WorldCoordInterpolated) {
 	drawPos := pos.GetInterpolatedPos(r.timeMs, ss.TICK_DT)
 	c := drawPos.ToScreen()
@@ -108,27 +104,6 @@ func (r *GameRenderer) DrawViewTarget(pos utils.WorldCoordInterpolated) {
 	}
 	r.renderer.SetDrawColor(127, 127, 255, 255)
 	r.renderer.FillRectF(fRectFromScreenOffset(c, -10, -10, 20, 20))
-}
-
-func (r *GameRenderer) drawHexGrid() {
-	hex1 := utils.ScreenCoord{X: 0, Y: 0}.ToWorld().ToHex()
-	hex2 := utils.ScreenCoord{X: RES_X, Y: 0}.ToWorld().ToHex()
-	hex3 := utils.ScreenCoord{X: 0, Y: RES_Y}.ToWorld().ToHex()
-	w := utils.GetZoomedHexWidth()
-	e := utils.GetZoomedHexEdge()
-	o := utils.GetZoomedHexOffset()
-
-	r.renderer.SetDrawColor(96, 96, 96, 255)
-	s := hex1.LeftTopToWorld().ToScreen()
-	for hy := int32(0); hy <= hex3.Y-hex1.Y+1; hy++ {
-		yo := float32(hy) * (e + o)
-		xo := float32(hy&1) * w / 2
-		for hx := int32(-1); hx <= hex2.X-hex1.X+1; hx++ {
-			r.renderer.DrawLineF(s.X+float32(hx)*w+xo, s.Y+yo, s.X+xo+float32(hx)*w+w/2, s.Y+yo-o)   // top left
-			r.renderer.DrawLineF(s.X+float32(hx)*w+xo+w/2, s.Y+yo-o, s.X+xo+float32(hx)*w+w, s.Y+yo) // top right
-			r.renderer.DrawLineF(s.X+float32(hx)*w+xo, s.Y+yo, s.X+float32(hx)*w+xo, s.Y+yo+e)       // left
-		}
-	}
 }
 
 func (r *GameRenderer) DrawHexCenter(hex utils.HexCoord) {

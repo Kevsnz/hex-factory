@@ -94,6 +94,10 @@ func (i *Inserter) DrawGroundLevel(r *renderer.GameRenderer) {
 }
 
 func (i *Inserter) DrawOnGroundLevel(r *renderer.GameRenderer) {
+	if i.itemOnHand != nil {
+		i.itemOnHand.Draw(r)
+	}
+
 	angle := math.Pi * float64(i.armPos) / float64(i.params.SwingSpeed)
 	armLen := ss.INSERTER_ARM_LENGTH * float64(i.params.Reach)
 
@@ -103,13 +107,6 @@ func (i *Inserter) DrawOnGroundLevel(r *renderer.GameRenderer) {
 	p1.Y -= ss.HEX_EDGE / 7
 
 	r.DrawWorldLine(p1, p2)
-}
-
-func (i *Inserter) DrawItems(r *renderer.GameRenderer) {
-	if i.itemOnHand == nil {
-		return
-	}
-	i.itemOnHand.Draw(r)
 }
 
 func (i *Inserter) Rotate(cw bool) {

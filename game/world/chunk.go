@@ -32,23 +32,67 @@ func NewChunk(pos utils.ChunkCoord) *Chunk {
 }
 
 func (c *Chunk) GetWorldObject(hex utils.HexCoord) (WorldObject, bool) {
+	if hex.GetChunkCoord() != c.pos {
+		panic("invalid coordinates")
+	}
+
 	obj, ok := c.objects[hex]
 	return obj, ok
 }
 func (c *Chunk) SetWorldObject(hex utils.HexCoord, obj WorldObject) {
+	if hex.GetChunkCoord() != c.pos {
+		panic("invalid coordinates")
+	}
+
 	c.objects[hex] = obj
 	c.dirty = true
 }
 func (c *Chunk) RemoveWorldObject(hex utils.HexCoord) {
+	if hex.GetChunkCoord() != c.pos {
+		panic("invalid coordinates")
+	}
+
 	delete(c.objects, hex)
 	c.dirty = true
 }
 
-func (c *Chunk) Draw(r *renderer.GameRenderer) {
+func (c *Chunk) DrawGround(r *renderer.GameRenderer) {
 	if c.dirty {
 		r.ChunkRenderer.UpdateChunk(c.pos)
 		c.dirty = false
 	}
 
 	r.ChunkRenderer.DrawToScreen(c.pos)
+}
+
+func (c *Chunk) DrawObjectsGroundLevel(r *renderer.GameRenderer) {
+	for hex, obj := range c.objects {
+		if hex == obj.GetPos() {
+			obj.DrawGroundLevel(r)
+		}
+	}
+}
+
+func (c *Chunk) DrawObjectsOnGroundLevel(r *renderer.GameRenderer) {
+	for hex, obj := range c.objects {
+		if hex == obj.GetPos() {
+			obj.DrawOnGroundLevel(r)
+		}
+	}
+}
+
+func (c *Chunk) DrawItems(r *renderer.GameRenderer) {
+	for _, obj := range c.objects {
+		if !r.IsHexOnScreen(obj.GetPos()) {
+			continue
+		}
+		switch drawer := obj.(type) {
+		case ItemDrawer:
+			drawer.DrawItems(r)
+		}
+	}
+}
+
+func (c *Chunk) GetWorldObjects() map[utils.HexCoord]WorldObject {
+	return c.objects
 }

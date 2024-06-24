@@ -41,7 +41,7 @@ func (s *Storage) TakeItemOut(pos utils.WorldCoord, allowedItems []ss.ItemType) 
 		if stack == nil {
 			continue
 		}
-		if !utils.ItemInList(stack.ItemType, allowedItems) {
+		if allowedItems != nil && !utils.ItemInList(stack.ItemType, allowedItems) {
 			continue
 		}
 

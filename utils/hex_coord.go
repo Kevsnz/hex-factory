@@ -93,9 +93,15 @@ func (hc HexCoord) Add(other HexCoord) HexCoord {
 }
 
 func (hc HexCoord) GetChunkCoord() ChunkCoord {
-	return ChunkCoord{X: hc.X / ss.CHUNK_SIZE, Y: hc.Y / ss.CHUNK_SIZE}
+	return ChunkCoord{
+		X: int32(math.Floor(float64(hc.X) / ss.CHUNK_SIZE)),
+		Y: int32(math.Floor(float64(hc.Y) / ss.CHUNK_SIZE)),
+	}
 }
 
 func (hc HexCoord) CoordsWithinChunk() HexCoord {
-	return HexCoord{X: hc.X % ss.CHUNK_SIZE, Y: hc.Y % ss.CHUNK_SIZE}
+	return HexCoord{
+		X: ((hc.X % ss.CHUNK_SIZE) + ss.CHUNK_SIZE) % ss.CHUNK_SIZE,
+		Y: ((hc.Y % ss.CHUNK_SIZE) + ss.CHUNK_SIZE) % ss.CHUNK_SIZE,
+	}
 }

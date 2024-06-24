@@ -41,29 +41,39 @@ func (r *ChunkRenderer) DrawToScreen(chunk utils.ChunkCoord) {
 		return
 	}
 
-	c := chunk.ToHexCoord().LeftTopToWorld().ToScreen()
+	c := chunk.TopLeftWorld().ToScreen()
 	size := chunkSize.Mul(float32(utils.GetViewZoom()))
-	r.renderer.CopyF(ch, nil, &sdl.FRect{X: c.X, Y: c.Y, W: size.X, H: size.Y})
+
+	if r.chunkOnScreen(c, size) {
+		r.renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+		r.renderer.CopyF(ch, nil, &sdl.FRect{X: c.X, Y: c.Y, W: size.X, H: size.Y})
+	}
 }
 
 func (r *ChunkRenderer) UpdateChunk(chunk utils.ChunkCoord) {
 	ch, ok := r.chunks[chunk]
 	if !ok {
-		ch, err := r.renderer.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_TARGET, CHUNK_TEX_WIDTH, CHUNK_TEX_HEIGHT)
+		var err error
+		ch, err = r.renderer.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_TARGET, CHUNK_TEX_WIDTH, CHUNK_TEX_HEIGHT)
 		if err != nil {
 			panic(err)
 		}
+		ch.SetBlendMode(sdl.BLENDMODE_BLEND)
 		r.chunks[chunk] = ch
 	}
 
 	r.renderer.SetRenderTarget(ch)
+
+	r.renderer.SetDrawColor(0, 0, 0, 0)
+	r.renderer.Clear()
+
 	r.renderer.SetDrawColor(96, 96, 96, 255)
 
-	for hy := int32(0); hy <= ss.CHUNK_SIZE; hy++ {
+	for hy := int32(0); hy < ss.CHUNK_SIZE; hy++ {
 		xo := float32(hy) * ss.HEX_WIDTH / 2
 		yo := float32(hy)*(ss.HEX_EDGE+ss.HEX_OFFSET) + ss.HEX_OFFSET
 
-		for hx := int32(-1); hx <= ss.CHUNK_SIZE; hx++ {
+		for hx := int32(0); hx < ss.CHUNK_SIZE; hx++ {
 			x := xo + float32(hx)*ss.HEX_WIDTH
 			r.renderer.DrawLineF(x, yo, x+ss.HEX_WIDTH/2, yo-ss.HEX_OFFSET)              // top left
 			r.renderer.DrawLineF(x+ss.HEX_WIDTH/2, yo-ss.HEX_OFFSET, x+ss.HEX_WIDTH, yo) // top right
@@ -72,4 +82,14 @@ func (r *ChunkRenderer) UpdateChunk(chunk utils.ChunkCoord) {
 	}
 
 	r.renderer.SetRenderTarget(nil)
+}
+
+func (r *ChunkRenderer) chunkOnScreen(c utils.ScreenCoord, size utils.ScreenCoord) bool {
+	return isOnScreenBox(c, c.Add(size))
+}
+
+func (r *ChunkRenderer) GetVisibleChunkCoords() (utils.ChunkCoord, utils.ChunkCoord) {
+	str := utils.ScreenCoord{X: 1, Y: 0}.PctPosToScreen().ToWorld().ToHex().GetChunkCoord()
+	sbl := utils.ScreenCoord{X: 0, Y: 1}.PctPosToScreen().ToWorld().ToHex().GetChunkCoord()
+	return utils.ChunkCoord{X: sbl.X, Y: str.Y}, utils.ChunkCoord{X: str.X, Y: sbl.Y}
 }

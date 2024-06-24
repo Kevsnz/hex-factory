@@ -12,3 +12,7 @@ type WorldObject interface {
 	DrawGroundLevel(r *renderer.GameRenderer)
 	DrawOnGroundLevel(r *renderer.GameRenderer)
 }
+
+type ItemDrawer interface {
+	DrawItems(r *renderer.GameRenderer)
+}
