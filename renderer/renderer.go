@@ -478,156 +478,158 @@ func (r *GameRenderer) LoadTextures() {
 	r.loadStructureOnGroundTextures()
 	r.loadDecalTextures()
 
-	r.iconsItems = r.loadCachedTexture("icons/item_icons")
+	r.iconsItems = loadCachedTexture("icons/item_icons", r.renderer)
+
+	r.ChunkRenderer.LoadTextures()
 }
 
 func (r *GameRenderer) loadArrowTextures() {
-	r.arrowTextures[0] = r.loadCachedTexture("arrow-l-r")
-	r.arrowTextures[1] = r.loadCachedTexture("arrow-tl-br")
+	r.arrowTextures[0] = loadCachedTexture("arrow-l-r", r.renderer)
+	r.arrowTextures[1] = loadCachedTexture("arrow-tl-br", r.renderer)
 }
 
 func (r *GameRenderer) loadOnGroundTextures() {
-	r.beltOnGroundTextures[ss.BELT_ON_UNDER_IN_RIGHT] = r.loadCachedTexture("on-beltunder-in-r")
-	r.beltOnGroundTextures[ss.BELT_ON_UNDER_IN_DOWNRIGHT] = r.loadCachedTexture("on-beltunder-in-br")
-	r.beltOnGroundTextures[ss.BELT_ON_UNDER_IN_UPLEFT] = r.loadCachedTexture("on-beltunder-in-tl")
+	r.beltOnGroundTextures[ss.BELT_ON_UNDER_IN_RIGHT] = loadCachedTexture("on-beltunder-in-r", r.renderer)
+	r.beltOnGroundTextures[ss.BELT_ON_UNDER_IN_DOWNRIGHT] = loadCachedTexture("on-beltunder-in-br", r.renderer)
+	r.beltOnGroundTextures[ss.BELT_ON_UNDER_IN_UPLEFT] = loadCachedTexture("on-beltunder-in-tl", r.renderer)
 
-	r.beltOnGroundTextures[ss.BELT_ON_UNDER_OUT_RIGHT] = r.loadCachedTexture("on-beltunder-out-r")
-	r.beltOnGroundTextures[ss.BELT_ON_UNDER_OUT_DOWNRIGHT] = r.loadCachedTexture("on-beltunder-out-br")
-	r.beltOnGroundTextures[ss.BELT_ON_UNDER_OUT_UPLEFT] = r.loadCachedTexture("on-beltunder-out-tl")
+	r.beltOnGroundTextures[ss.BELT_ON_UNDER_OUT_RIGHT] = loadCachedTexture("on-beltunder-out-r", r.renderer)
+	r.beltOnGroundTextures[ss.BELT_ON_UNDER_OUT_DOWNRIGHT] = loadCachedTexture("on-beltunder-out-br", r.renderer)
+	r.beltOnGroundTextures[ss.BELT_ON_UNDER_OUT_UPLEFT] = loadCachedTexture("on-beltunder-out-tl", r.renderer)
 
-	r.beltOnGroundTextures[ss.BELT_ON_SPLITTER_UPLEFTRIGHT_DOWNLEFTRIGHT] = r.loadCachedTexture("on-beltsplitter-tlr-blr")
-	r.beltOnGroundTextures[ss.BELT_ON_SPLITTER_LEFTUPLEFT_RIGHTDOWNRIGHT] = r.loadCachedTexture("on-beltsplitter-ltl-rbr")
-	r.beltOnGroundTextures[ss.BELT_ON_SPLITTER_DOWNLEFTRIGHT_UPLEFTRIGHT] = r.loadCachedTexture("on-beltsplitter-blr-tlr")
-	r.beltOnGroundTextures[ss.BELT_ON_SPLITTER_RIGHTDOWNRIGHT_LEFTUPLEFT] = r.loadCachedTexture("on-beltsplitter-rbr-ltl")
+	r.beltOnGroundTextures[ss.BELT_ON_SPLITTER_UPLEFTRIGHT_DOWNLEFTRIGHT] = loadCachedTexture("on-beltsplitter-tlr-blr", r.renderer)
+	r.beltOnGroundTextures[ss.BELT_ON_SPLITTER_LEFTUPLEFT_RIGHTDOWNRIGHT] = loadCachedTexture("on-beltsplitter-ltl-rbr", r.renderer)
+	r.beltOnGroundTextures[ss.BELT_ON_SPLITTER_DOWNLEFTRIGHT_UPLEFTRIGHT] = loadCachedTexture("on-beltsplitter-blr-tlr", r.renderer)
+	r.beltOnGroundTextures[ss.BELT_ON_SPLITTER_RIGHTDOWNRIGHT_LEFTUPLEFT] = loadCachedTexture("on-beltsplitter-rbr-ltl", r.renderer)
 }
 
 func (r *GameRenderer) loadBeltTextures() {
 	// Straights
-	r.beltAnimationTextures[ss.BELT_TYPE_LEFT_RIGHT] = r.loadCachedTexture("belts/L_R")
-	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT_LEFT] = r.loadCachedTexture("belts/R_L")
-	r.beltAnimationTextures[ss.BELT_TYPE_UPLEFT_DOWNRIGHT] = r.loadCachedTexture("belts/TL_BR")
-	r.beltAnimationTextures[ss.BELT_TYPE_UPRIGHT_DOWNLEFT] = r.loadCachedTexture("belts/TR_BL")
-	r.beltAnimationTextures[ss.BELT_TYPE_DOWNRIGHT_UPLEFT] = r.loadCachedTexture("belts/BR_TL")
-	r.beltAnimationTextures[ss.BELT_TYPE_DOWNLEFT_UPRIGHT] = r.loadCachedTexture("belts/BL_TR")
+	r.beltAnimationTextures[ss.BELT_TYPE_LEFT_RIGHT] = loadCachedTexture("belts/L_R", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT_LEFT] = loadCachedTexture("belts/R_L", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_UPLEFT_DOWNRIGHT] = loadCachedTexture("belts/TL_BR", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_UPRIGHT_DOWNLEFT] = loadCachedTexture("belts/TR_BL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_DOWNRIGHT_UPLEFT] = loadCachedTexture("belts/BR_TL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_DOWNLEFT_UPRIGHT] = loadCachedTexture("belts/BL_TR", r.renderer)
 
-	r.beltAnimationTextures[ss.BELT_TYPE_IN_LEFT] = r.loadCachedTexture("belts/IN_L")
-	r.beltAnimationTextures[ss.BELT_TYPE_IN_RIGHT] = r.loadCachedTexture("belts/IN_R")
-	r.beltAnimationTextures[ss.BELT_TYPE_IN_UPLEFT] = r.loadCachedTexture("belts/IN_TL")
-	r.beltAnimationTextures[ss.BELT_TYPE_IN_UPRIGHT] = r.loadCachedTexture("belts/IN_TR")
-	r.beltAnimationTextures[ss.BELT_TYPE_IN_DOWNLEFT] = r.loadCachedTexture("belts/IN_BL")
-	r.beltAnimationTextures[ss.BELT_TYPE_IN_DOWNRIGHT] = r.loadCachedTexture("belts/IN_BR")
+	r.beltAnimationTextures[ss.BELT_TYPE_IN_LEFT] = loadCachedTexture("belts/IN_L", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_IN_RIGHT] = loadCachedTexture("belts/IN_R", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_IN_UPLEFT] = loadCachedTexture("belts/IN_TL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_IN_UPRIGHT] = loadCachedTexture("belts/IN_TR", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_IN_DOWNLEFT] = loadCachedTexture("belts/IN_BL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_IN_DOWNRIGHT] = loadCachedTexture("belts/IN_BR", r.renderer)
 
-	r.beltAnimationTextures[ss.BELT_TYPE_LEFT] = r.loadCachedTexture("belts/OUT_L")
-	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT] = r.loadCachedTexture("belts/OUT_R")
-	r.beltAnimationTextures[ss.BELT_TYPE_UPLEFT] = r.loadCachedTexture("belts/OUT_TL")
-	r.beltAnimationTextures[ss.BELT_TYPE_UPRIGHT] = r.loadCachedTexture("belts/OUT_TR")
-	r.beltAnimationTextures[ss.BELT_TYPE_DOWNLEFT] = r.loadCachedTexture("belts/OUT_BL")
-	r.beltAnimationTextures[ss.BELT_TYPE_DOWNRIGHT] = r.loadCachedTexture("belts/OUT_BR")
+	r.beltAnimationTextures[ss.BELT_TYPE_LEFT] = loadCachedTexture("belts/OUT_L", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT] = loadCachedTexture("belts/OUT_R", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_UPLEFT] = loadCachedTexture("belts/OUT_TL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_UPRIGHT] = loadCachedTexture("belts/OUT_TR", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_DOWNLEFT] = loadCachedTexture("belts/OUT_BL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_DOWNRIGHT] = loadCachedTexture("belts/OUT_BR", r.renderer)
 
 	// Bends
-	r.beltAnimationTextures[ss.BELT_TYPE_LEFT_UPRIGHT] = r.loadCachedTexture("belts/L_TR")
-	r.beltAnimationTextures[ss.BELT_TYPE_LEFT_DOWNRIGHT] = r.loadCachedTexture("belts/L_BR")
-	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT_DOWNLEFT] = r.loadCachedTexture("belts/R_BL")
-	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT_UPLEFT] = r.loadCachedTexture("belts/R_TL")
-	r.beltAnimationTextures[ss.BELT_TYPE_UPLEFT_RIGHT] = r.loadCachedTexture("belts/TL_R")
-	r.beltAnimationTextures[ss.BELT_TYPE_UPLEFT_DOWNLEFT] = r.loadCachedTexture("belts/TL_BL")
-	r.beltAnimationTextures[ss.BELT_TYPE_UPRIGHT_LEFT] = r.loadCachedTexture("belts/TR_L")
-	r.beltAnimationTextures[ss.BELT_TYPE_UPRIGHT_DOWNRIGHT] = r.loadCachedTexture("belts/TR_BR")
-	r.beltAnimationTextures[ss.BELT_TYPE_DOWNLEFT_RIGHT] = r.loadCachedTexture("belts/BL_R")
-	r.beltAnimationTextures[ss.BELT_TYPE_DOWNLEFT_UPLEFT] = r.loadCachedTexture("belts/BL_TL")
-	r.beltAnimationTextures[ss.BELT_TYPE_DOWNRIGHT_LEFT] = r.loadCachedTexture("belts/BR_L")
-	r.beltAnimationTextures[ss.BELT_TYPE_DOWNRIGHT_UPRIGHT] = r.loadCachedTexture("belts/BR_TR")
+	r.beltAnimationTextures[ss.BELT_TYPE_LEFT_UPRIGHT] = loadCachedTexture("belts/L_TR", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_LEFT_DOWNRIGHT] = loadCachedTexture("belts/L_BR", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT_DOWNLEFT] = loadCachedTexture("belts/R_BL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT_UPLEFT] = loadCachedTexture("belts/R_TL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_UPLEFT_RIGHT] = loadCachedTexture("belts/TL_R", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_UPLEFT_DOWNLEFT] = loadCachedTexture("belts/TL_BL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_UPRIGHT_LEFT] = loadCachedTexture("belts/TR_L", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_UPRIGHT_DOWNRIGHT] = loadCachedTexture("belts/TR_BR", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_DOWNLEFT_RIGHT] = loadCachedTexture("belts/BL_R", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_DOWNLEFT_UPLEFT] = loadCachedTexture("belts/BL_TL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_DOWNRIGHT_LEFT] = loadCachedTexture("belts/BR_L", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_DOWNRIGHT_UPRIGHT] = loadCachedTexture("belts/BR_TR", r.renderer)
 
 	// Side joins
-	r.beltAnimationTextures[ss.BELT_TYPE_LEFT_RIGHT_UPLEFT] = r.loadCachedTexture("belts/L_TL_R")
-	r.beltAnimationTextures[ss.BELT_TYPE_LEFT_RIGHT_DOWNLEFT] = r.loadCachedTexture("belts/L_BL_R")
-	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT_LEFT_UPRIGHT] = r.loadCachedTexture("belts/R_TR_L")
-	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT_LEFT_DOWNRIGHT] = r.loadCachedTexture("belts/R_BR_L")
-	r.beltAnimationTextures[ss.BELT_TYPE_UPLEFT_DOWNRIGHT_LEFT] = r.loadCachedTexture("belts/TL_L_BR")
-	r.beltAnimationTextures[ss.BELT_TYPE_UPLEFT_DOWNRIGHT_UPRIGHT] = r.loadCachedTexture("belts/TL_TR_BR")
-	r.beltAnimationTextures[ss.BELT_TYPE_UPRIGHT_DOWNLEFT_RIGHT] = r.loadCachedTexture("belts/TR_R_BL")
-	r.beltAnimationTextures[ss.BELT_TYPE_UPRIGHT_DOWNLEFT_UPLEFT] = r.loadCachedTexture("belts/TR_TL_BL")
-	r.beltAnimationTextures[ss.BELT_TYPE_DOWNRIGHT_UPLEFT_DOWNLEFT] = r.loadCachedTexture("belts/BR_BL_TL")
-	r.beltAnimationTextures[ss.BELT_TYPE_DOWNRIGHT_UPLEFT_RIGHT] = r.loadCachedTexture("belts/BR_R_TL")
-	r.beltAnimationTextures[ss.BELT_TYPE_DOWNLEFT_UPRIGHT_DOWNRIGHT] = r.loadCachedTexture("belts/BL_BR_TR")
-	r.beltAnimationTextures[ss.BELT_TYPE_DOWNLEFT_UPRIGHT_LEFT] = r.loadCachedTexture("belts/BL_L_TR")
+	r.beltAnimationTextures[ss.BELT_TYPE_LEFT_RIGHT_UPLEFT] = loadCachedTexture("belts/L_TL_R", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_LEFT_RIGHT_DOWNLEFT] = loadCachedTexture("belts/L_BL_R", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT_LEFT_UPRIGHT] = loadCachedTexture("belts/R_TR_L", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT_LEFT_DOWNRIGHT] = loadCachedTexture("belts/R_BR_L", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_UPLEFT_DOWNRIGHT_LEFT] = loadCachedTexture("belts/TL_L_BR", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_UPLEFT_DOWNRIGHT_UPRIGHT] = loadCachedTexture("belts/TL_TR_BR", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_UPRIGHT_DOWNLEFT_RIGHT] = loadCachedTexture("belts/TR_R_BL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_UPRIGHT_DOWNLEFT_UPLEFT] = loadCachedTexture("belts/TR_TL_BL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_DOWNRIGHT_UPLEFT_DOWNLEFT] = loadCachedTexture("belts/BR_BL_TL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_DOWNRIGHT_UPLEFT_RIGHT] = loadCachedTexture("belts/BR_R_TL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_DOWNLEFT_UPRIGHT_DOWNRIGHT] = loadCachedTexture("belts/BL_BR_TR", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_DOWNLEFT_UPRIGHT_LEFT] = loadCachedTexture("belts/BL_L_TR", r.renderer)
 
 	// Merges
-	r.beltAnimationTextures[ss.BELT_TYPE_DOWNRIGHT_UPRIGHT_LEFT] = r.loadCachedTexture("belts/BR_TR_L")
-	r.beltAnimationTextures[ss.BELT_TYPE_UPLEFT_DOWNLEFT_RIGHT] = r.loadCachedTexture("belts/TL_BL_R")
-	r.beltAnimationTextures[ss.BELT_TYPE_UPRIGHT_LEFT_DOWNRIGHT] = r.loadCachedTexture("belts/TR_L_BR")
-	r.beltAnimationTextures[ss.BELT_TYPE_LEFT_DOWNRIGHT_UPRIGHT] = r.loadCachedTexture("belts/L_BR_TR")
-	r.beltAnimationTextures[ss.BELT_TYPE_DOWNLEFT_RIGHT_UPLEFT] = r.loadCachedTexture("belts/BL_R_TL")
-	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT_UPLEFT_DOWNLEFT] = r.loadCachedTexture("belts/R_TL_BL")
+	r.beltAnimationTextures[ss.BELT_TYPE_DOWNRIGHT_UPRIGHT_LEFT] = loadCachedTexture("belts/BR_TR_L", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_UPLEFT_DOWNLEFT_RIGHT] = loadCachedTexture("belts/TL_BL_R", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_UPRIGHT_LEFT_DOWNRIGHT] = loadCachedTexture("belts/TR_L_BR", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_LEFT_DOWNRIGHT_UPRIGHT] = loadCachedTexture("belts/L_BR_TR", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_DOWNLEFT_RIGHT_UPLEFT] = loadCachedTexture("belts/BL_R_TL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_RIGHT_UPLEFT_DOWNLEFT] = loadCachedTexture("belts/R_TL_BL", r.renderer)
 
 	// 3-2-1
-	r.beltAnimationTextures[ss.BELT_TYPE_ALL_LEFT] = r.loadCachedTexture("belts/3_L")
-	r.beltAnimationTextures[ss.BELT_TYPE_ALL_RIGHT] = r.loadCachedTexture("belts/3_R")
-	r.beltAnimationTextures[ss.BELT_TYPE_ALL_UPLEFT] = r.loadCachedTexture("belts/3_TL")
-	r.beltAnimationTextures[ss.BELT_TYPE_ALL_DOWNLEFT] = r.loadCachedTexture("belts/3_BL")
-	r.beltAnimationTextures[ss.BELT_TYPE_ALL_UPRIGHT] = r.loadCachedTexture("belts/3_TR")
-	r.beltAnimationTextures[ss.BELT_TYPE_ALL_DOWNRIGHT] = r.loadCachedTexture("belts/3_BR")
+	r.beltAnimationTextures[ss.BELT_TYPE_ALL_LEFT] = loadCachedTexture("belts/3_L", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_ALL_RIGHT] = loadCachedTexture("belts/3_R", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_ALL_UPLEFT] = loadCachedTexture("belts/3_TL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_ALL_DOWNLEFT] = loadCachedTexture("belts/3_BL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_ALL_UPRIGHT] = loadCachedTexture("belts/3_TR", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_ALL_DOWNRIGHT] = loadCachedTexture("belts/3_BR", r.renderer)
 
 	// Splitters
-	r.beltAnimationTextures[ss.BELT_TYPE_SPLITTER_LEFTUPLEFT_RIGHTDOWNRIGHT] = r.loadCachedTexture("belts/SP_LTL_RBR")
-	r.beltAnimationTextures[ss.BELT_TYPE_SPLITTER_UPLEFTRIGHT_DOWNLEFTRIGHT] = r.loadCachedTexture("belts/SP_TLR_BRL")
-	r.beltAnimationTextures[ss.BELT_TYPE_SPLITTER_RIGHTUPRIGHT_LEFTDOWNLEFT] = r.loadCachedTexture("belts/SP_TRR_BLL")
-	r.beltAnimationTextures[ss.BELT_TYPE_SPLITTER_RIGHTDOWNRIGHT_LEFTUPLEFT] = r.loadCachedTexture("belts/SP_RBR_LTL")
-	r.beltAnimationTextures[ss.BELT_TYPE_SPLITTER_DOWNLEFTRIGHT_UPLEFTRIGHT] = r.loadCachedTexture("belts/SP_BRL_TLR")
-	r.beltAnimationTextures[ss.BELT_TYPE_SPLITTER_LEFTDOWNLEFT_RIGHTUPRIGHT] = r.loadCachedTexture("belts/SP_BLL_TRR")
+	r.beltAnimationTextures[ss.BELT_TYPE_SPLITTER_LEFTUPLEFT_RIGHTDOWNRIGHT] = loadCachedTexture("belts/SP_LTL_RBR", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_SPLITTER_UPLEFTRIGHT_DOWNLEFTRIGHT] = loadCachedTexture("belts/SP_TLR_BRL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_SPLITTER_RIGHTUPRIGHT_LEFTDOWNLEFT] = loadCachedTexture("belts/SP_TRR_BLL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_SPLITTER_RIGHTDOWNRIGHT_LEFTUPLEFT] = loadCachedTexture("belts/SP_RBR_LTL", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_SPLITTER_DOWNLEFTRIGHT_UPLEFTRIGHT] = loadCachedTexture("belts/SP_BRL_TLR", r.renderer)
+	r.beltAnimationTextures[ss.BELT_TYPE_SPLITTER_LEFTDOWNLEFT_RIGHTUPRIGHT] = loadCachedTexture("belts/SP_BLL_TRR", r.renderer)
 }
 
 func (r *GameRenderer) loadItemTextures() {
-	r.itemTextures[ss.ITEM_TYPE_IRON_ORE] = r.loadCachedTexture("items/iron_ore")
-	r.itemTextures[ss.ITEM_TYPE_IRON_PLATE] = r.loadCachedTexture("items/iron_plate")
-	r.itemTextures[ss.ITEM_TYPE_IRON_GEAR] = r.loadCachedTexture("items/iron_gear")
+	r.itemTextures[ss.ITEM_TYPE_IRON_ORE] = loadCachedTexture("items/iron_ore", r.renderer)
+	r.itemTextures[ss.ITEM_TYPE_IRON_PLATE] = loadCachedTexture("items/iron_plate", r.renderer)
+	r.itemTextures[ss.ITEM_TYPE_IRON_GEAR] = loadCachedTexture("items/iron_gear", r.renderer)
 }
 
 func (r *GameRenderer) loadStructureGroundTextures() {
-	r.objectGroundTextures[ss.OBJECT_TYPE_CHESTBOX_SMALL] = r.loadCachedTexture("chests/chest_small")
-	r.objectGroundTextures[ss.OBJECT_TYPE_CHESTBOX_MEDIUM] = r.loadCachedTexture("chests/chest_medium")
-	r.objectGroundTextures[ss.OBJECT_TYPE_CHESTBOX_LARGE] = r.loadCachedTexture("chests/chest_large")
+	r.objectGroundTextures[ss.OBJECT_TYPE_CHESTBOX_SMALL] = loadCachedTexture("chests/chest_small", r.renderer)
+	r.objectGroundTextures[ss.OBJECT_TYPE_CHESTBOX_MEDIUM] = loadCachedTexture("chests/chest_medium", r.renderer)
+	r.objectGroundTextures[ss.OBJECT_TYPE_CHESTBOX_LARGE] = loadCachedTexture("chests/chest_large", r.renderer)
 
-	r.objectGroundTextures[ss.OBJECT_TYPE_ASSEMBLER_BASIC] = r.loadCachedTexture("shape_bighex")
+	r.objectGroundTextures[ss.OBJECT_TYPE_ASSEMBLER_BASIC] = loadCachedTexture("shape_bighex", r.renderer)
 
 	r.objectGroundDirTextures[ss.OBJECT_TYPE_INSERTER1] = [utils.DIR_COUNT]*sdl.Texture{
-		utils.DIR_LEFT:       r.loadCachedTexture("inserter/base_l"),
-		utils.DIR_RIGHT:      r.loadCachedTexture("inserter/base_r"),
-		utils.DIR_UP_LEFT:    r.loadCachedTexture("inserter/base_tl"),
-		utils.DIR_DOWN_LEFT:  r.loadCachedTexture("inserter/base_bl"),
-		utils.DIR_UP_RIGHT:   r.loadCachedTexture("inserter/base_tr"),
-		utils.DIR_DOWN_RIGHT: r.loadCachedTexture("inserter/base_br"),
+		utils.DIR_LEFT:       loadCachedTexture("inserter/base_l", r.renderer),
+		utils.DIR_RIGHT:      loadCachedTexture("inserter/base_r", r.renderer),
+		utils.DIR_UP_LEFT:    loadCachedTexture("inserter/base_tl", r.renderer),
+		utils.DIR_DOWN_LEFT:  loadCachedTexture("inserter/base_bl", r.renderer),
+		utils.DIR_UP_RIGHT:   loadCachedTexture("inserter/base_tr", r.renderer),
+		utils.DIR_DOWN_RIGHT: loadCachedTexture("inserter/base_br", r.renderer),
 	}
 
 	r.objectGroundDirTextures[ss.OBJECT_TYPE_FURNACE_STONE] = [utils.DIR_COUNT]*sdl.Texture{
-		utils.DIR_LEFT:     r.loadCachedTexture("shape_diamond_lr"),
-		utils.DIR_UP_LEFT:  r.loadCachedTexture("shape_diamond_tl_br"),
-		utils.DIR_UP_RIGHT: r.loadCachedTexture("shape_diamond_tr_bl"),
+		utils.DIR_LEFT:     loadCachedTexture("shape_diamond_lr", r.renderer),
+		utils.DIR_UP_LEFT:  loadCachedTexture("shape_diamond_tl_br", r.renderer),
+		utils.DIR_UP_RIGHT: loadCachedTexture("shape_diamond_tr_bl", r.renderer),
 	}
 }
 
 func (r *GameRenderer) loadStructureOnGroundTextures() {
-	r.objectOnGroundTextures[ss.OBJECT_TYPE_ASSEMBLER_BASIC] = r.loadCachedTexture("objects/onground/assembly_machine")
+	r.objectOnGroundTextures[ss.OBJECT_TYPE_ASSEMBLER_BASIC] = loadCachedTexture("objects/onground/assembly_machine", r.renderer)
 
 	r.objectOnGroundDirTextures[ss.OBJECT_TYPE_FURNACE_STONE] = [utils.DIR_COUNT]*sdl.Texture{
-		utils.DIR_LEFT:     r.loadCachedTexture("objects/onground/stone_furnace_lr"),
-		utils.DIR_UP_LEFT:  r.loadCachedTexture("objects/onground/stone_furnace_tl_br"),
-		utils.DIR_UP_RIGHT: r.loadCachedTexture("objects/onground/stone_furnace_tr_bl"),
+		utils.DIR_LEFT:     loadCachedTexture("objects/onground/stone_furnace_lr", r.renderer),
+		utils.DIR_UP_LEFT:  loadCachedTexture("objects/onground/stone_furnace_tl_br", r.renderer),
+		utils.DIR_UP_RIGHT: loadCachedTexture("objects/onground/stone_furnace_tr_bl", r.renderer),
 	}
 }
 
 func (r *GameRenderer) loadDecalTextures() {
-	r.decalTextures[DECAL_BLACK_SPOT_FUZZY] = r.loadCachedTexture("decals/black_spot_fuzzy")
+	r.decalTextures[DECAL_BLACK_SPOT_FUZZY] = loadCachedTexture("decals/black_spot_fuzzy", r.renderer)
 }
 
-func (r *GameRenderer) loadCachedTexture(name string) *sdl.Texture {
+func loadCachedTexture(name string, renderer *sdl.Renderer) *sdl.Texture {
 	surface, err := loadWithCaching(name)
 	if err != nil {
 		panic(err)
 	}
 	defer surface.Free()
 
-	tex, err := r.renderer.CreateTextureFromSurface(surface)
+	tex, err := renderer.CreateTextureFromSurface(surface)
 	if err != nil {
 		panic(err)
 	}

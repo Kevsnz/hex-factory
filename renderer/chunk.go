@@ -18,6 +18,7 @@ var chunkSize utils.ScreenCoord = utils.ScreenCoord{
 type ChunkRenderer struct {
 	renderer *sdl.Renderer
 	chunks   map[utils.ChunkCoord]*sdl.Texture
+	resource [ss.RESOURCE_TYPE_COUNT]*sdl.Texture
 }
 
 func NewChunkRenderer(renderer *sdl.Renderer) *ChunkRenderer {
@@ -29,6 +30,11 @@ func NewChunkRenderer(renderer *sdl.Renderer) *ChunkRenderer {
 
 func (r *ChunkRenderer) Destroy() {
 	for _, tex := range r.chunks {
+		if tex != nil {
+			tex.Destroy()
+		}
+	}
+	for _, tex := range r.resource {
 		if tex != nil {
 			tex.Destroy()
 		}
@@ -49,7 +55,12 @@ func (r *ChunkRenderer) DrawToScreen(chunk utils.ChunkCoord) {
 	}
 }
 
-func (r *ChunkRenderer) UpdateChunk(chunk utils.ChunkCoord, groundTypes [ss.CHUNK_SIZE * ss.CHUNK_SIZE]ss.GroundType) {
+func (r *ChunkRenderer) UpdateChunk(
+	chunk utils.ChunkCoord,
+	groundTypes [ss.CHUNK_SIZE * ss.CHUNK_SIZE]ss.GroundType,
+	resourceTypes [ss.CHUNK_SIZE * ss.CHUNK_SIZE]ss.ResourceType,
+	resourceAmounts [ss.CHUNK_SIZE * ss.CHUNK_SIZE]uint16,
+) {
 	ch, ok := r.chunks[chunk]
 	if !ok {
 		var err error
@@ -68,7 +79,7 @@ func (r *ChunkRenderer) UpdateChunk(chunk utils.ChunkCoord, groundTypes [ss.CHUN
 
 	for hy := int32(0); hy < ss.CHUNK_SIZE; hy++ {
 		xo := float32(hy) * ss.HEX_WIDTH / 2
-		y := float32(hy)*(ss.HEX_EDGE+ss.HEX_OFFSET) + ss.HEX_OFFSET
+		y := float32(hy) * (ss.HEX_EDGE + ss.HEX_OFFSET) //+ ss.HEX_OFFSET
 
 		for hx := int32(0); hx < ss.CHUNK_SIZE; hx++ {
 			x := xo + float32(hx)*ss.HEX_WIDTH
@@ -81,11 +92,9 @@ func (r *ChunkRenderer) UpdateChunk(chunk utils.ChunkCoord, groundTypes [ss.CHUN
 			default:
 				r.renderer.SetDrawColor(255, 0, 255, 127)
 			}
-			cx := x + ss.HEX_WIDTH/2
-			cy := y + ss.HEX_OFFSET
 			r.renderer.FillRectF(&sdl.FRect{
-				X: cx - ss.HEX_WIDTH/2,
-				Y: cy - ss.HEX_OFFSET*3/2,
+				X: x,
+				Y: y + ss.HEX_OFFSET/2,
 				W: ss.HEX_WIDTH,
 				H: ss.HEX_OFFSET*3 + 1,
 			})
@@ -97,24 +106,37 @@ func (r *ChunkRenderer) UpdateChunk(chunk utils.ChunkCoord, groundTypes [ss.CHUN
 			} else {
 				r.renderer.SetDrawColor(96, 96, 96, 255)
 			}
-			r.renderer.DrawLineF(x, y, x+ss.HEX_WIDTH/2, y-ss.HEX_OFFSET)     // top left
-			r.renderer.DrawLineF(x, y+1, x+ss.HEX_WIDTH/2, y-ss.HEX_OFFSET+1) // top left
+			r.renderer.DrawLineF(x, y+ss.HEX_OFFSET, x+ss.HEX_WIDTH/2, y)     // top left
+			r.renderer.DrawLineF(x, y+ss.HEX_OFFSET+1, x+ss.HEX_WIDTH/2, y+1) // top left
 
 			if hx == ss.CHUNK_SIZE-1 || hy == 0 {
 				r.renderer.SetDrawColor(128, 128, 128, 255)
 			} else {
 				r.renderer.SetDrawColor(96, 96, 96, 255)
 			}
-			r.renderer.DrawLineF(x+ss.HEX_WIDTH/2, y-ss.HEX_OFFSET, x+ss.HEX_WIDTH, y)     // top right
-			r.renderer.DrawLineF(x+ss.HEX_WIDTH/2, y-ss.HEX_OFFSET+1, x+ss.HEX_WIDTH, y+1) // top right
+			r.renderer.DrawLineF(x+ss.HEX_WIDTH/2, y, x+ss.HEX_WIDTH, y+ss.HEX_OFFSET)     // top right
+			r.renderer.DrawLineF(x+ss.HEX_WIDTH/2, y+1, x+ss.HEX_WIDTH, y+ss.HEX_OFFSET+1) // top right
 
 			if hx == 0 {
 				r.renderer.SetDrawColor(128, 128, 128, 255)
 			} else {
 				r.renderer.SetDrawColor(96, 96, 96, 255)
 			}
-			r.renderer.DrawLineF(x, y, x, y+ss.HEX_EDGE)     // left
-			r.renderer.DrawLineF(x+1, y, x+1, y+ss.HEX_EDGE) // left
+			r.renderer.DrawLineF(x, y+ss.HEX_OFFSET, x, y+ss.HEX_EDGE+ss.HEX_OFFSET)     // left
+			r.renderer.DrawLineF(x+1, y+ss.HEX_OFFSET, x+1, y+ss.HEX_EDGE+ss.HEX_OFFSET) // left
+
+			if resourceTypes[hy*ss.CHUNK_SIZE+hx] != ss.RESOURCE_TYPE_COUNT {
+				tex := r.resource[resourceTypes[hy*ss.CHUNK_SIZE+hx]]
+				if tex == nil {
+					continue
+				}
+				r.renderer.CopyF(tex, nil, &sdl.FRect{
+					X: x,
+					Y: y,
+					W: ss.HEX_WIDTH,
+					H: ss.HEX_EDGE * 2,
+				})
+			}
 		}
 	}
 
@@ -129,4 +151,8 @@ func (r *ChunkRenderer) GetVisibleChunkCoords() (utils.ChunkCoord, utils.ChunkCo
 	str := utils.ScreenCoord{X: 1, Y: 0}.PctPosToScreen().ToWorld().ToHex().GetChunkCoord()
 	sbl := utils.ScreenCoord{X: 0, Y: 1}.PctPosToScreen().ToWorld().ToHex().GetChunkCoord()
 	return utils.ChunkCoord{X: sbl.X, Y: str.Y}, utils.ChunkCoord{X: str.X, Y: sbl.Y}
+}
+
+func (r *ChunkRenderer) LoadTextures() {
+	r.resource[ss.RESOURCE_TYPE_IRON] = loadCachedTexture("ground/res_iron_ore", r.renderer)
 }
