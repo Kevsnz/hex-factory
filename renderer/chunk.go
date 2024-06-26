@@ -45,12 +45,11 @@ func (r *ChunkRenderer) DrawToScreen(chunk utils.ChunkCoord) {
 	size := chunkSize.Mul(float32(utils.GetViewZoom()))
 
 	if r.chunkOnScreen(c, size) {
-		r.renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
 		r.renderer.CopyF(ch, nil, &sdl.FRect{X: c.X, Y: c.Y, W: size.X, H: size.Y})
 	}
 }
 
-func (r *ChunkRenderer) UpdateChunk(chunk utils.ChunkCoord) {
+func (r *ChunkRenderer) UpdateChunk(chunk utils.ChunkCoord, groundTypes [ss.CHUNK_SIZE * ss.CHUNK_SIZE]ss.GroundType) {
 	ch, ok := r.chunks[chunk]
 	if !ok {
 		var err error
@@ -67,17 +66,55 @@ func (r *ChunkRenderer) UpdateChunk(chunk utils.ChunkCoord) {
 	r.renderer.SetDrawColor(0, 0, 0, 0)
 	r.renderer.Clear()
 
-	r.renderer.SetDrawColor(96, 96, 96, 255)
-
 	for hy := int32(0); hy < ss.CHUNK_SIZE; hy++ {
 		xo := float32(hy) * ss.HEX_WIDTH / 2
-		yo := float32(hy)*(ss.HEX_EDGE+ss.HEX_OFFSET) + ss.HEX_OFFSET
+		y := float32(hy)*(ss.HEX_EDGE+ss.HEX_OFFSET) + ss.HEX_OFFSET
 
 		for hx := int32(0); hx < ss.CHUNK_SIZE; hx++ {
 			x := xo + float32(hx)*ss.HEX_WIDTH
-			r.renderer.DrawLineF(x, yo, x+ss.HEX_WIDTH/2, yo-ss.HEX_OFFSET)              // top left
-			r.renderer.DrawLineF(x+ss.HEX_WIDTH/2, yo-ss.HEX_OFFSET, x+ss.HEX_WIDTH, yo) // top right
-			r.renderer.DrawLineF(x, yo, x, yo+ss.HEX_EDGE)                               // left
+
+			switch groundTypes[hy*ss.CHUNK_SIZE+hx] {
+			case ss.GROUND_TYPE_GROUND:
+				r.renderer.SetDrawColor(128, 96, 0, 127)
+			case ss.GROUND_TYPE_WATER:
+				r.renderer.SetDrawColor(127, 127, 255, 127)
+			default:
+				r.renderer.SetDrawColor(255, 0, 255, 127)
+			}
+			cx := x + ss.HEX_WIDTH/2
+			cy := y + ss.HEX_OFFSET
+			r.renderer.FillRectF(&sdl.FRect{
+				X: cx - ss.HEX_WIDTH/2,
+				Y: cy - ss.HEX_OFFSET*3/2,
+				W: ss.HEX_WIDTH,
+				H: ss.HEX_OFFSET*3 + 1,
+			})
+
+			r.renderer.SetDrawColor(96, 96, 96, 255)
+
+			if hy == 0 {
+				r.renderer.SetDrawColor(140, 140, 140, 255)
+			} else {
+				r.renderer.SetDrawColor(96, 96, 96, 255)
+			}
+			r.renderer.DrawLineF(x, y, x+ss.HEX_WIDTH/2, y-ss.HEX_OFFSET)     // top left
+			r.renderer.DrawLineF(x, y+1, x+ss.HEX_WIDTH/2, y-ss.HEX_OFFSET+1) // top left
+
+			if hx == ss.CHUNK_SIZE-1 || hy == 0 {
+				r.renderer.SetDrawColor(128, 128, 128, 255)
+			} else {
+				r.renderer.SetDrawColor(96, 96, 96, 255)
+			}
+			r.renderer.DrawLineF(x+ss.HEX_WIDTH/2, y-ss.HEX_OFFSET, x+ss.HEX_WIDTH, y)     // top right
+			r.renderer.DrawLineF(x+ss.HEX_WIDTH/2, y-ss.HEX_OFFSET+1, x+ss.HEX_WIDTH, y+1) // top right
+
+			if hx == 0 {
+				r.renderer.SetDrawColor(128, 128, 128, 255)
+			} else {
+				r.renderer.SetDrawColor(96, 96, 96, 255)
+			}
+			r.renderer.DrawLineF(x, y, x, y+ss.HEX_EDGE)     // left
+			r.renderer.DrawLineF(x+1, y, x+1, y+ss.HEX_EDGE) // left
 		}
 	}
 

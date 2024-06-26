@@ -1,6 +1,6 @@
 package settings
 
-type GroundType int
+type GroundType uint8
 
 const (
 	GROUND_TYPE_GROUND GroundType = iota
@@ -9,7 +9,7 @@ const (
 	GROUND_TYPE_COUNT GroundType = iota
 )
 
-type ResourceType int
+type ResourceType uint8
 
 const (
 	RESOURCE_TYPE_IRON    ResourceType = iota

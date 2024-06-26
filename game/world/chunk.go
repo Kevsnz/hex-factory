@@ -7,14 +7,14 @@ import (
 )
 
 type GroundHex struct {
-	groundType     ss.GroundType
 	resorceType    ss.ResourceType
 	resourceAmount uint32
 }
 
 type Chunk struct {
-	pos    utils.ChunkCoord
-	ground [ss.CHUNK_SIZE * ss.CHUNK_SIZE]*GroundHex
+	pos         utils.ChunkCoord
+	ground      [ss.CHUNK_SIZE * ss.CHUNK_SIZE]*GroundHex
+	groundTypes [ss.CHUNK_SIZE * ss.CHUNK_SIZE]ss.GroundType
 
 	objects map[utils.HexCoord]WorldObject
 	dirty   bool
@@ -58,7 +58,7 @@ func (c *Chunk) RemoveWorldObject(hex utils.HexCoord) {
 
 func (c *Chunk) DrawGround(r *renderer.GameRenderer) {
 	if c.dirty {
-		r.ChunkRenderer.UpdateChunk(c.pos)
+		r.ChunkRenderer.UpdateChunk(c.pos, c.groundTypes)
 		c.dirty = false
 	}
 

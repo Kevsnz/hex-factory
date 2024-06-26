@@ -38,6 +38,7 @@ func NewGameRenderer(window *sdl.Window) *GameRenderer {
 	if err != nil {
 		panic(err)
 	}
+	renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
 
 	sm := NewStringManager()
 	sm.Prerender(renderer)
