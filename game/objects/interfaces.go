@@ -3,7 +3,7 @@ package objects
 import (
 	"hextopdown/game/items"
 	"hextopdown/renderer"
-	"hextopdown/settings"
+	ss "hextopdown/settings"
 	"hextopdown/utils"
 )
 
@@ -24,12 +24,14 @@ type BeltLike interface {
 type HexGridWorldInteractor interface {
 	GetItemInputAt(hex utils.HexCoord) (obj ItemInput, ok bool)
 	GetItemOutputAt(hex utils.HexCoord) (obj ItemOutput, ok bool)
+	GetResourceAt(hex utils.HexCoord) (resType ss.ResourceType, ok bool)
+	ExtractResourceAt(hex utils.HexCoord) ss.ItemType
 }
 
 type ItemOutput interface {
-	TakeItemOut(pos utils.WorldCoord, allowedItems []settings.ItemType) (item *items.ItemInWorld, ok bool)
+	TakeItemOut(pos utils.WorldCoord, allowedItems []ss.ItemType) (item *items.ItemInWorld, ok bool)
 }
 type ItemInput interface {
-	GetAcceptableItems() []settings.ItemType // nil = any item, {} = no items
+	GetAcceptableItems() []ss.ItemType // nil = any item, {} = no items
 	TakeItemIn(pos utils.WorldCoord, item items.ItemInWorld) (ok bool)
 }

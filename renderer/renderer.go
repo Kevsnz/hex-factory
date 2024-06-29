@@ -290,10 +290,22 @@ func (r *GameRenderer) DrawItem(pos utils.WorldCoordInterpolated, itemType ss.It
 	r.renderer.CopyF(tex, nil, fRectFromScreenOffset(s, -idr, -idr, 2*idr, 2*idr))
 }
 
-func (r *GameRenderer) DrawArrow(pctX, pctY float32, dir utils.Dir) {
-	p := utils.ScreenCoord{X: pctX * RES_X, Y: pctY * RES_Y}
+func (r *GameRenderer) DrawArrowPct(pctX, pctY float32, dir utils.Dir) {
+	p := utils.ScreenCoord{X: pctX, Y: pctY}.PctPosToScreen()
 	s := utils.ScreenCoord{X: ss.FONT_SIZE_PCT * 2, Y: ss.FONT_SIZE_PCT * 2}.PctScaleToScreen()
 	idxFlip := arrowDirMapping[dir]
+
+	r.renderer.CopyExF(r.arrowTextures[idxFlip.idx], nil, fRectFromScreen(p, s.X, s.Y), 0, nil, idxFlip.flip)
+}
+func (r *GameRenderer) DrawArrowWorld(pos utils.WorldCoord, dir utils.Dir, size float32) {
+	z := float32(utils.GetViewZoom())
+	s := utils.ScreenCoord{X: size, Y: size}.Mul(z)
+	p := pos.ToScreen().Sub(s.Div(2))
+	idxFlip := arrowDirMapping[dir]
+
+	if !isOnScreenRadius(p, s.X) {
+		return
+	}
 
 	r.renderer.CopyExF(r.arrowTextures[idxFlip.idx], nil, fRectFromScreen(p, s.X, s.Y), 0, nil, idxFlip.flip)
 }
@@ -606,6 +618,11 @@ func (r *GameRenderer) loadStructureGroundTextures() {
 		utils.DIR_UP_LEFT:  loadCachedTexture("shape_diamond_tl_br", r.renderer),
 		utils.DIR_UP_RIGHT: loadCachedTexture("shape_diamond_tr_bl", r.renderer),
 	}
+	r.objectGroundDirTextures[ss.OBJECT_TYPE_MINER_STIRLING] = [utils.DIR_COUNT]*sdl.Texture{
+		utils.DIR_LEFT:     loadCachedTexture("shape_diamond_lr", r.renderer),
+		utils.DIR_UP_LEFT:  loadCachedTexture("shape_diamond_tl_br", r.renderer),
+		utils.DIR_UP_RIGHT: loadCachedTexture("shape_diamond_tr_bl", r.renderer),
+	}
 }
 
 func (r *GameRenderer) loadStructureOnGroundTextures() {
@@ -615,6 +632,11 @@ func (r *GameRenderer) loadStructureOnGroundTextures() {
 		utils.DIR_LEFT:     loadCachedTexture("objects/onground/stone_furnace_lr", r.renderer),
 		utils.DIR_UP_LEFT:  loadCachedTexture("objects/onground/stone_furnace_tl_br", r.renderer),
 		utils.DIR_UP_RIGHT: loadCachedTexture("objects/onground/stone_furnace_tr_bl", r.renderer),
+	}
+	r.objectOnGroundDirTextures[ss.OBJECT_TYPE_MINER_STIRLING] = [utils.DIR_COUNT]*sdl.Texture{
+		utils.DIR_LEFT:     loadCachedTexture("objects/onground/stirling_miner_lr", r.renderer),
+		utils.DIR_UP_LEFT:  loadCachedTexture("objects/onground/stirling_miner_tl_br", r.renderer),
+		utils.DIR_UP_RIGHT: loadCachedTexture("objects/onground/stirling_miner_tr_bl", r.renderer),
 	}
 }
 

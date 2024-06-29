@@ -30,6 +30,7 @@ const (
 	STRING_OBJECT_BELT_SPLITTER    StringID = iota
 	STRING_OBJECT_FURNACE_STONE    StringID = iota
 	STRING_OBJECT_ASSSEMBLER_BASIC StringID = iota
+	STRING_OBJECT_MINER_STIRLING   StringID = iota
 
 	// Item Name Strings
 	STRING_ITEM_IRON_ORE   StringID = iota
@@ -64,6 +65,7 @@ var Strings = [STRING_COUNT]string{
 	STRING_OBJECT_BELT_SPLITTER:    "Belt Splitter",
 	STRING_OBJECT_FURNACE_STONE:    "Stone Furnace",
 	STRING_OBJECT_ASSSEMBLER_BASIC: "Basic Assembling Machine",
+	STRING_OBJECT_MINER_STIRLING:   "Stirling Miner",
 
 	STRING_ITEM_IRON_ORE:   "Iron Ore",
 	STRING_ITEM_IRON_PLATE: "Iron Plate",

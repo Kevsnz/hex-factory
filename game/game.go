@@ -35,7 +35,7 @@ type Game struct {
 
 func NewGame() *Game {
 	return &Game{
-		player:          char.NewCharacter(utils.WorldCoord{X: 0, Y: 0}),
+		player:          char.NewCharacter(utils.WorldCoord{X: 450, Y: 450}),
 		ui:              ui.NewUI(),
 		Running:         true,
 		paused:          false,
@@ -141,9 +141,9 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 			case input.ACTION_SELECT_TOOL_5:
 				g.selectObjType(ss.OBJECT_TYPE_CHESTBOX_SMALL)
 			case input.ACTION_SELECT_TOOL_6:
-				g.selectObjType(ss.OBJECT_TYPE_CHESTBOX_MEDIUM)
-			case input.ACTION_SELECT_TOOL_7:
 				g.selectObjType(ss.OBJECT_TYPE_CHESTBOX_LARGE)
+			case input.ACTION_SELECT_TOOL_7:
+				g.selectObjType(ss.OBJECT_TYPE_MINER_STIRLING)
 			case input.ACTION_SELECT_TOOL_8:
 				g.selectObjType(ss.OBJECT_TYPE_FURNACE_STONE)
 			case input.ACTION_SELECT_TOOL_9:
@@ -224,6 +224,7 @@ func (g *Game) processMouseMovement(ih *input.InputHandler) {
 		hex1 := utils.HexCoordFromWorld(g.mousePosLast)
 		hex2 := utils.HexCoordFromWorld(g.mousePos.ToWorld())
 
+		// TODO Switch to BELTLIKE
 		if g.selectedObjType == ss.OBJECT_TYPE_BELT1 && hex1 != hex2 {
 			g.placeConnectBelts(hex1, hex2, ss.OBJECT_TYPE_BELT1)
 		}
@@ -331,7 +332,7 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 
 	// Draw UI
 	g.ui.Draw(r)
-	r.DrawArrow(0.9, 0.025, g.selectedDir)
+	r.DrawArrowPct(0.9, 0.025, g.selectedDir)
 
 	hex := utils.HexCoordFromWorld(g.mousePos.ToWorld())
 
@@ -366,6 +367,9 @@ func (g *Game) useSelectedTool(hex utils.HexCoord) {
 		return
 	case ss.STRUCTURE_BASETYPE_CONVERTER:
 		_ = g.placeConverter(hex, g.selectedDir, g.selectedObjType)
+		return
+	case ss.STRUCTURE_BASETYPE_EXTRACTOR:
+		_ = g.placeExtractor(hex, g.selectedDir, g.selectedObjType)
 		return
 	}
 }
@@ -436,6 +440,15 @@ func (g *Game) placeConverter(hex utils.HexCoord, dir utils.Dir, objType ss.Obje
 		return nil
 	}
 	converter := objects.NewConverter(objType, hex, dir, gd.ObjectParamsList[objType], gd.ConverterParamsList[objType])
+	g.placeObject(converter)
+	return converter
+}
+
+func (g *Game) placeExtractor(hex utils.HexCoord, dir utils.Dir, objType ss.ObjectType) *objects.Extractor {
+	if !g.canPlaceObject(hex, objType, g.selectedDir) {
+		return nil
+	}
+	converter := objects.NewExtractor(objType, hex, dir, gd.ObjectParamsList[objType], gd.ExtractorParamsList[objType])
 	g.placeObject(converter)
 	return converter
 }
@@ -548,6 +561,8 @@ func (g *Game) rotateObject(obj DirectionalObject, cw bool) {
 	obj.Rotate(cw)
 }
 
+//************  HexGridWorldInteractor  **********************************************
+
 func (g *Game) GetItemInputAt(hex utils.HexCoord) (obj objects.ItemInput, ok bool) {
 	if obj, ok := g.getWorldObject(hex); ok {
 		if ii, ok := obj.(objects.ItemInput); ok {
@@ -565,6 +580,18 @@ func (g *Game) GetItemOutputAt(hex utils.HexCoord) (obj objects.ItemOutput, ok b
 	}
 	return nil, false
 }
+
+func (g *Game) GetResourceAt(hex utils.HexCoord) (resType ss.ResourceType, ok bool) {
+	ch := g.getChunk(hex)
+	return ch.GetResourceTypeAt(hex)
+}
+
+func (g *Game) ExtractResourceAt(hex utils.HexCoord) ss.ItemType {
+	ch := g.getChunk(hex)
+	return ch.ExtractResourceAt(hex)
+}
+
+//***********************************************
 
 func (g *Game) getChunk(hex utils.HexCoord) *world.Chunk {
 	ch, ok := g.chunks[hex.GetChunkCoord()]

@@ -41,3 +41,5 @@ var adjacency_dirs = [3][3]Dir{ // [dy][dx] !!!!!!!!!!!!!!!!!!!
 	{DIR_LEFT, DIR_COUNT, DIR_RIGHT},
 	{DIR_DOWN_LEFT, DIR_DOWN_RIGHT, DIR_COUNT},
 }
+
+var AllDirs = [DIR_COUNT]Dir{DIR_LEFT, DIR_UP_LEFT, DIR_UP_RIGHT, DIR_RIGHT, DIR_DOWN_RIGHT, DIR_DOWN_LEFT}

@@ -7,6 +7,7 @@ const (
 	STRUCTURE_BASETYPE_INSERTER  ObjectBaseType = iota
 	STRUCTURE_BASETYPE_STORAGE   ObjectBaseType = iota
 	STRUCTURE_BASETYPE_CONVERTER ObjectBaseType = iota
+	STRUCTURE_BASETYPE_EXTRACTOR ObjectBaseType = iota
 
 	STRUCTURE_BASETYPE_COUNT ObjectBaseType = iota
 )
@@ -27,6 +28,8 @@ const (
 	OBJECT_TYPE_FURNACE_STONE ObjectType = iota
 
 	OBJECT_TYPE_ASSEMBLER_BASIC ObjectType = iota
+
+	OBJECT_TYPE_MINER_STIRLING ObjectType = iota
 
 	OBJECT_TYPE_COUNT ObjectType = iota
 )

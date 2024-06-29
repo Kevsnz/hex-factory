@@ -106,7 +106,7 @@ outer:
 
 		for j, inf := range info {
 			if inf.Type == stack.ItemType {
-				info[j].Count++
+				info[j].Count += stack.Count
 				continue outer
 			}
 		}

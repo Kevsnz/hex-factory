@@ -52,4 +52,9 @@ var ObjectParamsList = [ss.OBJECT_TYPE_COUNT]*ObjectParameters{
 		BaseType: ss.STRUCTURE_BASETYPE_CONVERTER,
 		Shape:    utils.SHAPE_BIGHEX,
 	},
+	ss.OBJECT_TYPE_MINER_STIRLING: {
+		Name:     strings.STRING_OBJECT_MINER_STIRLING,
+		BaseType: ss.STRUCTURE_BASETYPE_EXTRACTOR,
+		Shape:    utils.SHAPE_DIAMOND,
+	},
 }

@@ -1,6 +1,7 @@
 package world
 
 import (
+	gd "hextopdown/game/gamedata"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
 	"hextopdown/utils"
@@ -91,4 +92,26 @@ func (c *Chunk) DrawItems(r *renderer.GameRenderer) {
 
 func (c *Chunk) GetWorldObjects() map[utils.HexCoord]WorldObject {
 	return c.objects
+}
+
+func (c *Chunk) GetResourceTypeAt(hex utils.HexCoord) (ss.ResourceType, bool) {
+	pos := hex.CoordsWithinChunk()
+	res := c.groundResTypes[pos.X+pos.Y*ss.CHUNK_SIZE]
+	return res, res != ss.RESOURCE_TYPE_COUNT
+}
+
+func (c *Chunk) ExtractResourceAt(hex utils.HexCoord) ss.ItemType {
+	pos := hex.CoordsWithinChunk()
+	res := c.groundResTypes[pos.X+pos.Y*ss.CHUNK_SIZE]
+	if res == ss.RESOURCE_TYPE_COUNT {
+		panic("resource not found")
+	}
+
+	c.groundResAmounts[pos.X+pos.Y*ss.CHUNK_SIZE]--
+	if c.groundResAmounts[pos.X+pos.Y*ss.CHUNK_SIZE] == 0 {
+		c.groundResTypes[pos.X+pos.Y*ss.CHUNK_SIZE] = ss.RESOURCE_TYPE_COUNT
+		c.dirty = true
+	}
+
+	return gd.ExtractionResourceItems[res]
 }
