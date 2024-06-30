@@ -21,7 +21,8 @@ const (
 	ACTION_ZOOM_IN  = ActionType(iota)
 	ACTION_ZOOM_OUT = ActionType(iota)
 
-	ACTION_TOGGLE_UI = ActionType(iota)
+	ACTION_TOGGLE_UI      = ActionType(iota)
+	ACTION_OPEN_INVENTORY = ActionType(iota)
 
 	ACTION_SELECT_TOOL_1 = ActionType(iota)
 	ACTION_SELECT_TOOL_2 = ActionType(iota)
@@ -34,18 +35,9 @@ const (
 	ACTION_SELECT_TOOL_9 = ActionType(iota)
 	ACTION_SELECT_TOOL_0 = ActionType(iota)
 
-	ACTION_ROTATE_CW        = ActionType(iota)
-	ACTION_ROTATE_CCW       = ActionType(iota)
-	ACTION_PLACE_ITEM       = ActionType(iota)
-	ACTION_PLOP_SPLITTER    = ActionType(iota)
-	ACTION_PLOP_UNDERGROUND = ActionType(iota)
-
-	ACTION_PLOP_INSERTER        = ActionType(iota)
-	ACTION_PLOP_CHESTBOX_SMALL  = ActionType(iota)
-	ACTION_PLOP_CHESTBOX_MEDIUM = ActionType(iota)
-	ACTION_PLOP_CHESTBOX_LARGE  = ActionType(iota)
-	ACTION_PLOP_FURNACE         = ActionType(iota)
-	ACTION_PLOP_ASSEMBLER       = ActionType(iota)
+	ACTION_ROTATE_CW  = ActionType(iota)
+	ACTION_ROTATE_CCW = ActionType(iota)
+	ACTION_PLACE_ITEM = ActionType(iota)
 
 	ACTION_COUNT = ActionType(iota)
 )

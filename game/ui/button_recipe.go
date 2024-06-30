@@ -27,5 +27,5 @@ func NewButtonRecipe(pos utils.ScreenCoord, item ss.ItemType, onClick func()) *B
 }
 
 func (b *ButtonRecipe) Draw(r *renderer.GameRenderer, parentPos utils.ScreenCoord) {
-	r.DrawButtonIcon(b.Pos.Add(parentPos), b.Size, b.item, b.down)
+	r.DrawButtonIcon(b.Pos.Add(parentPos), b.Size, b.item, b.hover, b.down)
 }

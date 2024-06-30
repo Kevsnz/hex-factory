@@ -839,27 +839,39 @@ func (r *GameRenderer) DrawObjectDetails(
 func (r *GameRenderer) DrawWindow(pos utils.ScreenCoord, size utils.ScreenCoord, title strings.StringID) {
 	rect := fRectFromScreen(pos, size.X, size.Y)
 
-	r.renderer.SetDrawColor(0, 0, 0, 255)
+	setDrawColor(r.renderer, uiColors[UI_ELEMENT_WINDOW])
 	r.renderer.FillRectF(rect)
+	setDrawColor(r.renderer, uiColorsBorder[UI_ELEMENT_WINDOW])
+	r.renderer.DrawRectF(rect)
 
 	cs := CompoundString{}
 	cs.AddString(title, r.stringManager)
+
+	rect.H = float32(cs.H)
+	setDrawColor(r.renderer, windowHeaderColor)
+	r.renderer.FillRectF(rect)
+
 	posX := math.Round(float64(pos.Add(size.Div(2)).X))
 	r.stringManager.RenderCompoundString(r.renderer, &cs, int32(posX), int32(pos.Y)+cs.H/2, TEXT_ALIGN_CENTER)
 }
 
-func (r *GameRenderer) DrawButton(pos utils.ScreenCoord, size utils.ScreenCoord, hover bool) {
+func (r *GameRenderer) DrawButton(pos utils.ScreenCoord, size utils.ScreenCoord, hl bool, down bool) {
 	rect := fRectFromScreen(pos, size.X, size.Y)
 
-	r.renderer.SetDrawColor(32, 32, 32, 255)
-	r.renderer.FillRectF(rect)
-	if hover {
-		r.renderer.SetDrawColor(32, 127, 32, 255)
-		r.renderer.DrawRectF(rect)
+	if down {
+		setDrawColor(r.renderer, buttonDownColor)
+	} else if hl {
+		setDrawColor(r.renderer, uiColorsHlight[UI_ELEMENT_BUTTON])
+	} else {
+		setDrawColor(r.renderer, uiColors[UI_ELEMENT_BUTTON])
 	}
+	r.renderer.FillRectF(rect)
+
+	setDrawColor(r.renderer, uiColorsBorder[UI_ELEMENT_BUTTON])
+	r.renderer.DrawRectF(rect)
 }
-func (r *GameRenderer) DrawButtonText(pos utils.ScreenCoord, size utils.ScreenCoord, text strings.StringID, hover bool) {
-	r.DrawButton(pos, size, hover)
+func (r *GameRenderer) DrawButtonText(pos utils.ScreenCoord, size utils.ScreenCoord, text strings.StringID, hl bool, down bool) {
+	r.DrawButton(pos, size, hl, down)
 
 	cs := CompoundString{}
 	cs.AddString(text, r.stringManager)
@@ -868,7 +880,33 @@ func (r *GameRenderer) DrawButtonText(pos utils.ScreenCoord, size utils.ScreenCo
 	posY := math.Round(float64(pos.Y))
 	r.stringManager.RenderCompoundString(r.renderer, &cs, int32(posX), int32(posY), TEXT_ALIGN_CENTER)
 }
-func (r *GameRenderer) DrawButtonIcon(pos utils.ScreenCoord, size utils.ScreenCoord, item ss.ItemType, hover bool) {
-	r.DrawButton(pos, size, hover)
+func (r *GameRenderer) DrawButtonIcon(pos utils.ScreenCoord, size utils.ScreenCoord, item ss.ItemType, hl bool, down bool) {
+	r.DrawButton(pos, size, hl, down)
 	r.DrawItemIconScreen(pos, size.Y, item)
+}
+
+func (r *GameRenderer) DrawItemSlot(pos utils.ScreenCoord, size utils.ScreenCoord, hl bool) {
+	rect := fRectFromScreen(pos, size.X, size.Y)
+
+	if hl {
+		setDrawColor(r.renderer, uiColorsHlight[UI_ELEMENT_ITEM_SLOT])
+	} else {
+		setDrawColor(r.renderer, uiColors[UI_ELEMENT_ITEM_SLOT])
+	}
+	r.renderer.FillRectF(rect)
+
+	setDrawColor(r.renderer, uiColorsBorder[UI_ELEMENT_ITEM_SLOT])
+	r.renderer.DrawRectF(rect)
+}
+func (r *GameRenderer) DrawItemSlotWithItem(pos utils.ScreenCoord, size utils.ScreenCoord, hl bool, item ss.ItemType, count int) {
+	r.DrawItemSlot(pos, size, hl)
+	r.DrawItemIconScreen(pos, size.Y, item)
+
+	cs := CompoundString{}
+	cs.AddInt(count, 1, r.stringManager)
+	r.stringManager.RenderCompoundString(r.renderer, &cs, int32(pos.X+size.X), int32(pos.Y+size.Y)-cs.H/2, TEXT_ALIGN_RIGHT)
+}
+
+func setDrawColor(r *sdl.Renderer, color [4]uint8) {
+	r.SetDrawColor(color[0], color[1], color[2], color[3])
 }

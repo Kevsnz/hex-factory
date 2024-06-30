@@ -1,20 +1,23 @@
 package char
 
 import (
+	"hextopdown/game/items"
 	"hextopdown/settings"
 	"hextopdown/utils"
 	"math"
 )
 
 type Character struct {
-	pos      utils.WorldCoordInterpolated
-	velocity utils.WorldCoord
+	pos       utils.WorldCoordInterpolated
+	velocity  utils.WorldCoord
+	inventory []*items.ItemStack
 }
 
 func NewCharacter(pos utils.WorldCoord) Character {
 	return Character{
-		pos:      utils.NewWorldCoordInterpolated2(pos),
-		velocity: utils.WorldCoord{},
+		pos:       utils.NewWorldCoordInterpolated2(pos),
+		velocity:  utils.WorldCoord{},
+		inventory: make([]*items.ItemStack, 24),
 	}
 }
 
@@ -49,4 +52,8 @@ func (c *Character) UpdateMovement(dx, dy int64) {
 	}
 
 	c.pos.UpdatePosition(c.pos.Pos.Add(c.velocity), false)
+}
+
+func (c *Character) GetInventory() []*items.ItemStack {
+	return c.inventory
 }

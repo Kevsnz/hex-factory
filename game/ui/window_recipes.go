@@ -23,9 +23,10 @@ type WindowRecipes struct {
 func NewWindowRecipes() *WindowRecipes {
 	wnd := &WindowRecipes{
 		Window: Window{
-			Pos:   utils.ScreenCoord{X: WND_RECIPES_X_PCT, Y: WND_RECIPES_Y_PCT}.PctPosToScreen(),
-			Size:  utils.ScreenCoord{X: WND_RECIPES_W_PCT, Y: WND_RECIPES_H_PCT}.PctScaleToScreen(),
-			Title: strings.STRING_RECIPE,
+			Pos:     utils.ScreenCoord{X: WND_RECIPES_X_PCT, Y: WND_RECIPES_Y_PCT}.PctPosToScreen(),
+			Size:    utils.ScreenCoord{X: WND_RECIPES_W_PCT, Y: WND_RECIPES_H_PCT}.PctScaleToScreen(),
+			Title:   strings.STRING_RECIPE,
+			Visible: false,
 		},
 	}
 	WithCloseBox(wnd)

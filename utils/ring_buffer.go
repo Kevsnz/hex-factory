@@ -141,3 +141,7 @@ func (rb *RingBuffer[T]) Insert(i int, t T) error {
 	rb.size++
 	return nil
 }
+
+func (rb *RingBuffer[T]) Full() bool {
+	return rb.size == len(rb.data)
+}

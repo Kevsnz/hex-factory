@@ -3,9 +3,12 @@ package ui
 import (
 	"hextopdown/input"
 	"hextopdown/renderer"
+	"hextopdown/settings"
 	"hextopdown/settings/strings"
 	"hextopdown/utils"
 )
+
+var windowTitleHeight = utils.ScreenCoord{X: 0, Y: settings.FONT_SIZE_PCT * 1.2}.PctScaleToScreen().Y
 
 type iControl interface {
 	GetPos() utils.ScreenCoord

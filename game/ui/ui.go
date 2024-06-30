@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"hextopdown/game/items"
 	"hextopdown/input"
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
@@ -9,6 +10,7 @@ import (
 
 const (
 	WINDOW_RECIPES = iota
+	WINDOW_INVENTORY
 
 	WINDOW_COUNT
 )
@@ -28,13 +30,16 @@ type UI struct {
 }
 
 func NewUI() *UI {
-	w := NewWindowRecipes()
-	w.Visible = false
+	wr := NewWindowRecipes()
+	wi := NewWindowInventory()
 
 	return &UI{
-		windows: [WINDOW_COUNT]iWindow{w},
-		scale:   1,
-		show:    true,
+		windows: [WINDOW_COUNT]iWindow{
+			WINDOW_RECIPES:   wr,
+			WINDOW_INVENTORY: wi,
+		},
+		scale: 1,
+		show:  true,
 	}
 }
 
@@ -46,8 +51,9 @@ func (u *UI) Show(b bool) {
 func (u *UI) ShowToggle() {
 	u.show = !u.show
 }
-func (u *UI) WindowShow() {
-	u.windows[WINDOW_RECIPES].Show()
+
+func (u *UI) ShowInventoryWindow(inventory []*items.ItemStack) {
+	u.windows[WINDOW_INVENTORY].(*WindowInventory).ShowInventory(inventory)
 }
 
 func (u *UI) ShowRecipeWindow(recipes []ss.Recipe, onSelect func(ss.Recipe)) {

@@ -8,14 +8,15 @@ import (
 type Button struct {
 	ControlBase
 	down    bool
+	hover   bool
 	onClick func()
 }
 
 func (b *Button) HandleMouseMovement(mp utils.ScreenCoord) {
 	mp = mp.Sub(b.Pos)
-	if !b.within(mp) {
+	b.hover = b.within(mp)
+	if !b.hover {
 		b.down = false
-		return
 	}
 }
 

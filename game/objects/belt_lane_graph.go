@@ -131,6 +131,10 @@ func (bgs *BeltGraphSegment) CanPlaceItem(offset float64) bool {
 			}
 		}
 	}
+
+	if bgs.Items.Full() {
+		return false
+	}
 	return true
 }
 

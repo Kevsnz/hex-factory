@@ -99,6 +99,8 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 		switch actionEvent.Type {
 		case input.ACTION_TYPE_DOWN:
 			switch actionEvent.Action {
+			case input.ACTION_OPEN_INVENTORY:
+				g.ui.ShowInventoryWindow(g.player.GetInventory())
 			case input.ACTION_PLACE_ITEM:
 				if g.selectedObjType != ss.OBJECT_TYPE_COUNT {
 					break

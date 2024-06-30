@@ -25,5 +25,5 @@ func NewButtonText(pos, size utils.ScreenCoord, text strings.StringID, onClick f
 }
 
 func (b *ButtonText) Draw(r *renderer.GameRenderer, parentPos utils.ScreenCoord) {
-	r.DrawButtonText(b.Pos.Add(parentPos), b.Size, b.text, b.down)
+	r.DrawButtonText(b.Pos.Add(parentPos), b.Size, b.text, b.hover, b.down)
 }

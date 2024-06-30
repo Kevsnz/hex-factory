@@ -47,8 +47,8 @@ const TEXTURE_DIR = "resources/"
 const TEXTURE_CACHE_EXT = ".tex"
 const TEXTURE_SOURCE_EXT = ".png"
 
-const CHAR_MAX_SPEED = float64(HEX_WIDTH) * 3 / TPS
-const CHAR_ACCEL = float64(HEX_WIDTH) / 2 / TPS
+const CHAR_MAX_SPEED = float64(HEX_WIDTH) * 5 / TPS
+const CHAR_ACCEL = float64(HEX_WIDTH) / TPS
 const CHAR_DECCEL = CHAR_ACCEL * 2
 
 const FONT_SIZE_PCT = 0.03 // 33 lines

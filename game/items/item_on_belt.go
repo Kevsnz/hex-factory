@@ -8,7 +8,7 @@ import (
 
 type ItemOnBelt struct {
 	Item      ItemInWorld
-	Offset    float64
+	Offset    float64 // TODO Change to integer steps
 	MovedTick uint64
 }
 

@@ -16,6 +16,7 @@ const (
 	STRING_TPS           StringID = iota
 	STRING_PLAYER_COORDS StringID = iota
 	STRING_TOOL          StringID = iota
+	STRING_INVENTORY     StringID = iota
 	STRING_RECIPE        StringID = iota
 	STRING_NOTEXTURE     StringID = iota
 
@@ -52,6 +53,7 @@ var Strings = [STRING_COUNT]string{
 	STRING_TPS:           "TPS: ",
 	STRING_PLAYER_COORDS: "Player coords: ",
 	STRING_TOOL:          "Current tool: ",
+	STRING_INVENTORY:     "Inventory",
 	STRING_RECIPE:        "Recipe",
 	STRING_NOTEXTURE:     "No Texture",
 
