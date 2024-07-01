@@ -2,15 +2,9 @@ package ui
 
 import (
 	"hextopdown/game/items"
-	ss "hextopdown/settings"
 	"hextopdown/settings/strings"
 	"hextopdown/utils"
 )
-
-const SLOTS_IN_LINE = 8
-
-var itemSlotSize = utils.ScreenCoord{X: ss.FONT_SIZE_PCT * 2, Y: ss.FONT_SIZE_PCT * 2}.PctScaleToScreen()
-var itemSlotGap = max(1, itemSlotSize.X*0.05)
 
 type WindowInventory struct {
 	Window
@@ -18,10 +12,12 @@ type WindowInventory struct {
 }
 
 func NewWindowInventory() *WindowInventory {
+	size := utils.ScreenCoord{X: wndInventoryWidth, Y: wndTitleHeight.Y}
+	pos := utils.ScreenCoord{X: 0.5, Y: 0.5}.PctPosToScreen().Sub(size.Div(2))
 	wnd := &WindowInventory{
 		Window: Window{
-			Pos:     utils.ScreenCoord{X: 0.5, Y: 0.5}.PctPosToScreen(),
-			Size:    utils.ScreenCoord{X: 0.5, Y: 0.5}.PctScaleToScreen(),
+			Pos:     pos,
+			Size:    size,
 			Title:   strings.STRING_INVENTORY,
 			Visible: false,
 		},
@@ -49,14 +45,18 @@ func (w *WindowInventory) refillSlots(inventory []*items.ItemStack) {
 
 	w.slotCount = len(inventory)
 	for i, item := range inventory {
-		row := i / SLOTS_IN_LINE
-		col := i % SLOTS_IN_LINE
 		pos := utils.ScreenCoord{
-			X: float32(col) * (itemSlotSize.X + itemSlotGap),
-			Y: float32(row)*(itemSlotSize.Y+itemSlotGap) + windowTitleHeight,
+			X: float32(i%SLOTS_IN_LINE) * (itemSlotSize.X + itemSlotGap),
+			Y: float32(i/SLOTS_IN_LINE) * (itemSlotSize.Y + itemSlotGap),
 		}
 		is := NewItemSlot(pos, itemSlotSize)
 		w.AddChild(is, CONTROL_ALIGN_TOPLEFT)
 		is.SetItem(item)
 	}
+
+	w.Size.Y = (itemSlotSize.X+itemSlotGap)*float32(w.slotCount)/SLOTS_IN_LINE + wndTitleHeight.Y
+	if w.slotCount%SLOTS_IN_LINE != 0 {
+		w.Size.Y += itemSlotSize.X + itemSlotGap
+	}
+	w.Pos.Y = utils.ScreenCoord{X: 0.5, Y: 0.5}.PctPosToScreen().Y - w.Size.Y/2
 }

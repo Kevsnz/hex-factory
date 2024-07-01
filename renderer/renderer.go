@@ -910,3 +910,23 @@ func (r *GameRenderer) DrawItemSlotWithItem(pos utils.ScreenCoord, size utils.Sc
 func setDrawColor(r *sdl.Renderer, color [4]uint8) {
 	r.SetDrawColor(color[0], color[1], color[2], color[3])
 }
+
+func (r *GameRenderer) DrawGroupBox(pos utils.ScreenCoord, size utils.ScreenCoord, text strings.StringID, padding utils.ScreenCoord) {
+	// rect := fRectFromScreen(pos, size.X, size.Y)
+	// setDrawColor(r.renderer, uiColors[UI_ELEMENT_WINDOW])
+	// r.renderer.FillRectF(rect)
+
+	rect := fRectFromScreen(pos.Add(padding.Div(2)), size.X-padding.X, size.Y-padding.Y)
+	setDrawColor(r.renderer, uiColorsBorder[UI_ELEMENT_WINDOW])
+	r.renderer.DrawRectF(rect)
+
+	cs := CompoundString{}
+	cs.AddString(text, r.stringManager)
+	r.stringManager.RenderCompoundString(
+		r.renderer,
+		&cs,
+		int32(pos.X+padding.X),
+		int32(pos.Y+padding.Y/2),
+		TEXT_ALIGN_LEFT,
+	)
+}

@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"hextopdown/settings"
+	ss "hextopdown/settings"
 	"hextopdown/utils"
 )
 
@@ -29,5 +29,21 @@ func (ca ControlAlignment) ConvertCoords(pos, size, space utils.ScreenCoord) uti
 	}
 }
 
-const CLOSE_BOX_SIZE_PCT = settings.FONT_SIZE_PCT * 2 / 3
-const CLOSE_BOX_PADDING_PCT = settings.FONT_SIZE_PCT / 8
+const CLOSE_BOX_SIZE_PCT = ss.FONT_SIZE_PCT * 2 / 3
+const CLOSE_BOX_PADDING_PCT = ss.FONT_SIZE_PCT / 8
+
+const SLOTS_IN_LINE = 8
+
+var itemSlotSize = utils.ScreenCoord{X: ss.FONT_SIZE_PCT * 2, Y: ss.FONT_SIZE_PCT * 2}.PctScaleToScreen()
+var itemSlotGap = max(1, itemSlotSize.X*0.05)
+
+var wndTitleHeight = utils.ScreenCoord{X: 0, Y: ss.FONT_SIZE_PCT * 1.2}.PctScaleToScreen()
+var groupBoxPadding = utils.ScreenCoord{X: ss.FONT_SIZE_PCT, Y: ss.FONT_SIZE_PCT}.PctScaleToScreen()
+
+var wndInventoryWidth = itemSlotSize.X*SLOTS_IN_LINE + itemSlotGap*(SLOTS_IN_LINE-1)
+var wndStorageWidth = (itemSlotSize.X*SLOTS_IN_LINE+itemSlotGap*(SLOTS_IN_LINE-1))*2 + groupBoxPadding.X*4
+var wndStorageInvWidth = (itemSlotSize.X*SLOTS_IN_LINE + itemSlotGap*(SLOTS_IN_LINE-1)) + groupBoxPadding.X*2
+var wndStorageStorWidth = (itemSlotSize.X*SLOTS_IN_LINE + itemSlotGap*(SLOTS_IN_LINE-1)) + groupBoxPadding.X*2
+
+const WINDOW_STORAGE_WIDTH_PCT = 0.75
+const WINDOW_STORAGE_HEIGHT_PCT = 0.5

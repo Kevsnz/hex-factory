@@ -117,3 +117,7 @@ outer:
 	}
 	return info
 }
+
+func (s *Storage) GetStorage() []*items.ItemStack {
+	return s.slots
+}

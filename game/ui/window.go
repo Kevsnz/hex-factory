@@ -3,12 +3,9 @@ package ui
 import (
 	"hextopdown/input"
 	"hextopdown/renderer"
-	"hextopdown/settings"
 	"hextopdown/settings/strings"
 	"hextopdown/utils"
 )
-
-var windowTitleHeight = utils.ScreenCoord{X: 0, Y: settings.FONT_SIZE_PCT * 1.2}.PctScaleToScreen().Y
 
 type iControl interface {
 	GetPos() utils.ScreenCoord
@@ -28,7 +25,7 @@ type Window struct {
 }
 
 func (w *Window) AddChild(c iControl, ca ControlAlignment) {
-	c.SetPos(ca.ConvertCoords(c.GetPos(), c.GetSize(), w.Size))
+	c.SetPos(ca.ConvertCoords(c.GetPos(), c.GetSize(), w.Size).Add(wndTitleHeight))
 	w.children = append(w.children, c)
 }
 
