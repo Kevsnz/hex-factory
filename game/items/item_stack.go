@@ -27,3 +27,11 @@ func (i *ItemStack) AddOne() bool {
 	i.Count++
 	return true
 }
+
+func (i *ItemStack) TakeOne() bool {
+	if i.Count == 0 {
+		return false
+	}
+	i.Count--
+	return true
+}

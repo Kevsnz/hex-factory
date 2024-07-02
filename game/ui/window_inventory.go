@@ -26,14 +26,14 @@ func NewWindowInventory() *WindowInventory {
 	return wnd
 }
 
-func (w *WindowInventory) ShowInventory(inventory []*items.ItemStack) {
+func (w *WindowInventory) ShowInventory(inventory []*items.StorageSlot) {
 	if w.slotCount != len(inventory) {
 		w.refillSlots(inventory)
 	}
 	w.Visible = true
 }
 
-func (w *WindowInventory) refillSlots(inventory []*items.ItemStack) {
+func (w *WindowInventory) refillSlots(inventory []*items.StorageSlot) {
 	newChildren := make([]iControl, 0, len(inventory)+2)
 	for _, c := range w.children {
 		if _, ok := c.(*ItemSlot); !ok {
@@ -44,14 +44,13 @@ func (w *WindowInventory) refillSlots(inventory []*items.ItemStack) {
 	w.children = newChildren
 
 	w.slotCount = len(inventory)
-	for i, item := range inventory {
+	for i, slot := range inventory {
 		pos := utils.ScreenCoord{
 			X: float32(i%SLOTS_IN_LINE) * (itemSlotSize.X + itemSlotGap),
 			Y: float32(i/SLOTS_IN_LINE) * (itemSlotSize.Y + itemSlotGap),
 		}
-		is := NewItemSlot(pos, itemSlotSize)
+		is := NewItemSlot(pos, itemSlotSize, slot)
 		w.AddChild(is, CONTROL_ALIGN_TOPLEFT)
-		is.SetItem(item)
 	}
 
 	w.Size.Y = (itemSlotSize.X+itemSlotGap)*float32(w.slotCount)/SLOTS_IN_LINE + wndTitleHeight.Y

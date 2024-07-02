@@ -10,8 +10,6 @@ type WindowStorage struct {
 	Window
 	inventoryPanel *GroupBox
 	storagePanel   *GroupBox
-	// inventorySlots []*ItemSlot
-	// storageSlots   []*ItemSlot
 }
 
 func NewWindowStorage() *WindowStorage {
@@ -41,32 +39,30 @@ func NewWindowStorage() *WindowStorage {
 	return wnd
 }
 
-func (w *WindowStorage) ShowStorage(objName strings.StringID, inventory []*items.ItemStack, storage []*items.ItemStack) {
+func (w *WindowStorage) ShowStorage(objName strings.StringID, inventory []*items.StorageSlot, storage []*items.StorageSlot) {
 	w.Title = objName
 	w.refillSlots(inventory, storage)
 	w.Visible = true
 }
 
-func (w *WindowStorage) refillSlots(inventory []*items.ItemStack, storage []*items.ItemStack) {
+func (w *WindowStorage) refillSlots(inventory []*items.StorageSlot, storage []*items.StorageSlot) {
 	w.inventoryPanel.Clear()
-	for i, item := range inventory {
+	for i, slot := range inventory {
 		pos := utils.ScreenCoord{
 			X: float32(i%SLOTS_IN_LINE) * (itemSlotSize.X + itemSlotGap),
 			Y: float32(i/SLOTS_IN_LINE) * (itemSlotSize.Y + itemSlotGap),
 		}
-		is := NewItemSlot(pos, itemSlotSize)
-		is.SetItem(item)
+		is := NewItemSlot(pos, itemSlotSize, slot)
 		w.inventoryPanel.AddChild(is, CONTROL_ALIGN_TOPLEFT)
 	}
 
 	w.storagePanel.Clear()
-	for i, item := range storage {
+	for i, slot := range storage {
 		pos := utils.ScreenCoord{
 			X: float32(i%SLOTS_IN_LINE) * (itemSlotSize.X + itemSlotGap),
 			Y: float32(i/SLOTS_IN_LINE) * (itemSlotSize.Y + itemSlotGap),
 		}
-		is := NewItemSlot(pos, itemSlotSize)
-		is.SetItem(item)
+		is := NewItemSlot(pos, itemSlotSize, slot)
 		w.storagePanel.AddChild(is, CONTROL_ALIGN_TOPLEFT)
 	}
 

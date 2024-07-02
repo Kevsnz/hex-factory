@@ -11,7 +11,7 @@ import (
 type Storage struct {
 	Object
 	params *gd.StorageParameters
-	slots  []*items.ItemStack
+	slots  []*items.StorageSlot
 }
 
 func NewChestBox(
@@ -20,6 +20,10 @@ func NewChestBox(
 	objParams *gd.ObjectParameters,
 	params *gd.StorageParameters,
 ) *Storage {
+	slots := make([]*items.StorageSlot, params.Capacity)
+	for i := range slots {
+		slots[i] = &items.StorageSlot{}
+	}
 	return &Storage{
 		Object: Object{
 			objType:   objType,
@@ -27,7 +31,7 @@ func NewChestBox(
 			objParams: objParams,
 		},
 		params: params,
-		slots:  make([]*items.ItemStack, params.Capacity),
+		slots:  slots,
 	}
 }
 
@@ -37,87 +41,91 @@ func (s *Storage) DrawGroundLevel(r *renderer.GameRenderer) {
 func (s *Storage) DrawOnGroundLevel(r *renderer.GameRenderer) {}
 
 func (s *Storage) TakeItemOut(pos utils.WorldCoord, allowedItems []ss.ItemType) (*items.ItemInWorld, bool) {
-	for i, stack := range s.slots {
-		if stack == nil {
+	for _, slot := range s.slots {
+		item := slot.Item
+		if item == nil {
 			continue
 		}
-		if allowedItems != nil && !utils.ItemInList(stack.ItemType, allowedItems) {
+		if allowedItems != nil && !utils.ItemInList(item.ItemType, allowedItems) {
 			continue
 		}
 
-		item := items.NewItemInWorld2(stack.ItemType, s.pos.CenterToWorld())
-		stack.Count--
-		if stack.Count == 0 {
-			s.slots[i] = nil
+		if !item.TakeOne() {
+			panic("item counts are messed up") // TODO Change to continue????????????
 		}
-		return &item, true
+		newItem := items.NewItemInWorld2(item.ItemType, s.pos.CenterToWorld())
+		if item.Count == 0 {
+			slot.Item = nil
+		}
+		return &newItem, true
 	}
 	return nil, false
 }
 
 func (s *Storage) GetAcceptableItems() []ss.ItemType {
-	for _, stack := range s.slots {
-		if stack == nil {
+	for _, slot := range s.slots {
+		if slot.Item == nil {
 			return nil
 		}
 	}
 
 	info := []ss.ItemType{}
-	for _, stack := range s.slots {
-		if stack.Count < ss.StackMaxSizes[stack.ItemType] {
-			info = append(info, stack.ItemType)
+	for _, slot := range s.slots {
+		if slot.Item.Count < ss.StackMaxSizes[slot.Item.ItemType] {
+			info = append(info, slot.Item.ItemType)
 		}
 	}
 	return info
 }
 
 func (s *Storage) TakeItemIn(pos utils.WorldCoord, item items.ItemInWorld) (ok bool) {
-	emptyIdx := -1
-	for i, stack := range s.slots {
-		if stack == nil {
-			if emptyIdx == -1 {
-				emptyIdx = i
+	var emptySlot *items.StorageSlot = nil
+	for _, slot := range s.slots {
+		if slot.Item == nil {
+			if emptySlot == nil {
+				emptySlot = slot
 			}
 			continue
 		}
-		if stack.ItemType != item.ItemType {
+		if slot.Item.ItemType != item.ItemType {
 			continue
 		}
-		if stack.AddOne() {
+		if slot.Item.AddOne() {
 			return true
 		}
 	}
-	if emptyIdx == -1 {
+	if emptySlot == nil {
 		return false
 	}
 
 	stack := items.NewSingleItemStack(item.ItemType)
-	s.slots[emptyIdx] = &stack
+	emptySlot.Item = &stack
 	return true
 }
 
 func (s *Storage) GetItemList() []utils.ItemInfo {
 	var info []utils.ItemInfo
 outer:
-	for _, stack := range s.slots {
-		if stack == nil {
+	for _, slot := range s.slots {
+		item := slot.Item
+		if item == nil {
 			continue
 		}
 
 		for j, inf := range info {
-			if inf.Type == stack.ItemType {
-				info[j].Count += stack.Count
+			if inf.Type == item.ItemType {
+				info[j].Count += item.Count
 				continue outer
 			}
 		}
 		info = append(info, utils.ItemInfo{
-			Type:  stack.ItemType,
-			Count: stack.Count,
+			Type:  item.ItemType,
+			Count: item.Count,
 		})
 	}
 	return info
 }
 
-func (s *Storage) GetStorage() []*items.ItemStack {
+func (s *Storage) GetStorage() []*items.StorageSlot {
 	return s.slots
 }

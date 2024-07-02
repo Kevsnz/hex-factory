@@ -10,15 +10,16 @@ import (
 type ItemSlot struct {
 	ControlBase
 	hover bool
-	item  *items.ItemStack
+	slot  *items.StorageSlot
 }
 
-func NewItemSlot(pos utils.ScreenCoord, size utils.ScreenCoord) *ItemSlot {
+func NewItemSlot(pos utils.ScreenCoord, size utils.ScreenCoord, slot *items.StorageSlot) *ItemSlot {
 	return &ItemSlot{
 		ControlBase: ControlBase{
 			Pos:  pos,
 			Size: size,
 		},
+		slot: slot,
 	}
 }
 
@@ -31,14 +32,13 @@ func (i *ItemSlot) HandleMouseAction(mbe input.MouseButtonEvent) bool {
 	return false
 }
 
-func (i *ItemSlot) SetItem(item *items.ItemStack) {
-	i.item = item
-}
-
 func (i *ItemSlot) Draw(r *renderer.GameRenderer, parentPos utils.ScreenCoord) {
-	if i.item == nil {
+	if i.slot == nil {
+		panic("slot is not initialized")
+	}
+	if i.slot.Item == nil {
 		r.DrawItemSlot(i.Pos.Add(parentPos), i.Size, i.hover)
 	} else {
-		r.DrawItemSlotWithItem(i.Pos.Add(parentPos), i.Size, i.hover, i.item.ItemType, i.item.Count)
+		r.DrawItemSlotWithItem(i.Pos.Add(parentPos), i.Size, i.hover, i.slot.Item.ItemType, i.slot.Item.Count)
 	}
 }

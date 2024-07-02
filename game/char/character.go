@@ -10,14 +10,18 @@ import (
 type Character struct {
 	pos       utils.WorldCoordInterpolated
 	velocity  utils.WorldCoord
-	inventory []*items.ItemStack
+	inventory []*items.StorageSlot
 }
 
 func NewCharacter(pos utils.WorldCoord) Character {
+	slots := make([]*items.StorageSlot, 24)
+	for i := range slots {
+		slots[i] = &items.StorageSlot{}
+	}
 	return Character{
 		pos:       utils.NewWorldCoordInterpolated2(pos),
 		velocity:  utils.WorldCoord{},
-		inventory: make([]*items.ItemStack, 24),
+		inventory: slots,
 	}
 }
 
@@ -54,6 +58,6 @@ func (c *Character) UpdateMovement(dx, dy int64) {
 	c.pos.UpdatePosition(c.pos.Pos.Add(c.velocity), false)
 }
 
-func (c *Character) GetInventory() []*items.ItemStack {
+func (c *Character) GetInventory() []*items.StorageSlot {
 	return c.inventory
 }

@@ -56,11 +56,11 @@ func (u *UI) ShowToggle() {
 	u.show = !u.show
 }
 
-func (u *UI) ShowInventoryWindow(inventory []*items.ItemStack) {
+func (u *UI) ShowInventoryWindow(inventory []*items.StorageSlot) {
 	u.windows[WINDOW_INVENTORY].(*WindowInventory).ShowInventory(inventory)
 }
 
-func (u *UI) ShowStorageWindow(objName strings.StringID, inventory []*items.ItemStack, storage []*items.ItemStack) {
+func (u *UI) ShowStorageWindow(objName strings.StringID, inventory []*items.StorageSlot, storage []*items.StorageSlot) {
 	u.windows[WINDOW_STORAGE].(*WindowStorage).ShowStorage(objName, inventory, storage)
 }
 
