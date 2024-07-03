@@ -12,7 +12,7 @@ type iControl interface {
 	SetPos(utils.ScreenCoord)
 	GetSize() utils.ScreenCoord
 	HandleMouseMovement(utils.ScreenCoord)
-	HandleMouseAction(input.MouseButtonEvent) bool
+	HandleMouseAction(input.MouseButtonEvent) (handled bool)
 	Draw(*renderer.GameRenderer, utils.ScreenCoord)
 }
 

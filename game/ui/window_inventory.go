@@ -8,7 +8,7 @@ import (
 
 type WindowInventory struct {
 	Window
-	slotCount int
+	storage items.Storage
 }
 
 func NewWindowInventory() *WindowInventory {
@@ -27,13 +27,11 @@ func NewWindowInventory() *WindowInventory {
 }
 
 func (w *WindowInventory) ShowInventory(inventory []*items.StorageSlot) {
-	if w.slotCount != len(inventory) {
-		w.refillSlots(inventory)
-	}
+	w.refillSlots(inventory)
 	w.Visible = true
 }
 
-func (w *WindowInventory) refillSlots(inventory []*items.StorageSlot) {
+func (w *WindowInventory) refillSlots(inventory items.Storage) {
 	newChildren := make([]iControl, 0, len(inventory)+2)
 	for _, c := range w.children {
 		if _, ok := c.(*ItemSlot); !ok {
@@ -43,18 +41,18 @@ func (w *WindowInventory) refillSlots(inventory []*items.StorageSlot) {
 
 	w.children = newChildren
 
-	w.slotCount = len(inventory)
+	w.storage = inventory
 	for i, slot := range inventory {
 		pos := utils.ScreenCoord{
 			X: float32(i%SLOTS_IN_LINE) * (itemSlotSize.X + itemSlotGap),
 			Y: float32(i/SLOTS_IN_LINE) * (itemSlotSize.Y + itemSlotGap),
 		}
-		is := NewItemSlot(pos, itemSlotSize, slot)
+		is := NewItemSlot(pos, itemSlotSize, slot, nil)
 		w.AddChild(is, CONTROL_ALIGN_TOPLEFT)
 	}
 
-	w.Size.Y = (itemSlotSize.X+itemSlotGap)*float32(w.slotCount)/SLOTS_IN_LINE + wndTitleHeight.Y
-	if w.slotCount%SLOTS_IN_LINE != 0 {
+	w.Size.Y = (itemSlotSize.X+itemSlotGap)*float32(len(inventory))/SLOTS_IN_LINE + wndTitleHeight.Y
+	if len(inventory)%SLOTS_IN_LINE != 0 {
 		w.Size.Y += itemSlotSize.X + itemSlotGap
 	}
 	w.Pos.Y = utils.ScreenCoord{X: 0.5, Y: 0.5}.PctPosToScreen().Y - w.Size.Y/2

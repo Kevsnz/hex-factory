@@ -35,3 +35,14 @@ func (i *ItemStack) TakeOne() bool {
 	i.Count--
 	return true
 }
+
+func (i *ItemStack) TakeWithRemainder(count int) int {
+	maxStack := settings.StackMaxSizes[i.ItemType]
+	if i.Count > maxStack-count {
+		count -= maxStack - i.Count
+		i.Count = maxStack
+		return count
+	}
+	i.Count += count
+	return 0
+}

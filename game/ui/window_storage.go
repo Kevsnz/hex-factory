@@ -10,6 +10,8 @@ type WindowStorage struct {
 	Window
 	inventoryPanel *GroupBox
 	storagePanel   *GroupBox
+	inventory      items.Storage
+	storage        items.Storage
 }
 
 func NewWindowStorage() *WindowStorage {
@@ -45,14 +47,17 @@ func (w *WindowStorage) ShowStorage(objName strings.StringID, inventory []*items
 	w.Visible = true
 }
 
-func (w *WindowStorage) refillSlots(inventory []*items.StorageSlot, storage []*items.StorageSlot) {
+func (w *WindowStorage) refillSlots(inventory items.Storage, storage items.Storage) {
+	w.inventory = inventory
+	w.storage = storage
+
 	w.inventoryPanel.Clear()
 	for i, slot := range inventory {
 		pos := utils.ScreenCoord{
 			X: float32(i%SLOTS_IN_LINE) * (itemSlotSize.X + itemSlotGap),
 			Y: float32(i/SLOTS_IN_LINE) * (itemSlotSize.Y + itemSlotGap),
 		}
-		is := NewItemSlot(pos, itemSlotSize, slot)
+		is := NewItemSlot(pos, itemSlotSize, slot, w.moveStackToStorage)
 		w.inventoryPanel.AddChild(is, CONTROL_ALIGN_TOPLEFT)
 	}
 
@@ -62,7 +67,7 @@ func (w *WindowStorage) refillSlots(inventory []*items.StorageSlot, storage []*i
 			X: float32(i%SLOTS_IN_LINE) * (itemSlotSize.X + itemSlotGap),
 			Y: float32(i/SLOTS_IN_LINE) * (itemSlotSize.Y + itemSlotGap),
 		}
-		is := NewItemSlot(pos, itemSlotSize, slot)
+		is := NewItemSlot(pos, itemSlotSize, slot, w.moveStackToInventory)
 		w.storagePanel.AddChild(is, CONTROL_ALIGN_TOPLEFT)
 	}
 
@@ -73,4 +78,26 @@ func (w *WindowStorage) refillSlots(inventory []*items.StorageSlot, storage []*i
 	w.Size.Y = wndTitleHeight.Y + w.inventoryPanel.Size.Y
 
 	w.Pos = utils.ScreenCoord{X: 0.5, Y: 0.5}.PctPosToScreen().Sub(w.Size.Div(2))
+}
+
+func (w *WindowStorage) moveStackToStorage(slot *items.StorageSlot) {
+	if slot.Item == nil {
+		return
+	}
+
+	w.storage.TakeItemStackAnywhere(slot.Item)
+	if slot.Item.Count == 0 {
+		slot.Item = nil
+	}
+}
+
+func (w *WindowStorage) moveStackToInventory(slot *items.StorageSlot) {
+	if slot.Item == nil {
+		return
+	}
+
+	w.inventory.TakeItemStackAnywhere(slot.Item)
+	if slot.Item.Count == 0 {
+		slot.Item = nil
+	}
 }
