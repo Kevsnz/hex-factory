@@ -44,7 +44,7 @@ func main() {
 	r.LoadTextures()
 
 	ih := input.NewInputHandler()
-	ih.SetKeybind(sdl.SCANCODE_ESCAPE, input.ACTION_QUIT)
+	// ih.SetKeybind(sdl.SCANCODE_ESCAPE, input.ACTION_QUIT)
 	ih.SetKeybind(sdl.SCANCODE_P, input.ACTION_PAUSE)
 	ih.SetKeybind(sdl.SCANCODE_F1, input.ACTION_TOGGLE_UI)
 	ih.SetKeybind(sdl.SCANCODE_W, input.ACTION_MOVE_UP)
@@ -57,6 +57,10 @@ func main() {
 	ih.SetKeybind(sdl.SCANCODE_Q, input.ACTION_ROTATE_CCW)
 	ih.SetKeybind(sdl.SCANCODE_SPACE, input.ACTION_PLACE_ITEM)
 	ih.SetKeybind(sdl.SCANCODE_I, input.ACTION_OPEN_INVENTORY)
+
+	ih.SetKeybind(sdl.SCANCODE_RETURN, input.ACTION_ENTER)
+	ih.SetKeybind(sdl.SCANCODE_KP_ENTER, input.ACTION_ENTER)
+	ih.SetKeybind(sdl.SCANCODE_ESCAPE, input.ACTION_CANCEL)
 
 	ih.SetKeybind(sdl.SCANCODE_1, input.ACTION_SELECT_TOOL_1)
 	ih.SetKeybind(sdl.SCANCODE_2, input.ACTION_SELECT_TOOL_2)

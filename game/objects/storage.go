@@ -20,10 +20,6 @@ func NewChestBox(
 	objParams *gd.ObjectParameters,
 	params *gd.StorageParameters,
 ) *Storage {
-	slots := make([]*items.StorageSlot, params.Capacity)
-	for i := range slots {
-		slots[i] = &items.StorageSlot{}
-	}
 	return &Storage{
 		Object: Object{
 			objType:   objType,
@@ -31,7 +27,7 @@ func NewChestBox(
 			objParams: objParams,
 		},
 		params: params,
-		slots:  slots,
+		slots:  items.NewStorage(params.Capacity, true),
 	}
 }
 

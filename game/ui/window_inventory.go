@@ -16,10 +16,11 @@ func NewWindowInventory() *WindowInventory {
 	pos := utils.ScreenCoord{X: 0.5, Y: 0.5}.PctPosToScreen().Sub(size.Div(2))
 	wnd := &WindowInventory{
 		Window: Window{
-			Pos:     pos,
-			Size:    size,
-			Title:   strings.STRING_INVENTORY,
-			Visible: false,
+			pos:     pos,
+			size:    size,
+			title:   strings.STRING_INVENTORY,
+			visible: false,
+			dialog:  true,
 		},
 	}
 	WithCloseBox(wnd)
@@ -28,7 +29,7 @@ func NewWindowInventory() *WindowInventory {
 
 func (w *WindowInventory) ShowInventory(inventory []*items.StorageSlot) {
 	w.refillSlots(inventory)
-	w.Visible = true
+	w.visible = true
 }
 
 func (w *WindowInventory) refillSlots(inventory items.Storage) {
@@ -51,9 +52,9 @@ func (w *WindowInventory) refillSlots(inventory items.Storage) {
 		w.AddChild(is, CONTROL_ALIGN_TOPLEFT)
 	}
 
-	w.Size.Y = (itemSlotSize.X+itemSlotGap)*float32(len(inventory))/SLOTS_IN_LINE + wndTitleHeight.Y
+	w.size.Y = (itemSlotSize.X+itemSlotGap)*float32(len(inventory))/SLOTS_IN_LINE + wndTitleHeight.Y
 	if len(inventory)%SLOTS_IN_LINE != 0 {
-		w.Size.Y += itemSlotSize.X + itemSlotGap
+		w.size.Y += itemSlotSize.X + itemSlotGap
 	}
-	w.Pos.Y = utils.ScreenCoord{X: 0.5, Y: 0.5}.PctPosToScreen().Y - w.Size.Y/2
+	w.pos.Y = utils.ScreenCoord{X: 0.5, Y: 0.5}.PctPosToScreen().Y - w.size.Y/2
 }

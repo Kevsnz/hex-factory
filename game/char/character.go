@@ -7,6 +7,8 @@ import (
 	"math"
 )
 
+const PLAYER_INVENTORY_CAPACITY = 24
+
 type Character struct {
 	pos       utils.WorldCoordInterpolated
 	velocity  utils.WorldCoord
@@ -14,14 +16,10 @@ type Character struct {
 }
 
 func NewCharacter(pos utils.WorldCoord) Character {
-	slots := make([]*items.StorageSlot, 24)
-	for i := range slots {
-		slots[i] = &items.StorageSlot{}
-	}
 	return Character{
 		pos:       utils.NewWorldCoordInterpolated2(pos),
 		velocity:  utils.WorldCoord{},
-		inventory: slots,
+		inventory: items.NewStorage(PLAYER_INVENTORY_CAPACITY, true),
 	}
 }
 

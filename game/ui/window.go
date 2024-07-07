@@ -17,36 +17,37 @@ type iControl interface {
 }
 
 type Window struct {
-	Pos      utils.ScreenCoord
-	Size     utils.ScreenCoord
-	Title    strings.StringID
+	pos      utils.ScreenCoord
+	size     utils.ScreenCoord
+	title    strings.StringID
 	children []iControl
-	Visible  bool
+	visible  bool
+	dialog   bool
 }
 
 func (w *Window) AddChild(c iControl, ca ControlAlignment) {
-	c.SetPos(ca.ConvertCoords(c.GetPos(), c.GetSize(), w.Size).Add(wndTitleHeight))
+	c.SetPos(ca.ConvertCoords(c.GetPos(), c.GetSize(), w.size).Add(wndTitleHeight))
 	w.children = append(w.children, c)
 }
 
 func (w *Window) Draw(r *renderer.GameRenderer) {
-	if !w.Visible {
+	if !w.visible {
 		return
 	}
 
-	r.DrawWindow(w.Pos, w.Size, w.Title)
+	r.DrawWindow(w.pos, w.size, w.title)
 	for _, child := range w.children {
-		child.Draw(r, w.Pos)
+		child.Draw(r, w.pos)
 	}
 }
 
 func (w *Window) within(mp utils.ScreenCoord) bool {
-	return mp.X >= 0 && mp.X < w.Size.X && mp.Y >= 0 && mp.Y < w.Size.Y
+	return mp.X >= 0 && mp.X < w.size.X && mp.Y >= 0 && mp.Y < w.size.Y
 }
 
 func (w *Window) HandleMouseMovement(mp utils.ScreenCoord) {
-	mp = mp.Sub(w.Pos)
-	if !w.Visible || !w.within(mp) {
+	mp = mp.Sub(w.pos)
+	if !w.visible || !w.within(mp) {
 		return
 	}
 
@@ -56,11 +57,11 @@ func (w *Window) HandleMouseMovement(mp utils.ScreenCoord) {
 }
 
 func (w *Window) HandleMouseAction(mbe input.MouseButtonEvent) bool {
-	if !w.Visible {
+	if !w.visible {
 		return false
 	}
 
-	mbe.Coord = mbe.Coord.Sub(w.Pos)
+	mbe.Coord = mbe.Coord.Sub(w.pos)
 	if !w.within(mbe.Coord) {
 		return false
 	}
@@ -73,9 +74,21 @@ func (w *Window) HandleMouseAction(mbe input.MouseButtonEvent) bool {
 	return true
 }
 
+func (w *Window) HandleGameAction(ae input.ActionEvent) bool {
+	switch ae.Action {
+	case input.ACTION_CANCEL:
+		if w.dialog {
+			w.Hide()
+			return true
+		}
+	}
+	return false
+}
+
 func (w *Window) Show() {
-	w.Visible = true
+	w.visible = true
 }
 func (w *Window) Hide() {
-	w.Visible = false
+	w.visible = false
 }
+func (w *Window) IsVisible() bool { return w.visible }

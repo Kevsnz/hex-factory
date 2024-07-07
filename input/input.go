@@ -24,6 +24,9 @@ const (
 	ACTION_TOGGLE_UI      = ActionType(iota)
 	ACTION_OPEN_INVENTORY = ActionType(iota)
 
+	ACTION_ENTER  = ActionType(iota)
+	ACTION_CANCEL = ActionType(iota)
+
 	ACTION_SELECT_TOOL_1 = ActionType(iota)
 	ACTION_SELECT_TOOL_2 = ActionType(iota)
 	ACTION_SELECT_TOOL_3 = ActionType(iota)

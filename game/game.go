@@ -95,6 +95,10 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 			break
 		}
 
+		if g.ui.HandleGameAction(actionEvent) {
+			continue
+		}
+
 		hex := utils.HexCoordFromWorld(g.mousePos.ToWorld())
 		switch actionEvent.Type {
 		case input.ACTION_TYPE_DOWN:
@@ -150,6 +154,12 @@ func (g *Game) processGameActions(ih *input.InputHandler) {
 				g.selectObjType(ss.OBJECT_TYPE_FURNACE_STONE)
 			case input.ACTION_SELECT_TOOL_9:
 				g.selectObjType(ss.OBJECT_TYPE_ASSEMBLER_BASIC)
+			case input.ACTION_CANCEL:
+				if g.selectedObjType != ss.OBJECT_TYPE_COUNT {
+					g.selectedObjType = ss.OBJECT_TYPE_COUNT
+					break
+				}
+				g.Running = false
 			}
 		case input.ACTION_TYPE_UP:
 		}
@@ -379,10 +389,16 @@ func (g *Game) useSelectedTool(hex utils.HexCoord) {
 func (g *Game) interactWithWorldObject(wo world.WorldObject) {
 	switch obj := wo.(type) {
 	case *objects.Converter:
-		if !obj.RecipeChangeable() {
+		if obj.RecipeChangeable() && !obj.HasRecipe() {
+			g.ui.ShowRecipeWindow([]ss.Recipe{ss.RECIPE_IRON_GEAR}, func(r ss.Recipe) { obj.ChangeRecipe(r) })
 			break
 		}
-		g.ui.ShowRecipeWindow([]ss.Recipe{ss.RECIPE_IRON_GEAR}, func(r ss.Recipe) { obj.ChangeRecipe(r) })
+		g.ui.ShowConverterWindow(
+			gd.ObjectParamsList[obj.GetObjectType()].Name,
+			g.player.GetInventory(),
+			obj.GetInputSlots(),
+			obj.GetOutputSlots(),
+		)
 	case *objects.Storage:
 		g.ui.ShowStorageWindow(gd.ObjectParamsList[obj.GetObjectType()].Name, g.player.GetInventory(), obj.GetStorage())
 	}

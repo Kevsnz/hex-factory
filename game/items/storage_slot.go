@@ -1,22 +1,23 @@
 package items
 
 type StorageSlot struct {
-	Item *ItemStack
+	Item   *ItemStack
+	Active bool
 }
 
 type Storage []*StorageSlot
 
-func NewStorage(length int) Storage {
+func NewStorage(length int, active bool) Storage {
 	storage := make(Storage, length)
 	for i := 0; i < length; i++ {
-		storage[i] = &StorageSlot{Item: nil}
+		storage[i] = &StorageSlot{Item: nil, Active: active}
 	}
 	return storage
 }
 
 func (s Storage) TakeItemStackAnywhere(i *ItemStack) {
 	for _, slot := range s {
-		if slot.Item == nil || slot.Item.ItemType != i.ItemType {
+		if !slot.Active || slot.Item == nil || slot.Item.ItemType != i.ItemType {
 			continue
 		}
 		remainder := slot.Item.TakeWithRemainder(i.Count)
@@ -27,7 +28,7 @@ func (s Storage) TakeItemStackAnywhere(i *ItemStack) {
 	}
 
 	for _, slot := range s {
-		if slot.Item != nil {
+		if !slot.Active || slot.Item != nil {
 			continue
 		}
 		newItemStack := NewItemStack(i.ItemType, i.Count)
