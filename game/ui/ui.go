@@ -62,7 +62,7 @@ func (u *UI) ShowToggle() {
 	u.show = !u.show
 }
 
-func (u *UI) ShowInventoryWindow(inventory []*items.StorageSlot) {
+func (u *UI) ShowInventoryWindow(inventory items.Storage) {
 	//lint:ignore S1040 // it's a nil check!!!
 	if w, ok := u.currentDialogWindow.(iWindow); ok {
 		if w.IsVisible() {
@@ -75,8 +75,8 @@ func (u *UI) ShowInventoryWindow(inventory []*items.StorageSlot) {
 
 func (u *UI) ShowStorageWindow(
 	objName strings.StringID,
-	inventory []*items.StorageSlot,
-	storage []*items.StorageSlot,
+	inventory items.Storage,
+	storage items.Storage,
 ) {
 	//lint:ignore S1040 // it's a nil check!!!
 	if w, ok := u.currentDialogWindow.(iWindow); ok {
@@ -90,9 +90,8 @@ func (u *UI) ShowStorageWindow(
 
 func (u *UI) ShowConverterWindow(
 	objName strings.StringID,
-	inventory []*items.StorageSlot,
-	inputSlots []*items.StorageSlot,
-	outputSlots []*items.StorageSlot,
+	inventory items.Storage,
+	converter InteractableStorageConverter,
 ) {
 	//lint:ignore S1040 // it's a nil check!!!
 	if w, ok := u.currentDialogWindow.(iWindow); ok {
@@ -100,7 +99,7 @@ func (u *UI) ShowConverterWindow(
 			return
 		}
 	}
-	u.windows[WINDOW_CONVERTER].(*WindowConverter).ShowConverter(objName, inventory, inputSlots, outputSlots)
+	u.windows[WINDOW_CONVERTER].(*WindowConverter).ShowConverter(objName, inventory, converter)
 	u.currentDialogWindow = u.windows[WINDOW_CONVERTER]
 }
 

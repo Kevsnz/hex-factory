@@ -86,7 +86,8 @@ func (w *WindowStorage) moveStackToStorage(slot *items.StorageSlot) {
 		return
 	}
 
-	w.storage.TakeItemStackAnywhere(slot.Item)
+	taken := w.storage.TakeItemStackAnywhere(slot.Item)
+	slot.Item.Count -= taken
 	if slot.Item.Count == 0 {
 		slot.Item = nil
 	}
@@ -97,7 +98,8 @@ func (w *WindowStorage) moveStackToInventory(slot *items.StorageSlot) {
 		return
 	}
 
-	w.inventory.TakeItemStackAnywhere(slot.Item)
+	taken := w.inventory.TakeItemStackAnywhere(slot.Item)
+	slot.Item.Count -= taken
 	if slot.Item.Count == 0 {
 		slot.Item = nil
 	}

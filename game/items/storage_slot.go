@@ -18,15 +18,15 @@ func NewStorage(length int, active bool) Storage {
 	return storage
 }
 
-func (s Storage) TakeItemStackAnywhere(i *ItemStack) {
+func (s Storage) TakeItemStackAnywhere(i *ItemStack, maxCount int) int {
+	count := maxCount
 	for _, slot := range s {
 		if !slot.Active || slot.Item == nil || slot.Item.ItemType != i.ItemType {
 			continue
 		}
-		remainder := slot.Item.TakeWithRemainder(i.Count)
-		i.Count = remainder
-		if i.Count == 0 {
-			return
+		count = slot.Item.TakeWithRemainder(count)
+		if count == 0 {
+			return maxCount
 		}
 	}
 
@@ -37,9 +37,10 @@ func (s Storage) TakeItemStackAnywhere(i *ItemStack) {
 		if slot.FixedItemType != settings.ITEM_TYPE_COUNT && slot.FixedItemType != i.ItemType {
 			continue
 		}
-		newItemStack := NewItemStack(i.ItemType, i.Count)
+		newItemStack := NewItemStack(i.ItemType, count)
 		slot.Item = &newItemStack
-		i.Count = 0
-		return
+		return maxCount
 	}
+
+	return maxCount - count
 }

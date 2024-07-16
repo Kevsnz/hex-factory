@@ -27,7 +27,7 @@ func NewWindowInventory() *WindowInventory {
 	return wnd
 }
 
-func (w *WindowInventory) ShowInventory(inventory []*items.StorageSlot) {
+func (w *WindowInventory) ShowInventory(inventory items.Storage) {
 	w.refillSlots(inventory)
 	w.visible = true
 }

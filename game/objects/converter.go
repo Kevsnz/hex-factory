@@ -15,8 +15,8 @@ type Converter struct {
 	dir                utils.Dir
 	params             *gd.ConverterParameters
 	recipe             *gd.Recipe
-	inputs             []*items.StorageSlot
-	outputs            []*items.StorageSlot
+	inputs             items.Storage
+	outputs            items.Storage
 	conversionProgress uint32
 }
 
@@ -356,10 +356,64 @@ func (c *Converter) checkResetRecipe() {
 	}
 }
 
-func (c *Converter) GetInputSlots() []*items.StorageSlot {
+func (c *Converter) GetInputSlots() items.Storage {
 	return c.inputs
 }
 
-func (c *Converter) GetOutputSlots() []*items.StorageSlot {
+func (c *Converter) GetOutputSlots() items.Storage {
 	return c.outputs
+}
+
+func (c *Converter) PutIn(item *items.ItemStack, maxCount int) int {
+	if c.recipe == nil {
+		if !c.params.AutoRecipe || !c.setFittingRecipe(item.ItemType) {
+			return 0
+		}
+	}
+
+	taken := items.Storage(c.inputs).TakeItemStackAnywhere(item, maxCount)
+	return taken
+}
+func (c *Converter) TakeOut(slot *items.StorageSlot, count int) {
+	if c.recipe == nil {
+		panic("no recipe")
+	}
+
+	for _, input := range c.inputs {
+		if input != slot {
+			continue
+		}
+
+		if input.Item.Count < count {
+			panic("invalid item counts")
+		}
+
+		input.Item.Count -= count
+		if input.Item.Count == 0 {
+			input.Item = nil
+			if c.params.AutoRecipe {
+				c.checkResetRecipe()
+			}
+			return
+		}
+	}
+
+	for _, output := range c.outputs {
+		if output != slot {
+			continue
+		}
+
+		if output.Item.Count < count {
+			panic("invalid item counts")
+		}
+
+		output.Item.Count -= count
+		if output.Item.Count == 0 {
+			output.Item = nil
+			if c.params.AutoRecipe {
+				c.checkResetRecipe()
+			}
+			return
+		}
+	}
 }

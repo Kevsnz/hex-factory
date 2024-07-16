@@ -8,10 +8,11 @@ import (
 
 type WindowConverter struct {
 	Window
-	inventoryPanel *GroupBox
-	converterPanel *GroupBox
-	inventory      items.Storage
-	converter      items.Storage
+	inventoryPanel  *GroupBox
+	converterPanel  *GroupBox
+	inventory       items.Storage
+	converterInputs items.Storage
+	converter       InteractableStorageConverter
 }
 
 func NewWindowConverter() *WindowConverter {
@@ -43,16 +44,20 @@ func NewWindowConverter() *WindowConverter {
 }
 
 func (w *WindowConverter) ShowConverter(
-	objName strings.StringID, inventory items.Storage, inputSlots items.Storage, outputSlots items.Storage,
+	objName strings.StringID, inventory items.Storage, converter InteractableStorageConverter,
 ) {
 	w.title = objName
-	w.refillSlots(inventory, inputSlots, outputSlots)
+	w.refillSlots(inventory, converter)
 	w.visible = true
 }
 
-func (w *WindowConverter) refillSlots(inventory items.Storage, inputSlots items.Storage, outputSlots items.Storage) {
+func (w *WindowConverter) refillSlots(inventory items.Storage, converter InteractableStorageConverter) {
+	inputSlots := converter.GetInputSlots()
+	outputSlots := converter.GetOutputSlots()
+
 	w.inventory = inventory
-	w.converter = inputSlots
+	w.converterInputs = inputSlots
+	w.converter = converter
 
 	w.inventoryPanel.Clear()
 	for i, slot := range inventory {
@@ -60,7 +65,7 @@ func (w *WindowConverter) refillSlots(inventory items.Storage, inputSlots items.
 			X: float32(i%SLOTS_IN_LINE) * (itemSlotSize.X + itemSlotGap),
 			Y: float32(i/SLOTS_IN_LINE) * (itemSlotSize.Y + itemSlotGap),
 		}
-		is := NewItemSlot(pos, itemSlotSize, slot, w.moveStackToInputs)
+		is := NewItemSlot(pos, itemSlotSize, slot, w.moveStackToConverter)
 		w.inventoryPanel.AddChild(is, CONTROL_ALIGN_TOPLEFT)
 	}
 
@@ -99,18 +104,17 @@ func (w *WindowConverter) moveStackToInventory(slot *items.StorageSlot) {
 		return
 	}
 
-	w.inventory.TakeItemStackAnywhere(slot.Item)
-	if slot.Item.Count == 0 {
-		slot.Item = nil
-	}
+	taken := w.inventory.TakeItemStackAnywhere(slot.Item, slot.Item.Count)
+	w.converter.TakeOut(slot, taken)
 }
 
-func (w *WindowConverter) moveStackToInputs(slot *items.StorageSlot) {
+func (w *WindowConverter) moveStackToConverter(slot *items.StorageSlot) {
 	if slot.Item == nil {
 		return
 	}
 
-	w.converter.TakeItemStackAnywhere(slot.Item)
+	taken := w.converter.PutIn(slot.Item, slot.Item.Count)
+	slot.Item.Count -= taken
 	if slot.Item.Count == 0 {
 		slot.Item = nil
 	}

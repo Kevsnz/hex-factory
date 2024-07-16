@@ -393,12 +393,7 @@ func (g *Game) interactWithWorldObject(wo world.WorldObject) {
 			g.ui.ShowRecipeWindow([]ss.Recipe{ss.RECIPE_IRON_GEAR}, func(r ss.Recipe) { obj.ChangeRecipe(r) })
 			break
 		}
-		g.ui.ShowConverterWindow(
-			gd.ObjectParamsList[obj.GetObjectType()].Name,
-			g.player.GetInventory(),
-			obj.GetInputSlots(),
-			obj.GetOutputSlots(),
-		)
+		g.ui.ShowConverterWindow(gd.ObjectParamsList[obj.GetObjectType()].Name, g.player.GetInventory(), obj)
 	case *objects.Storage:
 		g.ui.ShowStorageWindow(gd.ObjectParamsList[obj.GetObjectType()].Name, g.player.GetInventory(), obj.GetStorage())
 	}
