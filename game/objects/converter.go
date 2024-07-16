@@ -12,13 +12,11 @@ const CONVERTER_OVERSTOCK_FACTOR = 2
 
 type Converter struct {
 	Object
-	dir     utils.Dir
-	params  *gd.ConverterParameters
-	recipe  *gd.Recipe
-	inputs  []*items.StorageSlot
-	outputs []*items.StorageSlot
-	// inputCounts        []int
-	// outputCounts       []int
+	dir                utils.Dir
+	params             *gd.ConverterParameters
+	recipe             *gd.Recipe
+	inputs             []*items.StorageSlot
+	outputs            []*items.StorageSlot
 	conversionProgress uint32
 }
 
@@ -84,28 +82,40 @@ func (c *Converter) ChangeRecipe(recipe ss.Recipe) {
 		panic("cannot change recipe for auto recipe converter")
 	}
 
-	if c.recipe == nil {
-		c.recipe = &gd.RecipeList[recipe]
-		for i, slot := range c.inputs {
-			slot.Active = i < len(c.recipe.Ingredients)
-		}
-		for i, slot := range c.outputs {
-			slot.Active = i < len(c.recipe.Products)
-		}
-		c.conversionProgress = 0
-		return
-	}
-
+	oldRecipe := c.recipe
 	c.recipe = &gd.RecipeList[recipe]
 	for i, slot := range c.inputs {
-		// TODO Drop left over items (slot.Item.Count > 0)
-		slot.Item = nil
+		if oldRecipe != nil {
+			if slot.Item != nil && oldRecipe.Ingredients[i].Type != c.recipe.Ingredients[i].Type {
+				i += 0 // TODO Drop left over items (slot.Item.Count > 0)
+			}
+			slot.Item = nil
+		}
+
 		slot.Active = i < len(c.recipe.Ingredients)
+
+		if i < len(c.recipe.Ingredients) {
+			slot.FixedItemType = c.recipe.Ingredients[i].Type
+		} else {
+			slot.FixedItemType = ss.ITEM_TYPE_COUNT
+		}
 	}
+
 	for i, slot := range c.outputs {
-		// TODO Drop left over items (slot.Item.Count > 0)
-		slot.Item = nil
+		if oldRecipe != nil {
+			if slot.Item != nil && oldRecipe.Products[i].Type != c.recipe.Products[i].Type {
+				i += 0 // TODO Drop left over items (slot.Item.Count > 0)
+			}
+			slot.Item = nil
+		}
+
 		slot.Active = i < len(c.recipe.Products)
+
+		if i < len(c.recipe.Products) {
+			slot.FixedItemType = c.recipe.Products[i].Type
+		} else {
+			slot.FixedItemType = ss.ITEM_TYPE_COUNT
+		}
 	}
 	c.conversionProgress = 0
 }
@@ -182,6 +192,9 @@ func (c *Converter) GetItemList() []utils.ItemInfo {
 }
 
 func (c *Converter) Update(ticks uint64, world HexGridWorldInteractor) {
+	if c.params.AutoRecipe {
+		c.checkResetRecipe()
+	}
 	if c.recipe == nil {
 		return
 	}
@@ -198,6 +211,7 @@ func (c *Converter) Update(ticks uint64, world HexGridWorldInteractor) {
 	}
 
 	if isMaxxed {
+		c.conversionProgress = 0
 		return
 	}
 
@@ -278,14 +292,27 @@ func (c *Converter) setFittingRecipe(itemType ss.ItemType) bool {
 		for _, ingr := range gd.RecipeList[id].Ingredients {
 			if ingr.Type == itemType {
 				c.recipe = &gd.RecipeList[id]
+
 				for i, slot := range c.inputs {
 					slot.Item = nil
 					slot.Active = i < len(c.recipe.Ingredients)
+					if i < len(c.recipe.Ingredients) {
+						slot.FixedItemType = c.recipe.Ingredients[i].Type
+					} else {
+						slot.FixedItemType = ss.ITEM_TYPE_COUNT
+					}
 				}
+
 				for i, slot := range c.outputs {
 					slot.Item = nil
 					slot.Active = i < len(c.recipe.Products)
+					if i < len(c.recipe.Products) {
+						slot.FixedItemType = c.recipe.Products[i].Type
+					} else {
+						slot.FixedItemType = ss.ITEM_TYPE_COUNT
+					}
 				}
+
 				c.conversionProgress = 0
 				return true
 			}
@@ -320,10 +347,12 @@ func (c *Converter) checkResetRecipe() {
 	for _, slot := range c.inputs {
 		slot.Item = nil
 		slot.Active = false
+		slot.FixedItemType = ss.ITEM_TYPE_COUNT
 	}
 	for _, slot := range c.outputs {
 		slot.Item = nil
 		slot.Active = false
+		slot.FixedItemType = ss.ITEM_TYPE_COUNT
 	}
 }
 

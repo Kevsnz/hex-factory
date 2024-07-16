@@ -4,24 +4,25 @@ import (
 	"hextopdown/game/items"
 	"hextopdown/input"
 	"hextopdown/renderer"
+	"hextopdown/settings"
 	"hextopdown/utils"
 )
 
 type ItemSlot struct {
 	ControlBase
-	hover     bool
-	Slot      *items.StorageSlot
-	onTakeAll func(*items.StorageSlot)
+	hover        bool
+	Slot         *items.StorageSlot
+	onTakeOutAll func(*items.StorageSlot)
 }
 
-func NewItemSlot(pos utils.ScreenCoord, size utils.ScreenCoord, slot *items.StorageSlot, onTakeAll func(*items.StorageSlot)) *ItemSlot {
+func NewItemSlot(pos utils.ScreenCoord, size utils.ScreenCoord, slot *items.StorageSlot, onTakeOutAll func(*items.StorageSlot)) *ItemSlot {
 	return &ItemSlot{
 		ControlBase: ControlBase{
 			Pos:  pos,
 			Size: size,
 		},
-		Slot:      slot,
-		onTakeAll: onTakeAll,
+		Slot:         slot,
+		onTakeOutAll: onTakeOutAll,
 	}
 }
 
@@ -42,8 +43,8 @@ func (i *ItemSlot) HandleMouseAction(mbe input.MouseButtonEvent) bool {
 
 	switch mbe.Button {
 	case input.MOUSE_BUTTON_LEFT:
-		if i.onTakeAll != nil {
-			i.onTakeAll(i.Slot)
+		if i.onTakeOutAll != nil {
+			i.onTakeOutAll(i.Slot)
 		}
 	}
 
@@ -55,7 +56,11 @@ func (i *ItemSlot) Draw(r *renderer.GameRenderer, parentPos utils.ScreenCoord) {
 		panic("slot is not initialized")
 	}
 	if i.Slot.Item == nil {
-		r.DrawItemSlot(i.Pos.Add(parentPos), i.Size, i.hover)
+		if i.Slot.FixedItemType != settings.ITEM_TYPE_COUNT {
+			r.DrawItemSlotWithItemShadow(i.Pos.Add(parentPos), i.Size, i.hover, i.Slot.FixedItemType)
+		} else {
+			r.DrawItemSlot(i.Pos.Add(parentPos), i.Size, i.hover)
+		}
 	} else {
 		r.DrawItemSlotWithItem(i.Pos.Add(parentPos), i.Size, i.hover, i.Slot.Item.ItemType, i.Slot.Item.Count)
 	}

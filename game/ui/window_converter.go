@@ -60,7 +60,7 @@ func (w *WindowConverter) refillSlots(inventory items.Storage, inputSlots items.
 			X: float32(i%SLOTS_IN_LINE) * (itemSlotSize.X + itemSlotGap),
 			Y: float32(i/SLOTS_IN_LINE) * (itemSlotSize.Y + itemSlotGap),
 		}
-		is := NewItemSlot(pos, itemSlotSize, slot, nil) // TODO Callback!
+		is := NewItemSlot(pos, itemSlotSize, slot, w.moveStackToInputs)
 		w.inventoryPanel.AddChild(is, CONTROL_ALIGN_TOPLEFT)
 	}
 
@@ -70,7 +70,7 @@ func (w *WindowConverter) refillSlots(inventory items.Storage, inputSlots items.
 			X: float32(i%SLOTS_IN_LINE) * (itemSlotSize.X + itemSlotGap),
 			Y: float32(i/SLOTS_IN_LINE) * (itemSlotSize.Y + itemSlotGap),
 		}
-		is := NewItemSlot(pos, itemSlotSize, slot, nil) // TODO Callback!
+		is := NewItemSlot(pos, itemSlotSize, slot, w.moveStackToInventory)
 		w.converterPanel.AddChild(is, CONTROL_ALIGN_TOPLEFT)
 	}
 	for i, slot := range outputSlots {
@@ -78,7 +78,7 @@ func (w *WindowConverter) refillSlots(inventory items.Storage, inputSlots items.
 			X: float32(i%SLOTS_IN_LINE) * (itemSlotSize.X + itemSlotGap),
 			Y: float32(i/SLOTS_IN_LINE+2) * (itemSlotSize.Y + itemSlotGap),
 		}
-		is := NewItemSlot(pos, itemSlotSize, slot, nil) // TODO Callback!
+		is := NewItemSlot(pos, itemSlotSize, slot, w.moveStackToInventory)
 		w.converterPanel.AddChild(is, CONTROL_ALIGN_TOPLEFT)
 	}
 
@@ -92,4 +92,26 @@ func (w *WindowConverter) refillSlots(inventory items.Storage, inputSlots items.
 	w.size.Y = wndTitleHeight.Y + w.inventoryPanel.Size.Y
 
 	w.pos = utils.ScreenCoord{X: 0.5, Y: 0.5}.PctPosToScreen().Sub(w.size.Div(2))
+}
+
+func (w *WindowConverter) moveStackToInventory(slot *items.StorageSlot) {
+	if slot.Item == nil {
+		return
+	}
+
+	w.inventory.TakeItemStackAnywhere(slot.Item)
+	if slot.Item.Count == 0 {
+		slot.Item = nil
+	}
+}
+
+func (w *WindowConverter) moveStackToInputs(slot *items.StorageSlot) {
+	if slot.Item == nil {
+		return
+	}
+
+	w.converter.TakeItemStackAnywhere(slot.Item)
+	if slot.Item.Count == 0 {
+		slot.Item = nil
+	}
 }

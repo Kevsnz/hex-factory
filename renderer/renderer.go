@@ -336,7 +336,7 @@ func (r *GameRenderer) DrawItemIconWorld(pos utils.WorldCoord, sizeHexes float32
 		H: TEXTURE_ICON_SIZE,
 	}, fRectFromScreen(c.Sub(ss.Div(2)), ss.X, ss.Y))
 }
-func (r *GameRenderer) DrawItemIconScreen(pos utils.ScreenCoord, size float32, itemType ss.ItemType) {
+func (r *GameRenderer) DrawItemIconScreen(pos utils.ScreenCoord, size float32, itemType ss.ItemType, alphaMod uint8) {
 	_, _, w, _, err := r.iconsItems.Query()
 	if err != nil {
 		panic("Failed to query icons items texture")
@@ -348,6 +348,7 @@ func (r *GameRenderer) DrawItemIconScreen(pos utils.ScreenCoord, size float32, i
 		panic("invalid item type")
 	}
 
+	r.iconsItems.SetAlphaMod(alphaMod)
 	r.renderer.CopyF(
 		r.iconsItems,
 		&sdl.Rect{
@@ -830,7 +831,9 @@ func (r *GameRenderer) DrawObjectDetails(
 	y += cs.H / 2
 
 	for _, itemInfo := range items {
-		r.DrawItemIconScreen(utils.ScreenCoord{X: float32(x), Y: float32(y)}, float32(fontHeight*1.5), itemInfo.Type)
+		r.DrawItemIconScreen(
+			utils.ScreenCoord{X: float32(x), Y: float32(y)}, float32(fontHeight*1.5), itemInfo.Type, 255,
+		)
 		r.stringManager.RenderInt(r.renderer, itemInfo.Count, 1, x, y+int32(fontHeight/2))
 		x += int32(fontHeight * 2)
 	}
@@ -882,7 +885,7 @@ func (r *GameRenderer) DrawButtonText(pos utils.ScreenCoord, size utils.ScreenCo
 }
 func (r *GameRenderer) DrawButtonIcon(pos utils.ScreenCoord, size utils.ScreenCoord, item ss.ItemType, hl bool, down bool) {
 	r.DrawButton(pos, size, hl, down)
-	r.DrawItemIconScreen(pos, size.Y, item)
+	r.DrawItemIconScreen(pos, size.Y, item, 255)
 }
 
 func (r *GameRenderer) DrawItemSlot(pos utils.ScreenCoord, size utils.ScreenCoord, hl bool) {
@@ -898,9 +901,13 @@ func (r *GameRenderer) DrawItemSlot(pos utils.ScreenCoord, size utils.ScreenCoor
 	setDrawColor(r.renderer, uiColorsBorder[UI_ELEMENT_ITEM_SLOT])
 	r.renderer.DrawRectF(rect)
 }
+func (r *GameRenderer) DrawItemSlotWithItemShadow(pos utils.ScreenCoord, size utils.ScreenCoord, hl bool, item ss.ItemType) {
+	r.DrawItemSlot(pos, size, hl)
+	r.DrawItemIconScreen(pos, size.Y, item, 127)
+}
 func (r *GameRenderer) DrawItemSlotWithItem(pos utils.ScreenCoord, size utils.ScreenCoord, hl bool, item ss.ItemType, count int) {
 	r.DrawItemSlot(pos, size, hl)
-	r.DrawItemIconScreen(pos, size.Y, item)
+	r.DrawItemIconScreen(pos, size.Y, item, 255)
 
 	cs := CompoundString{}
 	cs.AddInt(count, 1, r.stringManager)
@@ -912,10 +919,6 @@ func setDrawColor(r *sdl.Renderer, color [4]uint8) {
 }
 
 func (r *GameRenderer) DrawGroupBox(pos utils.ScreenCoord, size utils.ScreenCoord, text strings.StringID, padding utils.ScreenCoord) {
-	// rect := fRectFromScreen(pos, size.X, size.Y)
-	// setDrawColor(r.renderer, uiColors[UI_ELEMENT_WINDOW])
-	// r.renderer.FillRectF(rect)
-
 	rect := fRectFromScreen(pos.Add(padding.Div(2)), size.X-padding.X, size.Y-padding.Y)
 	setDrawColor(r.renderer, uiColorsBorder[UI_ELEMENT_WINDOW])
 	r.renderer.DrawRectF(rect)
