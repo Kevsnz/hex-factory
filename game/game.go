@@ -11,11 +11,13 @@ import (
 	"hextopdown/renderer"
 	ss "hextopdown/settings"
 	"hextopdown/utils"
+	"math/rand"
 )
 
 type Game struct {
-	player char.Character
-	ui     *ui.UI
+	masterRNG *rand.Rand
+	player    char.Character
+	ui        *ui.UI
 
 	chunks   map[utils.ChunkCoord]*world.Chunk
 	worldGen *world.WorldGen
@@ -34,13 +36,15 @@ type Game struct {
 	showPreppedUnder bool
 }
 
-func NewGame() *Game {
+func NewGame(seed int64) *Game {
+	mrng := rand.New(rand.NewSource(seed))
 	return &Game{
+		masterRNG:       mrng,
 		player:          char.NewCharacter(utils.WorldCoord{X: 450, Y: 450}),
 		ui:              ui.NewUI(),
 		Running:         true,
 		paused:          false,
-		worldGen:        world.NewWorldGen(),
+		worldGen:        world.NewWorldGen(int64(mrng.Uint64())),
 		chunks:          make(map[utils.ChunkCoord]*world.Chunk),
 		selectedObjType: ss.OBJECT_TYPE_COUNT,
 	}

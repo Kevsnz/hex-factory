@@ -35,7 +35,7 @@ func main() {
 	}
 	defer window.Destroy()
 
-	gameState := game.NewGame()
+	gameState := game.NewGame(1)
 	defer gameState.Destroy()
 
 	r := renderer.NewGameRenderer(window)

@@ -23,7 +23,7 @@ func NewChunk(pos utils.ChunkCoord, wg *WorldGen) *Chunk {
 		objects: make(map[utils.HexCoord]WorldObject),
 		dirty:   true,
 	}
-	wg.GenerateChunkGround(c, pos)
+	wg.GenerateChunk(c, pos)
 
 	return c
 }
