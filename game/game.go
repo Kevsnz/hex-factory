@@ -17,7 +17,8 @@ type Game struct {
 	player char.Character
 	ui     *ui.UI
 
-	chunks map[utils.ChunkCoord]*world.Chunk
+	chunks   map[utils.ChunkCoord]*world.Chunk
+	worldGen *world.WorldGen
 
 	tick     uint64
 	time     uint64 // time of last tick
@@ -39,6 +40,7 @@ func NewGame() *Game {
 		ui:              ui.NewUI(),
 		Running:         true,
 		paused:          false,
+		worldGen:        world.NewWorldGen(),
 		chunks:          make(map[utils.ChunkCoord]*world.Chunk),
 		selectedObjType: ss.OBJECT_TYPE_COUNT,
 	}
@@ -312,7 +314,7 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 			coord := utils.ChunkCoord{X: x, Y: y}
 			ch, ok := g.chunks[coord]
 			if !ok {
-				ch = world.NewChunk(coord)
+				ch = world.NewChunk(coord, g.worldGen)
 				g.chunks[coord] = ch
 			}
 			chunks = append(chunks, ch)
@@ -358,7 +360,11 @@ func (g *Game) Draw(r *renderer.GameRenderer) {
 	} else {
 		r.DrawHexCoords(hex, ss.FONT_SIZE_PCT/3, 1-ss.FONT_SIZE_PCT*3.45)
 		r.DrawHexCoords(utils.HexCoord(hex.GetChunkCoord()), ss.FONT_SIZE_PCT/3, 1-ss.FONT_SIZE_PCT*2.3)
-		r.DrawHexCoords(hex.CoordsWithinChunk(), ss.FONT_SIZE_PCT/3, 1-ss.FONT_SIZE_PCT*1.15)
+
+		resType, amt, ok := g.getChunk(hex).GetResourceTypeAt(hex)
+		if ok {
+			r.DrawResourceAmount(resType, amt, ss.FONT_SIZE_PCT/3, 1-ss.FONT_SIZE_PCT*1.15)
+		}
 	}
 
 	if g.selectedObjType != ss.OBJECT_TYPE_COUNT {
@@ -598,7 +604,8 @@ func (g *Game) GetItemOutputAt(hex utils.HexCoord) (obj objects.ItemOutput, ok b
 
 func (g *Game) GetResourceAt(hex utils.HexCoord) (resType ss.ResourceType, ok bool) {
 	ch := g.getChunk(hex)
-	return ch.GetResourceTypeAt(hex)
+	t, _, ok := ch.GetResourceTypeAt(hex)
+	return t, ok
 }
 
 func (g *Game) ExtractResourceAt(hex utils.HexCoord) ss.ItemType {
@@ -611,7 +618,7 @@ func (g *Game) ExtractResourceAt(hex utils.HexCoord) ss.ItemType {
 func (g *Game) getChunk(hex utils.HexCoord) *world.Chunk {
 	ch, ok := g.chunks[hex.GetChunkCoord()]
 	if !ok {
-		ch = world.NewChunk(hex.GetChunkCoord())
+		ch = world.NewChunk(hex.GetChunkCoord(), g.worldGen)
 		g.chunks[hex.GetChunkCoord()] = ch
 	}
 	return ch

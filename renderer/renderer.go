@@ -360,6 +360,25 @@ func (r *GameRenderer) DrawItemIconScreen(pos utils.ScreenCoord, size float32, i
 		&sdl.FRect{X: pos.X, Y: pos.Y, W: size, H: size},
 	)
 }
+func (r *GameRenderer) DrawResourceIconScreen(pos utils.ScreenCoord, size float32, resType ss.ResourceType, alphaMod uint8) {
+	_, _, w, _, err := r.iconsItems.Query()
+	if err != nil {
+		panic("Failed to query icons items texture")
+	}
+	w /= TEXTURE_ICON_SIZE
+
+	tex := r.ChunkRenderer.resource[resType]
+	if tex == nil {
+		panic("invalid resource type")
+	}
+
+	r.iconsItems.SetAlphaMod(alphaMod)
+	r.renderer.CopyF(
+		tex,
+		nil,
+		&sdl.FRect{X: pos.X, Y: pos.Y, W: size, H: size},
+	)
+}
 
 func (r *GameRenderer) DrawDecal(pos utils.WorldCoord, sizeHexes float32, decal DecalId) {
 	c := pos.ToScreen()
@@ -811,6 +830,15 @@ func (r *GameRenderer) DrawCurrentTool(toolStr strings.StringID, pctX, pctY floa
 	cs.AddString(toolStr, r.stringManager)
 
 	r.stringManager.RenderCompoundString(r.renderer, &cs, x, y, TEXT_ALIGN_RIGHT)
+}
+
+func (r *GameRenderer) DrawResourceAmount(resType ss.ResourceType, amount uint16, pctX, pctY float32) {
+	x, y := int32(math.Round(float64(pctX*RES_X))), int32(math.Round(float64(pctY*RES_Y)))
+
+	r.DrawResourceIconScreen(
+		utils.ScreenCoord{X: float32(x), Y: float32(y - int32(fontHeight/2))}, float32(fontHeight*1.5), resType, 255,
+	)
+	r.stringManager.RenderInt(r.renderer, int(amount), 1, x, y)
 }
 
 func (r *GameRenderer) DrawObjectDetails(

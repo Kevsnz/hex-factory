@@ -17,13 +17,13 @@ type Chunk struct {
 	dirty   bool
 }
 
-func NewChunk(pos utils.ChunkCoord) *Chunk {
+func NewChunk(pos utils.ChunkCoord, wg *WorldGen) *Chunk {
 	c := &Chunk{
 		pos:     pos,
 		objects: make(map[utils.HexCoord]WorldObject),
 		dirty:   true,
 	}
-	generateChunkGround(c)
+	wg.GenerateChunkGround(c, pos)
 
 	return c
 }
@@ -94,10 +94,11 @@ func (c *Chunk) GetWorldObjects() map[utils.HexCoord]WorldObject {
 	return c.objects
 }
 
-func (c *Chunk) GetResourceTypeAt(hex utils.HexCoord) (ss.ResourceType, bool) {
+func (c *Chunk) GetResourceTypeAt(hex utils.HexCoord) (ss.ResourceType, uint16, bool) {
 	pos := hex.CoordsWithinChunk()
 	res := c.groundResTypes[pos.X+pos.Y*ss.CHUNK_SIZE]
-	return res, res != ss.RESOURCE_TYPE_COUNT
+	amt := c.groundResAmounts[pos.X+pos.Y*ss.CHUNK_SIZE]
+	return res, amt, res != ss.RESOURCE_TYPE_COUNT
 }
 
 func (c *Chunk) ExtractResourceAt(hex utils.HexCoord) ss.ItemType {

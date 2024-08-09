@@ -16,3 +16,7 @@ func (cc ChunkCoord) TopLeftWorld() WorldCoord {
 		float64(cc.Y*ss.CHUNK_SIZE)*(ss.HEX_EDGE+ss.HEX_OFFSET) - ss.HEX_OFFSET,
 	}
 }
+
+func (cc ChunkCoord) AddXY(x, y int32) ChunkCoord {
+	return ChunkCoord{X: cc.X + x, Y: cc.Y + y}
+}
