@@ -101,7 +101,7 @@ gameloop:
 		if ih.GetActionState(input.ACTION_ZOOM_OUT) {
 			utils.ZoomViewOut(currentTicks - lastTicks)
 		}
-		gameState.ProcessInputFramed(ih, r)
+		gameState.ProcessInputFramed(ih)
 		if !gameState.Running {
 			break gameloop
 		}

@@ -62,7 +62,7 @@ func (g *Game) SetTime(t uint64) {
 	g.time = t
 }
 
-func (g *Game) ProcessInputFramed(ih *input.InputHandler, r *renderer.GameRenderer) {
+func (g *Game) ProcessInputFramed(ih *input.InputHandler) {
 	for {
 		actionEvent, ok := ih.KeyboardActionsFramed.Pop()
 		if !ok {
